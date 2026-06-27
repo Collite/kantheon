@@ -59,7 +59,7 @@ class ManifestYamlLoaderSpec :
             val cap =
                 ManifestYamlLoader.parseAgent(
                     """
-                    agent_kind: DOMAIN_QA
+                    agent_kind: AREA_QA
                     agent_id: golem-erp
                     """.trimIndent(),
                 )
