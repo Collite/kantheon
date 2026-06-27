@@ -1,0 +1,19 @@
+# Gradle
+build/
+.gradle/
+!.gradle-wrapper.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+*.log
+
+# Hebe data dir (created at runtime)
+~/.hebe/
+
+# Generated files
+generated/

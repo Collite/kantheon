@@ -1,0 +1,14 @@
+capability_id: "charon.move.stage:v1"
+category: "charon"
+version: "1.0.0"
+description: |
+  Stage a source Location INTO a worker session DataFrame (POLARS / METIS),
+  keyed (session_id, df_name). The only way data enters a worker session;
+  cross-engine/cross-session staging supported. Pythia DataFrame composition.
+service_endpoint: "http://charon-mcp.kantheon.svc.cluster.local:7252"
+search_tags: [charon, move, stage, worker, dataframe, polars, metis]
+cost_hints:
+  typical_latency_ms: 300
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 6

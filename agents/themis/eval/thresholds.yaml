@@ -1,0 +1,15 @@
+# Themis routing eval — CI threshold gate (Phase 3 Stage 3.5).
+#
+# Read by run_routing_eval.py (a tiny stdlib reader — flat `key: value` only,
+# no PyYAML dependency). The harness exits non-zero if any *applicable* metric
+# falls below its threshold. A metric is skipped when its denominator is zero
+# (e.g. layer1_hit_rate on a corpus with no non-ambiguous questions yet).
+#
+# These are the plan §3.5 FLOORS, held until Bora's corpus content fill (~30
+# questions/bucket) lands and the first live nightly run baselines the actuals.
+# At that point retune each to `max(floor, actual - 0.05)` (current-minus-5pp),
+# per tasks-p3-s3.5 T5. Layer-1 weight tuning is logged in tuning-2026-06.md.
+thresholds:
+  routing_accuracy: 0.70        # plan floor; retune to max(0.70, A-0.05)
+  layer1_hit_rate: 0.60         # plan §3.5 hard requirement: ≥ 60%
+  intent_kind_accuracy: 0.85    # plan floor; retune to max(0.85, I-0.05)

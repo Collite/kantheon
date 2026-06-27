@@ -1,0 +1,331 @@
+{
+  "agent": {
+    "title": "ERP Agent",
+    "placeholder": "Ask a question...",
+    "send": "Send",
+    "scrollToLatest": "Scroll to latest",
+    "languageLabel": "Select language",
+    "agentSettingsTitle": "Settings"
+  },
+  "tabs": {
+    "emptyTitle": "No tabs open yet",
+    "emptyBody": "Promote tables, charts, or markdown answers here from the chat. Look for the open-in-tab icon on a chat bubble's footer.",
+    "tabPanelsHeader": "Panels",
+    "closeTabAria": "Close {title}"
+  },
+  "chat": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyFailed": "Copy failed",
+    "openInTab": "Open in Tab",
+    "openInTabComing": "Open in Tab — coming in Phase {phase}",
+    "openInTabPlaintext": "Plaintext bubbles cannot be opened in a tab",
+    "openInTabNoEnvelope": "No content to promote yet",
+    "openedInTab": "Opened in tab",
+    "workspaceNotReady": "Workspace not ready",
+    "selectRowPrompt": "Pick a row (1–{count}) by clicking or typing the number",
+    "investigate": {
+      "label": "Investigate",
+      "tooltip": "Escalate this question for deeper analysis (Pythia)"
+    },
+    "pin": {
+      "label": "Pin",
+      "tooltip": "Save this view as a pin (refreshable)",
+      "pinned": "Pinned",
+      "failed": "Pin failed"
+    },
+    "feedback": {
+      "up": "Helpful",
+      "down": "Not helpful",
+      "thanks": "Thanks for the feedback",
+      "failed": "Could not save feedback",
+      "reasonPrompt": "What was off?",
+      "reasons": {
+        "wrong_data": "Wrong data",
+        "wrong_agent": "Wrong agent",
+        "wrong_format": "Wrong format",
+        "too_slow": "Too slow",
+        "other": "Other"
+      }
+    },
+    "reask": {
+      "badge": "Answered by {agent}",
+      "menuTitle": "Re-ask with a different agent",
+      "why": "{why}"
+    },
+    "actionQueued": {
+      "title": "Action queued",
+      "detail": "Waiting for current response to complete before processing."
+    },
+    "chipStrip": {
+      "ariaLabel": "Suggested queries",
+      "chipAriaLabel": "Query: {label}"
+    },
+    "clarification": {
+      "ariaLabel": "Clarification",
+      "other": "Something else…",
+      "more": "More…",
+      "otherPlaceholder": "Custom answer",
+      "submit": "Submit"
+    },
+    "connection": {
+      "status": {
+        "ok": "Connected",
+        "degraded": "Degraded",
+        "disconnected": "Disconnected"
+      },
+      "lastPoll": "Last successful poll: {time}",
+      "restartBannerTitle": "Server was restarted",
+      "restartBannerBody": "Reload the page for the latest state."
+    },
+    "edit": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "placeholder": "Edit your message…"
+    }
+  },
+  "table": {
+    "copyTsv": "Copy as TSV",
+    "downloadCsv": "Download CSV",
+    "showAllColumns": "Show all columns",
+    "hideColumn": "Hide column",
+    "showAsChart": "Show as chart",
+    "filterPlaceholder": "Filter…",
+    "empty": "No rows.",
+    "tableCopied": "Table copied (TSV)",
+    "csvDownloaded": "CSV downloaded",
+    "noDrilldowns": "No drill-downs available",
+    "sumTooltip": "Summarise this column",
+    "sumAria": "Show the sum of {col}",
+    "sumLabel": "Sum:",
+    "statMin": "Min:",
+    "statMax": "Max:",
+    "statAvg": "Avg:",
+    "statEmpty": "Empty cells:",
+    "sumCaption": "Over the {n} rows shown — stats cover only what's visible.",
+    "sumCaptionPartial": "Over the {n} rows loaded here — the full result has {total}.",
+    "v21Toast": {
+      "summary": "Server-side {action} comes in v2.1",
+      "detail": "For now this UI is read-only.",
+      "drilldownSummary": "Drill-downs land in v2.1"
+    }
+  },
+  "detail": {
+    "menuItem": "Show detail",
+    "prefill": "Show me a detail of this",
+    "chip": "Row selected",
+    "chipClearAria": "Clear the selected row"
+  },
+  "chart": {
+    "showAsTable": "Show as table",
+    "copyPng": "Copy as PNG",
+    "downloadCsv": "Download CSV",
+    "stack": "Stack",
+    "stacked": "Stacked",
+    "series": "Series",
+    "noData": "No data to chart.",
+    "typeLine": "Line",
+    "typeBar": "Bar",
+    "typePie": "Pie",
+    "chartCopied": "Chart copied (PNG)",
+    "chartDataUrlCopied": "Chart data URL copied",
+    "imageClipboardUnsupported": "Browser does not support image clipboard.",
+    "noDrilldowns": "No drill-downs available"
+  },
+  "slash": {
+    "clear": "Clear chat history (asks for confirmation).",
+    "new": "Start a new session (new conversation, fresh context).",
+    "refresh": "Refresh services & agent prompts (all, or one: metadata, query-runner, fuzzy-matcher, golem, resolver).",
+    "help": "List available commands inline as a system bubble.",
+    "format": "Hint the next answer's format (table, chart, markdown, text).",
+    "export": "Export the chat history to a file.",
+    "sql": "Dry-run the next question — show the SQL without executing.",
+    "headerCommand": "Command",
+    "headerDescription": "Description",
+    "headerListTitle": "Slash commands",
+    "clearConfirmHeader": "Confirm clear",
+    "clearConfirmMessage": "Clear all chat history?",
+    "clearConfirmAccept": "Clear",
+    "clearConfirmReject": "Cancel",
+    "chatCleared": "Chat cleared",
+    "newSession": "New session started",
+    "newSessionFailed": "Could not start a new session",
+    "refreshAll": "all services",
+    "refreshStarted": "Refreshing {target}…",
+    "refreshDone": "Refresh complete",
+    "refreshDoneTitle": "Refresh — {target}",
+    "refreshPartial": "Refresh finished with errors",
+    "refreshFailed": "Refresh request failed",
+    "refreshUsage": "Usage: /refresh [service]",
+    "refreshUsageDetail": "service ∈ {services} (or omit for all)",
+    "refreshColService": "Service",
+    "refreshColStatus": "Status",
+    "refreshColDetail": "Version / detail",
+    "formatUsage": "Usage: /format <kind>",
+    "formatUsageDetail": "kind ∈ {kinds}",
+    "formatHint": "Next answer: {kind}",
+    "exportUsage": "Usage: /export <md|csv>",
+    "exportNothing": "Nothing to export",
+    "markdownExported": "Markdown exported",
+    "csvExported": "CSV exported",
+    "sqlHint": "Next answer: SQL only (dry run)",
+    "hintTagSql": "Next answer: SQL only",
+    "hintTagFormat": "Next answer: {kind}",
+    "hintCancelAria": "Cancel hint",
+    "reset": "Reset the conversation (server snapshot kept for undo)",
+    "resetDone": "Conversation reset",
+    "resetFailed": "Reset failed",
+    "undone": "Conversation restored",
+    "undoFailed": "Nothing to undo",
+    "sqlUnavailable": "SQL dry-run is not available yet (arrives in Phase 3)"
+  },
+  "errors": {
+    "agentFailed": "Failed to get response from agent.",
+    "unsupportedFormat": "Unsupported format ({kind}) — rendering as plain text."
+  },
+  "nav": {
+    "brand": "AI Agents",
+    "primaryAria": "Primary",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "expandAria": "Expand side navigation",
+    "collapseAria": "Collapse side navigation",
+    "view": "View",
+    "viewAria": "Toggle bottom-row pane visibility",
+    "items": {
+      "agent": "Agent",
+      "agentAria": "Open agent view",
+      "agents": "Agents",
+      "agentsAria": "Agents",
+      "agentsToggleAria": "Toggle agents submenu",
+      "inspector": "MCP Inspector",
+      "inspectorAria": "Open MCP Inspector",
+      "gateway": "LLM Gateway",
+      "gatewayAria": "Open LLM Gateway"
+    },
+    "user": {
+      "loading": "Loading…",
+      "signOut": "Sign Out",
+      "signOutAria": "Sign out"
+    }
+  },
+  "layout": {
+    "reset": "Reset layout",
+    "resetToastSummary": "Layout reset",
+    "resetToastDetail": "Restored default panes, splitters, and side-nav state."
+  },
+  "panes": {
+    "graph": {
+      "title": "Graph"
+    },
+    "artifacts": {
+      "title": "Pins & dashboards"
+    },
+    "inbox": {
+      "title": "Investigations"
+    },
+    "flow": {
+      "title": "Agent Flow",
+      "empty": "Send a message to see the agent flow.",
+      "verbose": "Verbose",
+      "verboseAria": "Toggle verbose payload rendering",
+      "clear": "Clear",
+      "clearAria": "Clear flow transcript",
+      "copyAll": "Copy all",
+      "copyAllAria": "Copy flow transcript to clipboard",
+      "scrollLatestAria": "Scroll to latest entry",
+      "logRegionAria": "Agent flow transcript",
+      "cleared": "Flow cleared",
+      "copied": "Copied",
+      "copiedDetail": "{count} entries copied to clipboard.",
+      "copyFailed": "Copy failed",
+      "copyFailedDetail": "Clipboard access was denied."
+    },
+    "queries": {
+      "title": "Queries",
+      "sourcesAria": "Sources",
+      "refresh": "Refresh",
+      "refreshAria": "Refresh queries",
+      "count": "{count} items ({local} local, {platform} platform)",
+      "loading": "Loading…",
+      "warningsHeading": "Some sources reported warnings.",
+      "errorFetch": "Failed to load metadata",
+      "empty": "No queries available — check that the metadata MCPs are reachable.",
+      "filterPlaceholder": "filter…",
+      "columns": {
+        "name": "Name",
+        "pattern": "Pattern",
+        "description": "Description",
+        "category": "Category",
+        "source": "Source"
+      },
+      "categories": {
+        "pattern": "Pattern",
+        "sql_query": "SQL",
+        "procedure": "Procedure",
+        "entity": "Entity",
+        "table": "Table"
+      },
+      "sources": {
+        "local": "Local",
+        "platform": "Platform",
+        "both": "Both"
+      }
+    }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "new": "New session",
+    "newAria": "Start a new session",
+    "empty": "No sessions yet",
+    "untitled": "New session",
+    "turnCount": "{count} turns",
+    "undoReset": "Undo reset",
+    "undoResetAria": "Restore the conversation you just reset"
+  },
+  "discover": {
+    "title": "What can I ask?",
+    "subtitle": "Pick a topic to get started, or just type your question.",
+    "examplesAria": "Example questions for {domain}"
+  },
+  "inbox": {
+    "title": "Investigations",
+    "empty": "No investigations yet.",
+    "badgeAria": "{running} running, {needsInput} need input",
+    "running": "Running",
+    "needsInput": "Needs input",
+    "open": "Open",
+    "cost": "Cost: {cost}",
+    "status": {
+      "RUNNING": "Running",
+      "NEEDS_INPUT": "Needs your input",
+      "DONE": "Done",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled"
+    },
+    "hypotheses": {
+      "title": "Hypotheses",
+      "empty": "No hypotheses yet.",
+      "confidence": "confidence {value}",
+      "steps": "{count} steps"
+    }
+  },
+  "artifacts": {
+    "title": "Pins & dashboards",
+    "pins": "Pins",
+    "dashboards": "Dashboards",
+    "empty": "No pins yet — use the bookmark on a table or chart answer to pin it.",
+    "refresh": "Refresh",
+    "refreshAll": "Refresh all",
+    "remove": "Delete",
+    "open": "Open",
+    "back": "Back",
+    "refreshedAt": "Updated {at}",
+    "neverRefreshed": "not yet refreshed",
+    "noEnvelope": "Nothing captured",
+    "staleError": "Stale — last refresh failed: {error}",
+    "loadFailed": "Could not load artifacts",
+    "refreshFailed": "Could not refresh pin",
+    "removeFailed": "Could not delete artifact"
+  }
+}

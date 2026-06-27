@@ -1,0 +1,35 @@
+agent_kind: INVESTIGATOR
+agent_id: pythia
+display_name: "Pythia"
+intent_kinds_supported: [RCA, FORECAST, SIMULATION, PROCEDURAL]   # PROCEDURAL only for cross-domain
+description_for_router: |
+  # Bora fills: 1-paragraph description of when to route to Pythia.
+  # Used by Themis Layer 2 LLM prompt as a few-shot anchor.
+  Placeholder description. Pythia is the autonomous analytical investigator —
+  pick when the question crosses domains, requires hypothesis generation, or
+  needs a forecast / simulation / RCA pipeline.
+example_questions:
+  # Bora fills: ~10 positive examples
+  - "Proč klesly tržby Castrolu v soukromých garážích?"
+  - "Forecast our Q3 revenue from the German market"
+  - "What if we drop the Sheron line in Slovakia?"
+counter_examples:
+  # Bora fills: ~5 examples of questions that should NOT route to Pythia
+  - "Které faktury Shell ještě neuhradil?"        # single-domain → Golem-ERP
+  - "Jaké je balení 5lt Sheron Rally?"             # product lookup → Golem-ERP
+capability_refs:
+  # Claude-owned (Stage 5.1 T3): the in-repo capabilities Pythia drives. Charon
+  # data-plane moves + the Metis model surface (decompose.variance stays v1.5).
+  - model.fit.arima:v1
+  - model.fit.prophet:v1
+  - model.project.arima:v1
+  - model.simulate.scenario:v1
+  - move.materialize.seaweed:v1
+  - move.stage.worker_df:v1
+# Claude-owned operational fields (measured/known): the actual Ktor port is 7090
+# (was 7301 — corrected), /health readiness, ~30 s NORMAL run, ~$0.15 typical.
+service_endpoint: "http://pythia.kantheon.svc.cluster.local:7090"
+health_check_path: /health
+typical_latency_ms: 30000
+typical_cost_usd: 0.15
+hitl_default: INTERACTIVE

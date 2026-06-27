@@ -1,0 +1,159 @@
+name: kantheon-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # `packages: read` (+ the GITHUB_TOKEN env below) is PERMANENT: it
+      # authenticates to the `Collite/modeler` GitHub Packages repo for the TTR
+      # toolchain (org.tatrman:ttr-*; Ariadne/Proteus) — a standing third-party
+      # dep, NOT ai-platform coupling (CLAUDE.md §7.3). The ai-platform
+      # cz.dfpartner coupling was fully removed in fork Stage 2.6.
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: install just
+        uses: extractions/setup-just@v2
+
+      - name: init
+        run: just init
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: lint
+        run: just lint-all
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: test
+        run: just test-all
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Component tier (real-dep, Testcontainers; no cluster). The ubuntu-latest
+      # runner ships a working Docker daemon, so Testcontainers boots here.
+      # Runs on every PR + merge (testing architecture §8); the integration tier
+      # stays in the separate nightly workflow.
+      - name: test-component
+        run: just test-component
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Cross-engine schema-fingerprint regen+diff guard (Charon P1 S1.4 T3 /
+      # review-006 T3.4). Regenerates shared/testdata/fingerprints/ with the
+      # SAME pinned pyarrow (18.0.0) the Steropes worker uses, then fails the
+      # build on ANY drift in the checked-in fingerprints.json / canonical.txt.
+      # This locks the Kotlin (Charon Integrity.kt + Brontes) ↔ Python
+      # (Steropes) canonical-fingerprint identity in CI — the guarantee Pythia's
+      # PD-5 drift detection relies on (pythia/contracts.md §3a). A conscious
+      # algorithm change must regenerate the fixtures and commit them.
+      - name: setup python (fingerprint guard)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: cross-engine fingerprint regen+diff guard
+        run: |
+          python -m pip install --quiet pyarrow==18.0.0
+          python3 shared/testdata/fingerprints/generate.py
+          git diff --exit-code -- \
+            shared/testdata/fingerprints/fingerprints.json \
+            shared/testdata/fingerprints/canonical.txt \
+          || { echo "::error::fingerprint drift — regenerate shared/testdata/fingerprints and commit, or fix the encoder"; exit 1; }
+
+      # Themis routing-eval harness self-test (Phase 3 Stage 3.5). Pure-Python,
+      # dependency-free: drives the full load→call→score→gate pipeline over HTTP
+      # against a local fake Themis and asserts the scoring/aggregation/threshold
+      # logic. This is the in-CI guard on the harness; the LIVE routing corpus run
+      # is relocated to the nightly `themis-routing` integration context (same
+      # unit/component-only-in-CI policy that relocated the Stage 2.4 eval gate —
+      # see agents/themis/eval/README.md).
+      - name: routing-eval harness self-test
+        run: just eval-themis-routing-selftest
+
+  # Iris SPA (Vue/TS) — separate node-based job (no JVM/just-resolve deps).
+  # Extracted from ai-platform agents-fe at Iris Phase 2 Stage 2.1 (one-time copy).
+  frontend-iris:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontends/iris/package-lock.json
+
+      # The envelope/v1 + iris/v1 TS bindings (@kantheon/envelope-ts) are
+      # GENERATED, not committed (shared/libs/ts/envelope-ts/.gitignore lists
+      # src/generated/). The FE consumes them as TS source via a path alias, so
+      # they MUST exist before lint/test/build or module resolution fails on a
+      # clean checkout. buf + ts-proto are devDependencies of envelope-ts, so this
+      # is self-contained (no JVM / no `just`). Mirrors `just proto-ts`.
+      - name: generate envelope-ts bindings
+        run: cd shared/libs/ts/envelope-ts && (npm ci || npm install) && npm run gen
+
+      - name: install
+        run: cd frontends/iris && (npm ci || npm install)
+
+      - name: lint
+        run: cd frontends/iris && npx oxlint . && npx eslint .
+
+      - name: test
+        run: cd frontends/iris && npx vitest run
+
+      - name: build
+        run: cd frontends/iris && npm run build
+
+  # Sysifos SPA (Vue/TS) — back-office data-entry workbench (Sysifos arc, Stage
+  # 1.1). Self-contained node job, mirroring frontend-iris. Its sysifos/v1 TS
+  # bindings are GENERATED (frontends/sysifos/.gitignore lists src/generated),
+  # via the FE's own buf + ts-proto devDeps — so `npm run gen` must run before
+  # lint/test/build or module resolution fails on a clean checkout.
+  frontend-sysifos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontends/sysifos/package-lock.json
+
+      - name: install
+        run: cd frontends/sysifos && (npm ci || npm install)
+
+      - name: generate sysifos/v1 bindings + Zod schemas
+        run: cd frontends/sysifos && npm run codegen
+
+      - name: lint
+        run: cd frontends/sysifos && npx oxlint . && npx eslint .
+
+      - name: test
+        run: cd frontends/sysifos && npx vitest run
+
+      - name: build
+        run: cd frontends/sysifos && npm run build

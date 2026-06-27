@@ -1,0 +1,71 @@
+# Default values for themis-mcp. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments override image, telemetry, and the downstream wiring in extraEnv (e.g. a test
+# context points LLM_GATEWAY at WireMock or a real Prometheus).
+
+replicaCount: 1
+
+image:
+  repository: themis-mcp
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# HTTP/MCP port only (StreamableHTTP). The port is baked in the service config; this value is the
+# container port + Service port + probe target. (No gRPC.)
+ports:
+  http: 7901
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+
+# OpenTelemetry. TELEMETRY_ENABLED + OTEL_SERVICE_NAME; RESOLVER_OTEL_PROTOCOL + the OTLP endpoint
+# render only when enabled. Leave disabled for test runs.
+telemetry:
+  enabled: false
+  endpoint: ""
+  serviceName: themis-mcp
+  protocol: grpc
+
+# Secret-backed env (valueFrom.secretKeyRef). HMAC signing key; optional so the pod boots without it.
+secretEnv:
+  - { name: HMAC_SECRET_KEY, secretName: themis-hmac, secretKey: secret, optional: true }
+
+# Downstream constellation wiring. Env-agnostic bare service names (same-namespace DNS) — a deploying
+# env REPLACES this list to retarget (e.g. a test context points LLM_GATEWAY at WireMock).
+extraEnv:
+  - { name: CAPABILITIES_MCP_HOST, value: "capabilities-mcp" }
+  - { name: CAPABILITIES_MCP_PORT, value: "7501" }
+  - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7501" }
+  - { name: NLP_MCP_HOST, value: "kadmos" }
+  - { name: NLP_MCP_PORT, value: "7270" }
+  - { name: NLP_MCP_URL, value: "http://kadmos:7270" }
+  - { name: FUZZY_MCP_HOST, value: "echo" }
+  - { name: FUZZY_MCP_PORT, value: "7265" }
+  - { name: FUZZY_MCP_URL, value: "http://echo:7265" }
+  - { name: LLM_GATEWAY_HOST, value: "prometheus" }
+  - { name: LLM_GATEWAY_PORT, value: "7280" }
+  - { name: LLM_GATEWAY_URL, value: "http://prometheus:7280" }
+
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

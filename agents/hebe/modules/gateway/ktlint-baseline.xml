@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/org/tatrman/kantheon/hebe/gateway/Gateway.kt">
+        <error line="93" column="58" source="standard:chain-method-continuation" />
+    </file>
+</baseline>

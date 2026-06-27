@@ -1,0 +1,15 @@
+capability_id: "library.getSource:v1"
+category: "library"
+version: "1.0.0"
+description: |
+  A source document + its parts (Drilldown target).
+service_endpoint: "http://kallimachos-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - library
+  - source
+  - drilldown
+cost_hints:
+  typical_latency_ms: 50
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 16

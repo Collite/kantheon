@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:Routes.kt$Routes$@Suppress("UNUSED_PARAMETER", "LongMethod") fun register( routing: Route, channel: WebChannel, )</ID>
+    <ID>MaxLineLength:WebChannelTest.kt$WebChannelTest$private fun makeReplyContext(sessionId: String)</ID>
+    <ID>UnusedPrivateMember:RoutesTest.kt$RoutesTest$private fun buildApp(channel: WebChannel)</ID>
+  </CurrentIssues>
+</SmellBaseline>

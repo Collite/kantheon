@@ -1,0 +1,234 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "Prometheus datasource scraping Themis OTLP metrics",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__notes": "Themis routing observability (Phase 3 Stage 3.6, architecture.md §10.2). Metric names match ResolverOtel exactly (themis_routing_layer_total / themis_routing_chosen_total / themis_routing_confidence / themis_intent_kind_total / themis_intent_kind_llm_fallback_total / themis_multi_question_detected_total / themis_refusal_total). NOTE: if the OTLP→Prometheus exporter appends OTel unit suffixes (e.g. *_decisions_total), adjust the metric names in the panel targets accordingly. The two themis_capabilities_cache_* panels in §10.2 are intentionally absent — those metrics await a CapabilitiesReadClient shared-lib hook.",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Routing layer hit distribution (rate)",
+      "description": "routeToAgent decisions per second, split by cascade layer (0 hint / 1 rules / 2 LLM / 3 user-pick).",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "fieldConfig": {
+        "defaults": { "custom": { "drawStyle": "line", "stacking": { "mode": "normal" }, "fillOpacity": 30 }, "unit": "reqps" },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "lastNotNull"] }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum by (layer) (rate(themis_routing_layer_total[$__rate_interval]))",
+          "legendFormat": "L{{layer}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Layer-1 hit-rate",
+      "description": "Share of routing decisions resolved at Layer 1 (deterministic rule scoring). The plan §3.5 gate is ≥ 60%.",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
+      "id": 2,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 0.5 },
+            { "color": "green", "value": 0.6 }
+          ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum(rate(themis_routing_layer_total{layer=\"1\"}[$__rate_interval])) / clamp_min(sum(rate(themis_routing_layer_total[$__rate_interval])), 1e-9)",
+          "legendFormat": "Layer-1 hit-rate",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Routing confidence (p50 / p90)",
+      "description": "Quantiles of themis_routing_confidence (percent). OTel histogram → *_bucket series.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "id": 3,
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(themis_routing_confidence_bucket[$__rate_interval])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "histogram_quantile(0.9, sum by (le) (rate(themis_routing_confidence_bucket[$__rate_interval])))",
+          "legendFormat": "p90",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Chosen-agent distribution",
+      "description": "Where routeToAgent sent the turn, by agent_id.",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 4,
+      "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }, "pieType": "donut", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum by (agent_id) (rate(themis_routing_chosen_total[$__rate_interval]))",
+          "legendFormat": "{{agent_id}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Intent-kind distribution",
+      "description": "classifyIntentKind results by kind (PROCEDURAL / RCA / FORECAST / SIMULATION).",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 5,
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" }, "fillOpacity": 60 }, "unit": "reqps" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean"] }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum by (kind) (rate(themis_intent_kind_total[$__rate_interval]))",
+          "legendFormat": "{{kind}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Intent-kind LLM fallback rate",
+      "description": "Share of classifyIntentKind calls that needed the CHEAP-tier LLM tie-break (rules tied). High = noisy rules.",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "id": 6,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 0.25 },
+            { "color": "red", "value": 0.5 }
+          ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum(rate(themis_intent_kind_llm_fallback_total[$__rate_interval])) / clamp_min(sum(rate(themis_intent_kind_total[$__rate_interval])), 1e-9)",
+          "legendFormat": "LLM fallback rate",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Multi-question detections",
+      "description": "Turns where detectMultiQuestion fired (SPLIT) — Iris decomposes these into N turns.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+      "id": 7,
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "line", "fillOpacity": 20 }, "unit": "reqps" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "rate(themis_multi_question_detected_total[$__rate_interval])",
+          "legendFormat": "multi-question /s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "title": "Refusal breakdown (by gap kind)",
+      "description": "STRICT-mode RefusalWithGaps emissions, split by GapKind (incl. NO_ENTITLED_AGENT).",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "id": 8,
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" }, "fillOpacity": 70 }, "unit": "reqps" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum"] }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "expr": "sum by (gap_kind) (rate(themis_refusal_total[$__rate_interval]))",
+          "legendFormat": "{{gap_kind}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["themis", "routing", "kantheon"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "label": "Datasource",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Themis — Routing",
+  "uid": "themis-routing",
+  "version": 1,
+  "weekStart": ""
+}

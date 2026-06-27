@@ -1,0 +1,87 @@
+{
+    "categories": [
+        {
+            "id": "platform-data",
+            "name": "Platform - Data",
+            "services": [
+                { "id": "data-1", "name": "Seaweed", "tech": "seaweed" },
+                { "id": "data-2", "name": "Kantheon PostgreSQL", "tech": "kantheon-postgres" },
+                { "id": "data-3", "name": "Keycloak PostgreSQL", "tech": "keycloak-postgres" },
+                { "id": "data-4", "name": "Redis", "tech": "redis" },
+                { "id": "data-5", "name": "Opensearch", "tech": "opensearch" },
+                { "id": "data-6", "name": "Qdrant", "tech": "qdrant" },
+                { "id": "data-7", "name": "neo4j", "tech": "neo4j" }
+            ]
+        },
+        {
+            "id": "platform-infra",
+            "name": "Platform - Infra",
+            "services": [
+                { "id": "infra-1", "name": "Keycloak", "tech": "keycloak" },
+                { "id": "infra-2", "name": "Open Policy Agent", "tech": "opa" },
+                { "id": "infra-3", "name": "Sealed Secrets", "tech": "sealed-secrets" },
+                { "id": "infra-4", "name": "Envoy Gateway", "tech": "envoy-gateway" },
+                { "id": "infra-5", "name": "Grafana", "tech": "grafana" },
+                { "id": "infra-6", "name": "Loki", "tech": "loki" },
+                { "id": "infra-7", "name": "Prometheus", "tech": "prometheus" },
+                { "id": "infra-8", "name": "Tempo", "tech": "tempo" },
+                { "id": "infra-9", "name": "NATS", "tech": "nats" }
+            ]
+        },
+        {
+            "id": "kantheon-agents",
+            "name": "Kantheon - Agents",
+            "services": [
+                { "id": "agent-1", "name": "Iris BFF", "tech": "iris-bff" },
+                { "id": "agent-2", "name": "Themis", "tech": "themis" },
+                { "id": "agent-3", "name": "Golem", "tech": "golem" }
+            ]
+        },
+        {
+            "id": "kantheon-services",
+            "name": "Kantheon - Platform Services",
+            "services": [
+                { "id": "svc-1", "name": "Ariadne", "tech": "ariadne" },
+                { "id": "svc-2", "name": "Theseus", "tech": "theseus" },
+                { "id": "svc-3", "name": "Echo", "tech": "echo" },
+                { "id": "svc-4", "name": "Kadmos", "tech": "kadmos" },
+                { "id": "svc-5", "name": "Proteus", "tech": "proteus" },
+                { "id": "svc-6", "name": "Prometheus (LLM Gateway)", "tech": "prometheus-gateway" },
+                { "id": "svc-7", "name": "Argos", "tech": "argos" },
+                { "id": "svc-8", "name": "Kyklop", "tech": "kyklop" },
+                { "id": "svc-9", "name": "Charon", "tech": "charon" },
+                { "id": "svc-10", "name": "Metis", "tech": "metis" }
+            ]
+        },
+        {
+            "id": "kantheon-workers",
+            "name": "Kantheon - Workers",
+            "services": [
+                { "id": "wrk-1", "name": "Brontes (MSSQL)", "tech": "brontes" },
+                { "id": "wrk-2", "name": "Steropes (Polars)", "tech": "steropes" },
+                { "id": "wrk-3", "name": "Arges (Postgres)", "tech": "arges" }
+            ]
+        },
+        {
+            "id": "kantheon-tools",
+            "name": "Kantheon - MCP Tools",
+            "services": [
+                { "id": "mcp-1", "name": "Capabilities MCP", "tech": "capabilities-mcp" },
+                { "id": "mcp-2", "name": "Ariadne MCP", "tech": "ariadne-mcp" },
+                { "id": "mcp-3", "name": "Theseus MCP", "tech": "theseus-mcp" },
+                { "id": "mcp-4", "name": "Echo MCP", "tech": "echo-mcp" },
+                { "id": "mcp-5", "name": "Kadmos MCP", "tech": "kadmos-mcp" },
+                { "id": "mcp-6", "name": "Metis MCP", "tech": "metis-mcp" },
+                { "id": "mcp-7", "name": "Charon MCP", "tech": "charon-mcp" }
+            ]
+        },
+        {
+            "id": "kantheon-technical",
+            "name": "Kantheon - Technical",
+            "services": [
+                { "id": "tech-1", "name": "whois", "tech": "whois" },
+                { "id": "tech-2", "name": "backstage", "tech": "backstage" }
+            ]
+        }
+    ]
+}

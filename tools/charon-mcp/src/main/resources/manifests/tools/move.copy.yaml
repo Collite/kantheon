@@ -1,0 +1,13 @@
+capability_id: "charon.move.copy:v1"
+category: "charon"
+version: "1.0.0"
+description: |
+  Copy a source Location to any legal target (the generic move verb; explicit
+  cross-engine intent). Returns the schema fingerprint + row/byte counts.
+service_endpoint: "http://charon-mcp.kantheon.svc.cluster.local:7252"
+search_tags: [charon, move, copy, arrow, cross-engine]
+cost_hints:
+  typical_latency_ms: 250
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 8

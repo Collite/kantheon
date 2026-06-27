@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kantheon
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - init-sql-configmap.yaml
+  - init-job.yaml
+
+# Local-only SA password. This is disposable local-infra; the secret never
+# leaves the dev cluster. Production MSSQL credentials arrive via sealed
+# secrets in the named-connection idiom (Brontes never carries them in-repo).
+secretGenerator:
+  - name: mssql-sa-secret
+    literals:
+      - SA_PASSWORD=Local_Dev_Passw0rd!
+    options:
+      disableNameSuffixHash: true

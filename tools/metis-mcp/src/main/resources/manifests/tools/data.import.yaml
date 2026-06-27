@@ -1,0 +1,19 @@
+capability_id: "metis.data.import:v1"
+category: "metis"
+version: "1.0.0"
+description: |
+  Import a DataFrame into the Metis session workspace from base64-encoded
+  Arrow IPC bytes. The DataFrame is keyed by (sessionId, dfName) and used as
+  input for subsequent Fit calls.
+service_endpoint: "http://metis-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - metis
+  - data
+  - import
+  - arrow
+  - workspace
+cost_hints:
+  typical_latency_ms: 150
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 4

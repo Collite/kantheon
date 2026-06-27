@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/org/tatrman/kantheon/hebe/config/SecretsBackends.kt">
+        <error line="52" column="17" source="standard:chain-method-continuation" />
+        <error line="59" column="17" source="standard:chain-method-continuation" />
+    </file>
+    <file name="src/test/kotlin/org/tatrman/kantheon/hebe/config/SecretsBackendsSpec.kt">
+        <error line="15" column="29" source="standard:class-signature" />
+    </file>
+</baseline>

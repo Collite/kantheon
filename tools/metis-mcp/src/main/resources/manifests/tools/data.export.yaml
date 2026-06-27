@@ -1,0 +1,19 @@
+capability_id: "metis.data.export:v1"
+category: "metis"
+version: "1.0.0"
+description: |
+  Export a DataFrame from the Metis session workspace as base64-encoded
+  Arrow IPC bytes. Used to retrieve forecast or intermediate results for
+  further processing.
+service_endpoint: "http://metis-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - metis
+  - data
+  - export
+  - arrow
+  - workspace
+cost_hints:
+  typical_latency_ms: 120
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 4

@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongParameterList:AxesResolutionSpec.kt$AxesResolutionSpec$( profile: String? = null, envProfile: String? = null, overrides: Map&lt;String, String&gt; = emptyMap(), envAxes: Map&lt;String, String&gt; = emptyMap(), instanceId: String? = null, envInstanceId: String? = null, )</ID>
+    <ID>MaxLineLength:AxesResolutionSpec.kt$AxesResolutionSpec$ProfileResolver.resolve(raw(profile = "k8s", overrides = mapOf("receipts.backend" to "file"), instanceId = "dev"))</ID>
+    <ID>MaxLineLength:AxesResolutionSpec.kt$AxesResolutionSpec$ProfileResolver.resolve(raw(profile = "k8s", overrides = mapOf("workspace.backend" to "files"), instanceId = "dev"))</ID>
+    <ID>MaxLineLength:AxesResolutionSpec.kt$AxesResolutionSpec$val a = ProfileResolver.resolve(raw(profile = "k8s", overrides = mapOf("tools.posture" to "full"), instanceId = "dev"))</ID>
+    <ID>MaxLineLength:ProfileResolver.kt$ProfileResolver$"postgres (got workspace=${axes.workspace.backend.token}, receipts=${axes.receipts.backend.token})"</ID>
+    <ID>MaxLineLength:ProfileResolver.kt$ProfileResolver$"unknown profile '$profileToken' — expected one of ${Profile.entries.joinToString(", ") { it.token }}"</ID>
+    <ID>MaxLineLength:ProfileResolver.kt$ProfileResolver$if</ID>
+    <ID>MaxLineLength:SecretRef.kt$SecretRef$"unknown secret-ref scheme '$scheme' in '$ref' — expected keychain:, secret:, file:, env:, or a bare key"</ID>
+  </CurrentIssues>
+</SmellBaseline>

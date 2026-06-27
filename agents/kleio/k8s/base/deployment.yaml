@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: kleio, namespace: kantheon, labels: { app: kleio } }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: kleio } }
+  template:
+    metadata: { labels: { app: kleio } }
+    spec:
+      containers:
+        - name: kleio
+          image: kleio:dev
+          ports: [{ name: http, containerPort: 7270 }]
+          env:
+            - { name: KLEIO_PORT, value: "7270" }
+            - { name: KLEIO_DB_URL, value: "jdbc:postgresql://kantheon-pg:5432/kleio" }
+            - { name: KLEIO_KALLIMACHOS_MCP_HOST, value: "kallimachos-mcp" }
+            - { name: KLEIO_KALLIMACHOS_MCP_PORT, value: "7262" }
+            - { name: KLEIO_PROMETHEUS_HOST, value: "prometheus" }
+          readinessProbe: { httpGet: { path: /ready, port: 7270 }, initialDelaySeconds: 2, periodSeconds: 3, failureThreshold: 20 }
+          resources: { requests: { memory: 384Mi, cpu: 150m }, limits: { memory: 768Mi, cpu: 750m } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: kleio, namespace: kantheon, labels: { app: kleio } }
+spec:
+  selector: { app: kleio }
+  ports: [{ name: http, port: 7270, targetPort: 7270 }]

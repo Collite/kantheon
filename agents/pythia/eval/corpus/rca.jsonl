@@ -1,0 +1,2 @@
+# Pythia eval corpus — RCA bucket (contracts §8).
+{"id":"rca-001","question":"Proč je naše tržba YoY nižší pro kanál Private?","locale":"cs","depth_budget":"NORMAL","fixture_llm_script":"scripts/rca-001.yaml","expected":{"intent_kind":"RCA","plan_valid":true,"min_hypotheses":1,"terminal_status":"DONE","stop_reason_in":["STOP_GOAL_REACHED","STOP_HARD_CAP","STOP_PLAN_EXHAUSTED"],"budget_max_usd":2.0}}

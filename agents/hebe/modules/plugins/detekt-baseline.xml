@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:LifecycleTest.kt$LifecycleTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:LifecycleTest.kt$LifecycleTest.&lt;no name provided&gt;.&lt;no name provided&gt;${}</ID>
+    <ID>MaxLineLength:HebePluginManager.kt$HebePluginClassLoader$if</ID>
+  </CurrentIssues>
+</SmellBaseline>

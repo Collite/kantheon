@@ -1,0 +1,19 @@
+capability_id: "midas.position.valuation:v1"
+category: "midas"
+version: "1.0.0"
+description: |
+  Net positions (quantity per holding) for a portfolio, read from the
+  mv_position_current materialized view. Market value / total value are
+  computed by the calc module (Stage 3.3); v1 returns live quantities.
+service_endpoint: "http://midas-core:7311"
+search_tags:
+  - position
+  - valuation
+  - holdings
+  - market_value
+  - nav
+cost_hints:
+  typical_latency_ms: 50
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

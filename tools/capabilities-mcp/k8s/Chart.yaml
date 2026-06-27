@@ -1,0 +1,11 @@
+apiVersion: v2
+name: capabilities-mcp
+description: |
+  The Kantheon capabilities-mcp service — an env-agnostic Helm chart. Holds no cluster
+  knowledge: image, replicas, resources, telemetry endpoint and extra env are all values.
+  Per-environment values live in the deploying GitOps repo (Olymp), wired via ArgoCD
+  multi-source (D3').
+type: application
+# Chart version: the packaging. appVersion tracks the default image tag.
+version: 0.1.0
+appVersion: "dev"

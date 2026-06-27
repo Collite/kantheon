@@ -1,0 +1,27 @@
+# sysifos FE codegen (Stage 1.1, T2).
+#
+# Drives ts-proto via buf (self-contained — no system protoc; the Gradle
+# protobuf plugin owns the Kotlin/Python protoc). Scoped to sysifos/v1;
+# `--include-imports` (set in the `gen` npm script) pulls its transitive imports
+# — midas/v1 (PortfolioType, AssetKind, TransactionKind, Money, ReconcileStatus),
+# envelope/v1 (streamed Blocks), and common/v1 (ResponseMessage) — into the
+# bundle, so the FE has every type it needs without a second package.
+#
+# snakeToCamel=keys mirrors envelope-ts: idiomatic camelCase TS keys (draftId)
+# WITH snake_case JSON on the wire (fromJSON reads draft_id, toJSON emits it) —
+# the canonical-proto-JSON setting the BFF speaks.
+version: v2
+clean: true
+plugins:
+  - local: ./node_modules/.bin/protoc-gen-ts_proto
+    out: src/generated
+    opt:
+      - esModuleInterop=true
+      - snakeToCamel=keys
+      - outputJsonMethods=true
+      - useOptionals=messages
+      - forceLong=number
+      - outputServices=false
+      - useExactTypes=false
+      # JSON-only wire (REST + SSE). Drops the binary encode/decode runtime dep.
+      - outputEncodeMethods=false

@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:AgentFactory.kt$AgentFactory.&lt;no name provided&gt;${}</ID>
+    <ID>LongMethod:AgentFactory.kt$AgentFactory$fun build( config: HebeConfig, secretStore: SecretStoreProvider, workspaceRoot: Path, observer: Observer, log: Logger, // P2 Stage 2.2 — the resolved axis model selects the LLM target // (`llm.source`). Defaults to the `local` preset so existing callers / // tests are unaffected (BYOK). axes: org.tatrman.kantheon.hebe.config.Axes = org.tatrman.kantheon.hebe.config.ProfileResolver.resolve( org.tatrman.kantheon.hebe.config.RawAxisConfig(), ), ): AgentComponents</ID>
+    <ID>LoopWithTooManyJumpStatements:Main.kt$OnboardCommand$while</ID>
+    <ID>MagicNumber:Checks.kt$200</ID>
+    <ID>MagicNumber:Checks.kt$299</ID>
+    <ID>MagicNumber:Checks.kt$5000</ID>
+    <ID>MagicNumber:Shutdown.kt$Shutdown$1000</ID>
+    <ID>MagicNumber:Steps.kt$200</ID>
+    <ID>MagicNumber:Steps.kt$299</ID>
+    <ID>MagicNumber:Steps.kt$5_000</ID>
+    <ID>MatchingDeclarationName:Steps.kt$OnboardAnswers</ID>
+    <ID>MaxLineLength:AgentFactory.kt$AgentFactory.&lt;no name provided&gt;$override fun secret(name: String): String?</ID>
+    <ID>MaxLineLength:Checks.kt$llmKey == null -&gt; CheckResult("Keychain", CheckStatus.Fail, "LLM API key not stored", hint = "Run 'hebe onboard'")</ID>
+    <ID>MaxLineLength:Checks.kt$statement.executeQuery("SELECT COUNT(*) FROM flyway_schema_history WHERE success = 1")</ID>
+    <ID>MaxLineLength:Checks.kt$webPassword == null -&gt; CheckResult("Keychain", CheckStatus.Warn, "Web password not stored", hint = "Run 'hebe onboard'")</ID>
+    <ID>MaxLineLength:GatewayChecks.kt$GatewayChecks$CheckResult("LLM Gateway", CheckStatus.Fail, "gateway unreachable", hint = "check [llm].base_url")</ID>
+    <ID>MaxLineLength:GatewayChecksTest.kt$GatewayChecksTest$val modelSpec = AxisAwareDoctor.planChecks(axes("server", "ops"), specs).first { it.name == "Gateway Model" }</ID>
+    <ID>MaxLineLength:GatewayChecksTest.kt$GatewayChecksTest$val reachSpec = AxisAwareDoctor.planChecks(axes("personal", "bora"), specs).first { it.name == "LLM Gateway" }</ID>
+    <ID>MaxLineLength:KeycloakChecks.kt$KeycloakChecks$CheckResult("Keycloak", CheckStatus.Fail, "realm unreachable", hint = "check [security].keycloak_url")</ID>
+    <ID>MaxLineLength:KeycloakChecks.kt$KeycloakChecks$CheckResult("OBO Mint", CheckStatus.Fail, "could not mint OBO token", hint = "check bound_user + client creds")</ID>
+    <ID>MaxLineLength:KeycloakChecksTest.kt$KeycloakChecksTest$val onPersonal = AxisAwareDoctor.planChecks(axes("personal", "bora"), specs()).first { it.name == "Keycloak" }</ID>
+    <ID>MaxLineLength:KeycloakChecksTest.kt$KeycloakChecksTest$val spec = AxisAwareDoctor.planChecks(axes("local"), specs(listOf("keychain:llm"))).first { it.name == "Secrets" }</ID>
+    <ID>MaxLineLength:OtelChecks.kt$OtelChecks$CheckResult("OTel", CheckStatus.Fail, "OTLP endpoint unreachable", hint = "check [otel].otlp_endpoint")</ID>
+    <ID>MaxLineLength:ServiceManager.kt$MacOsLaunchdService$if ("org.tatrman.kantheon.hebe.agent" in out &amp;&amp; "\"PID\"" in out) ServiceStatus.Running else ServiceStatus.Stopped</ID>
+    <ID>NestedBlockDepth:Checks.kt$private fun checkDatabase(workspaceRoot: Path): CheckResult</ID>
+    <ID>NestedBlockDepth:Main.kt$DoctorCommand$override fun run()</ID>
+    <ID>NestedBlockDepth:Main.kt$OnboardCommand$@Suppress("LongMethod", "ComplexMethod") override fun run()</ID>
+    <ID>TooGenericExceptionCaught:Checks.kt$e: Exception</ID>
+    <ID>UnusedParameter:Checks.kt$observer: Observer</ID>
+    <ID>UnusedParameter:Checks.kt$secretStore: SecretStoreProvider</ID>
+  </CurrentIssues>
+</SmellBaseline>

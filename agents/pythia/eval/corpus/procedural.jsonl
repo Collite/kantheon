@@ -1,0 +1,4 @@
+# Pythia eval corpus — PROCEDURAL bucket (contracts §8). Scripted-LLM fixtures make
+# verdict accuracy deterministic in CI. Bora reviews question selection (~15/bucket);
+# Claude writes the fixture_llm_script + expected blocks. '#' lines are skipped.
+{"id":"procedural-001","question":"Customers who returned Nescafe last year whose Maggi revenue dropped 2 quarters.","locale":"en","depth_budget":"NORMAL","fixture_llm_script":"scripts/procedural-001.yaml","expected":{"intent_kind":"PROCEDURAL","plan_valid":true,"min_hypotheses":1,"terminal_status":"DONE","stop_reason_in":["STOP_GOAL_REACHED","STOP_PLAN_EXHAUSTED"],"budget_max_usd":2.0}}

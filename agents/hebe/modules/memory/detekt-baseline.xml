@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:Db.kt$VecLoadingDataSource$System.err.println("Warning: failed to load sqlite-vec on connection: ${e.message}. Vector search disabled.")</ID>
+  </CurrentIssues>
+</SmellBaseline>

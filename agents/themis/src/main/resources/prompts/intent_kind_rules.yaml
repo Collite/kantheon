@@ -1,0 +1,30 @@
+# Themis intent-classification rules (Phase 3 Stage 3.2).
+#
+# Living config: classifyIntentKind matches these triggers against the parsed
+# question's token lemmas (and raw text, to catch base/inflected forms) before
+# falling back to a cheap LLM call on ties. Czech/English coverage grows
+# iteratively from eval-corpus disagreements (Stage 3.5). Schema: contracts.md
+# §8.2. Triggers are matched as contiguous word sequences over lemmas/text.
+rules:
+  - intent: RCA
+    triggers:
+      cs: ["proč", "co způsobilo", "čím to"]
+      en: ["why", "what caused", "root cause"]
+    operates_on: lemmas
+  - intent: FORECAST
+    triggers:
+      cs: ["predikce", "prognóza", "očekávat", "predikovat", "předpověď"]
+      en: ["forecast", "predict", "projection", "expect"]
+    operates_on: lemmas
+    extra_signals:
+      - future_tense_temporal_reference
+      - explicit_future_date
+  - intent: SIMULATION
+    triggers:
+      cs: ["co kdyby", "kdyby", "simulace", "scénář"]
+      en: ["what if", "simulate", "scenario"]
+    operates_on: lemmas
+    extra_signals:
+      - hypothetical_conditional
+  - intent: PROCEDURAL
+    is_default: true

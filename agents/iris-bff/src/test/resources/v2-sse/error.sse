@@ -1,0 +1,11 @@
+: ready
+
+event: node_start
+data: {"node":"execute"}
+
+event: node_done
+data: {"node":"execute"}
+
+event: error
+data: {"code":"STREAM_ERROR","message":"query-mcp deadline exceeded"}
+

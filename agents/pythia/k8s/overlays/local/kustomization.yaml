@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kantheon
+
+resources:
+  - ../../base
+
+patches:
+  - target:
+      kind: Deployment
+      name: pythia
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+      # Local cluster has no Alloy/Tempo endpoint — disable OTel export so the pod
+      # doesn't spam connection errors on startup. Re-enable once observability is up.
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: PYTHIA_HTTP_PORT
+            value: "7090"
+          - name: PYTHIA_DB_ENABLED
+            value: "true"
+          - name: PYTHIA_DB_HOST
+            value: "kantheon-postgres"
+          - name: PYTHIA_DB_NAME
+            value: "pythia"
+          - name: PYTHIA_NATS_URL
+            value: "nats://nats:4222"
+          - name: OTEL_SERVICE_NAME
+            value: pythia
+          - name: OTEL_ENABLED_PYTHIA
+            value: "false"

@@ -1,0 +1,16 @@
+capability_id: "library.findSimilar:v1"
+category: "library"
+version: "1.0.0"
+description: |
+  Vector recall — chunks similar to a query within a mart.
+service_endpoint: "http://kallimachos-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - library
+  - similar
+  - vector
+  - documents
+cost_hints:
+  typical_latency_ms: 200
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 16

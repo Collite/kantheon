@@ -1,0 +1,30 @@
+agent_kind: AREA_QA
+agent_id: golem-erp-test
+display_name: "Golem-ERP (test)"
+intent_kinds_supported: [PROCEDURAL]
+description_for_router: "Test ERP Q&A manifest."
+example_questions:
+  - "Které faktury Shell ještě neuhradil?"
+counter_examples:
+  - "Proč klesly tržby Castrolu?"
+capability_refs:
+  - theseus.query:v1
+service_endpoint: "http://golem-erp.kantheon.svc.cluster.local:7401"
+health_check_path: /health
+typical_latency_ms: 5000
+typical_cost_usd: 0.02
+hitl_default: INTERACTIVE
+area_name: ERP
+area_entities:
+  - customer
+  - invoice
+preferred_queries:
+  - listUnpaidInvoices
+preferred_capabilities:
+  - theseus.query:v1
+style_addendum: "Czech responses default to formal."
+locale_defaults:
+  - locale: cs-CZ
+    greeting: "Dobrý den, jak vám mohu pomoci?"
+    date_format: "dd.MM.yyyy"
+    currency: "CZK"

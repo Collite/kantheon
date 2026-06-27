@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pythia
+  namespace: kantheon
+  labels:
+    app: pythia
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pythia
+  template:
+    metadata:
+      labels:
+        app: pythia
+    spec:
+      containers:
+        - name: pythia
+          image: pythia:dev
+          ports:
+            - name: http
+              containerPort: 7090
+          env:
+            - name: PYTHIA_HTTP_PORT
+              value: "7090"
+            # Per-pod Postgres (kantheon-architecture §7.1). Credentials come from
+            # the pythia-db-credentials sealed secret (fabric-infra); the empty
+            # defaults select the in-cluster kantheon-postgres.
+            - name: PYTHIA_DB_ENABLED
+              value: "true"
+            - name: PYTHIA_DB_HOST
+              value: "kantheon-postgres"
+            - name: PYTHIA_DB_NAME
+              value: "pythia"
+            # NATS JetStream — live event stream + lifecycle subject. Unreachable
+            # → degrade-to-PG-log-only (architecture §7); events are never lost.
+            - name: PYTHIA_NATS_URL
+              value: "nats://nats:4222"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: pythia
+            - name: OTEL_ENABLED_PYTHIA
+              value: "true"
+          envFrom:
+            - secretRef:
+                name: pythia-db-credentials
+                optional: true
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7090
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pythia
+  namespace: kantheon
+  labels:
+    app: pythia
+spec:
+  selector:
+    app: pythia
+  ports:
+    - name: http
+      port: 7090
+      targetPort: 7090

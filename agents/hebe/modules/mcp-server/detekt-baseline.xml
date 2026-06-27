@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:McpDispatcherFactory.kt$McpDispatcherFactory.NoopMemoryStore${}</ID>
+    <ID>EmptyFunctionBlock:McpDispatcherFactory.kt$McpDispatcherFactory.NoopObserver${}</ID>
+    <ID>EmptyFunctionBlock:McpDispatcherFactory.kt$McpDispatcherFactory.NoopSpan${}</ID>
+    <ID>MaxLineLength:McpDispatcherFactory.kt$McpDispatcherFactory.NoopMemoryStore$override suspend fun snapshot(): org.tatrman.kantheon.hebe.api.MemorySnapshot</ID>
+  </CurrentIssues>
+</SmellBaseline>

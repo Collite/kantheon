@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: themis-mcp
+  namespace: kantheon
+  labels:
+    app: themis-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: themis-mcp
+  template:
+    metadata:
+      labels:
+        app: themis-mcp
+    spec:
+      containers:
+        - name: themis-mcp
+          image: themis-mcp:dev
+          ports:
+            - containerPort: 7901
+          env:
+            - name: RESOLVER_OTEL_PROTOCOL
+              value: grpc
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: themis-mcp
+            - name: TELEMETRY_ENABLED
+              value: "true"
+            # capabilities-mcp registry — routeToAgent reads it (Stage 3.3). The
+            # *_HOST/*_PORT pair feeds the HOCON themis.capabilities block; *_URL
+            # stays as an operator-facing alias.
+            - name: CAPABILITIES_MCP_HOST
+              value: capabilities-mcp.kantheon.svc.cluster.local
+            - name: CAPABILITIES_MCP_PORT
+              value: "7501"
+            - name: CAPABILITIES_MCP_URL
+              value: http://capabilities-mcp.kantheon.svc.cluster.local:7501
+            # Forked-stack service endpoints — *_HOST / *_PORT pairs feed HOCON
+            # ${?VAR} substitutions in application.conf so the K8s overlay can
+            # retarget without rebuilding the image. The *_URL aliases stay as
+            # documentation for tools/operators that don't speak HOCON.
+            # NLP_*/FUZZY_* var names kept for the stable HOCON contract; the
+            # clients call the engine REST APIs directly (Kadmos /v1/analyze on
+            # 7270, Echo /match on 7265), not the MCP wrappers.
+            - name: NLP_MCP_HOST
+              value: kadmos.kantheon.svc.cluster.local
+            - name: NLP_MCP_PORT
+              value: "7270"
+            - name: NLP_MCP_URL
+              value: http://kadmos.kantheon.svc.cluster.local:7270
+            - name: FUZZY_MCP_HOST
+              value: echo.kantheon.svc.cluster.local
+            - name: FUZZY_MCP_PORT
+              value: "7265"
+            - name: FUZZY_MCP_URL
+              value: http://echo.kantheon.svc.cluster.local:7265
+            - name: LLM_GATEWAY_HOST
+              value: prometheus.kantheon.svc.cluster.local
+            - name: LLM_GATEWAY_PORT
+              value: "7280"
+            - name: LLM_GATEWAY_URL
+              value: http://prometheus.kantheon.svc.cluster.local:7280
+            - name: HMAC_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: themis-hmac
+                  key: secret
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7901
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7901
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: themis-mcp
+  namespace: kantheon
+  labels:
+    app: themis-mcp
+spec:
+  selector:
+    app: themis-mcp
+  ports:
+    - name: http
+      port: 7901
+      targetPort: 7901

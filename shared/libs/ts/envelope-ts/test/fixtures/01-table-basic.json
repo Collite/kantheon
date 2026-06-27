@@ -1,0 +1,30 @@
+{
+  "bubble_id": "b-0001",
+  "turn_id": "t-0001",
+  "thread_id": "s-0001",
+  "content": [
+    { "customer": "Kaufland ČR v.o.s.", "revenue": 1820345.5 },
+    { "customer": "Lidl Česká republika", "revenue": 1503221.0 }
+  ],
+  "format": {
+    "kind": "table",
+    "table": {
+      "headers": [
+        { "name": "customer", "title": "Zákazník" },
+        { "name": "revenue", "title": "Tržby" }
+      ],
+      "columns": {
+        "revenue": { "alignment": "right", "format": "%.2f" }
+      },
+      "paging": { "page": 1, "page_size": 50, "total_rows": 2 }
+    }
+  },
+  "warnings": [],
+  "chips": [],
+  "drilldowns": [],
+  "entity_context": [],
+  "plan_source": "pattern",
+  "plan_score": 0.93,
+  "created_at": "2026-06-17T09:00:00Z",
+  "agent_version": "golem-v2@1.4.0"
+}

@@ -1,0 +1,19 @@
+capability_id: "metis.model.diagnose:v1"
+category: "metis"
+version: "1.0.0"
+description: |
+  Run diagnostic checks on a fitted model stored in the Metis session workspace.
+  Returns pass/fail per check (Ljung-Box, ADF, residual normality) and a
+  summary pass flag.
+service_endpoint: "http://metis-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - metis
+  - diagnose
+  - model
+  - diagnostic
+  - residuals
+cost_hints:
+  typical_latency_ms: 100
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 4

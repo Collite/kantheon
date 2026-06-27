@@ -1,0 +1,17 @@
+capability_id: theseus.query:v1
+category: theseus.*
+version: "v1"
+preconditions:
+  - expression: "registry.entity_types includes the named-query's bound entities"
+    description: "Caller's Registry must include the entity types the named query is defined over."
+cost_hints:
+  typical_latency_ms: 800
+  typical_cost_usd: 0.001
+  is_idempotent: true
+  max_concurrent: 50
+search_tags:
+  - sql
+  - named-query
+  - parametric
+service_endpoint: "http://theseus-mcp.kantheon.svc.cluster.local:7307"
+description: "Run a query against the kantheon platform (orchestrated by Theseus)."

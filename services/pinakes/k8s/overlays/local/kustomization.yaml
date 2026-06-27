@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kantheon
+
+resources:
+  - ../../base
+
+patches:
+  - target:
+      kind: Deployment
+      name: pinakes
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+      - op: replace
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: PINAKES_HTTP_PORT
+            value: "7280"
+          - name: PINAKES_GRPC_PORT
+            value: "7281"
+          - name: PINAKES_SEAWEED_ENDPOINT
+            value: "http://data-seaweedfs:8333"
+          - name: PINAKES_SEAWEED_BUCKET
+            value: "docwh-stage"
+          - name: PINAKES_KALLIMACHOS_HOST
+            value: "kallimachos"
+          - name: PINAKES_KALLIMACHOS_PORT
+            value: "7261"
+          - name: OTEL_SERVICE_NAME
+            value: pinakes
+          - name: OTEL_ENABLED_PINAKES
+            value: "false"

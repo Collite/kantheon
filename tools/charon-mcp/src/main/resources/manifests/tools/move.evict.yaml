@@ -1,0 +1,14 @@
+capability_id: "charon.move.evict:v1"
+category: "charon"
+version: "1.0.0"
+description: |
+  Evict (delete) a seaweed / redis / worker_df location. Idempotent. db_table
+  is not allowed (DB cleanup is the owner's job). POLARS worker DFs drop via
+  session TTL (no drop RPC), METIS via DropWorkspaceEntry.
+service_endpoint: "http://charon-mcp.kantheon.svc.cluster.local:7252"
+search_tags: [charon, move, evict, delete, cleanup]
+cost_hints:
+  typical_latency_ms: 20
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

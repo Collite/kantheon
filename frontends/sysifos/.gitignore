@@ -1,0 +1,27 @@
+# Logs
+*.log
+npm-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+# Generated proto bindings (sysifos/v1 + imports) — produced by `npm run gen`.
+src/generated
+# Generated Zod schemas — produced by `npm run gen:zod` from validation-rules.yaml.
+src/validation/generated.ts
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.sw?
+
+*.tsbuildinfo
+.eslintcache
+
+# Vite
+*.timestamp-*-*.mjs

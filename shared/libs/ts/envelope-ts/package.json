@@ -1,0 +1,26 @@
+{
+  "name": "@kantheon/envelope-ts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TypeScript bindings + render helpers for envelope/v1 + iris/v1. Consumed by frontends/iris (Phase 2).",
+  "license": "ISC",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "gen": "buf generate ../../../proto/src/main/proto --include-imports --path ../../../proto/src/main/proto/org/tatrman/kantheon/envelope/v1 --path ../../../proto/src/main/proto/org/tatrman/kantheon/iris/v1",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@bufbuild/buf": "^1.42.0",
+    "@types/node": "^25.9.3",
+    "ts-proto": "^2.6.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

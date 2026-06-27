@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:CatchupSpec.kt$CatchupSpec$val plan = CatchupPlanner.plan(listOf(routine(CatchupPolicy.RUN_ALL_MISSED, 100)), now = 10_000, coalesce = true)</ID>
+    <ID>MaxLineLength:CatchupSpec.kt$CatchupSpec$val plan = CatchupPlanner.plan(listOf(routine(CatchupPolicy.RUN_ALL_MISSED, 1000)), now = 1000, coalesce = false)</ID>
+    <ID>MaxLineLength:CatchupSpec.kt$CatchupSpec$val plan = CatchupPlanner.plan(listOf(routine(CatchupPolicy.RUN_ALL_MISSED, 5000)), now = 1000, coalesce = false)</ID>
+    <ID>MaxLineLength:CatchupSpec.kt$CatchupSpec$val plan = CatchupPlanner.plan(listOf(routine(CatchupPolicy.RUN_ONCE_ON_WAKE, 100)), now = 1000, coalesce = false)</ID>
+    <ID>MaxLineLength:CronParser.kt$CronParser$private fun parseList(value: String): Int</ID>
+    <ID>MaxLineLength:FallbackRouter.kt$FallbackRouter$LlmSource.GATEWAY -&gt; if (breakerOpen &amp;&amp; kind == TurnKind.CONSTELLATION) RoutingDecision.Defer else RoutingDecision.UseGateway</ID>
+    <ID>MaxLineLength:FallbackRouterSpec.kt$FallbackRouterSpec$FallbackRouter.decide(LlmSource.BYOK, breakerOpen = false, TurnKind.OWN_ROUTINE) shouldBe RoutingDecision.UseByok</ID>
+    <ID>MaxLineLength:FallbackRouterSpec.kt$FallbackRouterSpec$FallbackRouter.decide(LlmSource.GATEWAY, breakerOpen = true, TurnKind.CONSTELLATION) shouldBe RoutingDecision.Defer</ID>
+    <ID>MaxLineLength:FallbackRouterSpec.kt$FallbackRouterSpec$FallbackRouter.decide(LlmSource.GATEWAY, breakerOpen = true, TurnKind.OWN_ROUTINE) shouldBe RoutingDecision.UseGateway</ID>
+    <ID>MaxLineLength:FallbackRouterSpec.kt$FallbackRouterSpec$FallbackRouter.decide(LlmSource.GATEWAY_WITH_BYOK_FALLBACK, breakerOpen = false, TurnKind.CONSTELLATION)</ID>
+    <ID>MaxLineLength:Heartbeat.kt$Heartbeat.&lt;no name provided&gt;.&lt;no name provided&gt;$override suspend fun healthCheck(): org.tatrman.kantheon.hebe.api.ChannelHealth</ID>
+    <ID>MaxLineLength:Heartbeat.kt$Heartbeat.&lt;no name provided&gt;.&lt;no name provided&gt;$override suspend fun start(scope: CoroutineScope): Flow&lt;org.tatrman.kantheon.hebe.api.IncomingMessage&gt;</ID>
+    <ID>MaxLineLength:JobRunner.kt$JobRunner.&lt;no name provided&gt;.&lt;no name provided&gt;$override suspend fun healthCheck(): org.tatrman.kantheon.hebe.api.ChannelHealth</ID>
+    <ID>MaxLineLength:JobRunner.kt$JobRunner.&lt;no name provided&gt;.&lt;no name provided&gt;$override suspend fun start(scope: CoroutineScope): Flow&lt;org.tatrman.kantheon.hebe.api.IncomingMessage&gt;</ID>
+    <ID>MaxLineLength:OfflineLoopComponentSpec.kt$OfflineLoopComponentSpec$FallbackRouter.decide(LlmSource.GATEWAY, breakerOpen = false, TurnKind.CONSTELLATION) shouldBe RoutingDecision.UseGateway</ID>
+    <ID>MaxLineLength:OfflineLoopComponentSpec.kt$OfflineLoopComponentSpec$FallbackRouter.decide(LlmSource.GATEWAY, breakerOpen = false, TurnKind.OWN_ROUTINE) shouldBe RoutingDecision.UseGateway</ID>
+    <ID>MaxLineLength:OfflineLoopComponentSpec.kt$OfflineLoopComponentSpec$listOf(RoutineSchedule("heartbeat", nextRunAt = 100, intervalSeconds = 60, CatchupPolicy.RUN_ONCE_ON_WAKE))</ID>
+    <ID>NestedBlockDepth:Catchup.kt$CatchupPlanner$fun plan( routines: List&lt;RoutineSchedule&gt;, now: Long, coalesce: Boolean, ): CatchupPlan</ID>
+  </CurrentIssues>
+</SmellBaseline>

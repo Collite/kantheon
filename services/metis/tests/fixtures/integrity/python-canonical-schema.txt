@@ -1,0 +1,9 @@
+name|utf8|nonnull
+count|int64s|nonnull
+score|float64|null
+amount|decimal128_38_9|null
+ts|timestamp_us_UTC|null
+d|date_day|null
+active|bool|nonnull
+payload|binary|null
+meta|struct|null<key|utf8|nonnull;val|int32s|null>

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kallimachos-mcp
+  namespace: kantheon
+  labels: { app: kallimachos-mcp }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: kallimachos-mcp }
+  template:
+    metadata:
+      labels: { app: kallimachos-mcp }
+    spec:
+      containers:
+        - name: kallimachos-mcp
+          image: kallimachos-mcp:dev
+          ports:
+            - { name: mcp, containerPort: 7262 }
+          env:
+            - { name: KALLIMACHOS_MCP_PORT, value: "7262" }
+            - { name: KALLIMACHOS_MCP_KALLIMACHOS_HOST, value: "kallimachos" }
+            - { name: KALLIMACHOS_MCP_KALLIMACHOS_PORT, value: "7261" }
+            - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7501" }
+          readinessProbe:
+            httpGet: { path: /health, port: 7262 }
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          resources:
+            requests: { memory: 256Mi, cpu: 100m }
+            limits: { memory: 512Mi, cpu: 500m }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kallimachos-mcp
+  namespace: kantheon
+  labels: { app: kallimachos-mcp }
+spec:
+  selector: { app: kallimachos-mcp }
+  ports:
+    - { name: mcp, port: 7262, targetPort: 7262 }

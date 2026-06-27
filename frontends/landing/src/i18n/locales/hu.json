@@ -1,0 +1,20 @@
+{
+  "header": {
+    "title": "Kantheon"
+  },
+  "dashboard": {
+    "title": "Klaszter Dashboard",
+    "noUrl": "Konfigurálja a VITE_GRAFANA_DASHBOARD_URL-t a dashboard megtekintéséhez"
+  },
+  "links": {
+    "applications": "Alkalmazások",
+    "infrastructure": "Infrastruktúra",
+    "agent": "Agent",
+    "services": "Szolgáltatások",
+    "devPortal": "Fejlesztői portál",
+    "grafana": "Grafana",
+    "argocd": "ArgoCD",
+    "traefik": "Traefik",
+    "keycloak": "Keycloak"
+  }
+}

@@ -1,0 +1,21 @@
+capability_id: "metis.model.fit:v1"
+category: "metis"
+version: "1.0.0"
+description: |
+  Fit a statistical model (LINEAR, ARIMA with auto-order, PROPHET) on a series
+  stored in the Metis session workspace. Returns timing, AIC, and chosen ARIMA
+  order. The fitted model is stored under modelName for Diagnose/Project.
+service_endpoint: "http://metis-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - metis
+  - fit
+  - model
+  - arima
+  - prophet
+  - linear
+  - estimation
+cost_hints:
+  typical_latency_ms: 1200
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 2

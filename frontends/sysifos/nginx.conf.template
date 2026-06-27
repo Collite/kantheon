@@ -1,0 +1,55 @@
+server {
+    listen 7602;
+    server_name localhost;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Cheap liveness/readiness target (the SPA has no /ready of its own).
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Never cache the runtime config or the HTML entrypoint — env.js is
+    # regenerated per deploy (window.APP_CONFIG) and index.html references the
+    # hashed asset bundle.
+    location = /env.js {
+        root /usr/share/nginx/html;
+        add_header Cache-Control "no-store" always;
+    }
+    location = /index.html {
+        root /usr/share/nginx/html;
+        add_header Cache-Control "no-store" always;
+    }
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Same-origin BFF proxy (the FE reaches sysifos-bff via VITE_BFF_BASE=/bff, so
+    # the BFF stays ClusterIP — no external exposure, no CORS). The trailing slash
+    # strips the /bff prefix. SSE-tuned: buffering off + long read timeout +
+    # chunked so /stream + draft events flush to the browser as they arrive.
+    location /bff/ {
+        proxy_pass ${BFF_UPSTREAM_PROTOCOL}://${BFF_UPSTREAM_HOST}:${BFF_UPSTREAM_PORT}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection keep-alive;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+        chunked_transfer_encoding on;
+    }
+
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}

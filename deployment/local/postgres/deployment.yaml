@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: kantheon
+  labels:
+    app: postgres
+    tier: local-infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  strategy:
+    # Postgres holds an exclusive lock on its data dir; never run two pods at once.
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: postgres
+        tier: local-infra
+    spec:
+      containers:
+        - name: postgres
+          # Upstream image — pulled from the registry (not a jib-built local image,
+          # so imagePullPolicy stays default, unlike the constellation services).
+          image: postgres:16-alpine
+          ports:
+            - name: pg
+              containerPort: 5432
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-superuser-secret
+                  key: POSTGRES_PASSWORD
+            # Keep the data dir in a subdir of the mount so the volume's
+            # lost+found does not collide with initdb's empty-dir check.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "postgres"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "postgres"]
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 2Gi
+              cpu: "2"
+      volumes:
+        # Ephemeral local data — local-infra is disposable; Flyway re-migrates on
+        # Midas-core boot (Stage 1.3) and the init Job re-provisions the database
+        # on a fresh pod. Matches the mssql precedent. Swap for a PVC if local
+        # persistence across pod restarts is wanted.
+        - name: data
+          emptyDir: {}

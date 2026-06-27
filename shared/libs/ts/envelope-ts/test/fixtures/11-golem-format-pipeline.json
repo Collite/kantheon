@@ -1,0 +1,66 @@
+{
+  "bubble_id": "b-0011",
+  "turn_id": "t-0011",
+  "thread_id": "s-0011",
+  "content": [
+    { "KOD_STR": "DF01", "ROK": 2025, "ZUSTATEK": 12500.5 },
+    { "KOD_STR": "DF02", "ROK": 2025, "ZUSTATEK": 9800.0 }
+  ],
+  "format": {
+    "kind": "table",
+    "table": {
+      "headers": [
+        { "name": "KOD_STR", "title": "KOD_STR" },
+        { "name": "ROK", "title": "ROK" },
+        { "name": "ZUSTATEK", "title": "ZUSTATEK" }
+      ],
+      "columns": {
+        "ROK": { "alignment": "right" },
+        "ZUSTATEK": {
+          "alignment": "right",
+          "format": "%.2f",
+          "number": {
+            "minimum_fraction_digits": 2,
+            "maximum_fraction_digits": 2,
+            "use_grouping": true
+          }
+        }
+      }
+    }
+  },
+  "warnings": [],
+  "chips": [
+    { "prompt": { "display": "Detail střediska", "prompt": "Detail střediska", "source": "heuristic" } },
+    {
+      "prompt": {
+        "display": "Detail účtu DF01",
+        "prompt": "Detail účtu DF01",
+        "source": "pattern_derived",
+        "pattern_id": "detailUctu",
+        "prefilled_args_json": "{\"kod_str\":\"DF01\"}"
+      }
+    }
+  ],
+  "drilldowns": [
+    {
+      "id": "auto_detail",
+      "display": "Detail — detail",
+      "target_pattern_id": "detail",
+      "arg_mapping": { "KOD_STR": "KOD_STR" },
+      "scope": "row",
+      "source": "auto_overlap"
+    }
+  ],
+  "entity_context": [],
+  "current_view": {
+    "pattern_id": "stred",
+    "args_json": "{\"kod_str\":\"DF01\"}",
+    "bubble_id": "b-0011",
+    "total_rows": 2
+  },
+  "plan_source": "pattern",
+  "plan_score": 0.95,
+  "losing_plan_summary": "free_sql() @ 0.40",
+  "created_at": "2026-06-24T09:00:00Z",
+  "agent_version": "golem/v0.1.0"
+}

@@ -1,0 +1,9 @@
+:root {
+  --color-primary-500: 239 68 68;
+  --color-surface-50: 248 250 252;
+  --color-surface-900: 15 23 42;
+}
+
+body {
+  @apply bg-surface-50 text-surface-900 font-sans antialiased;
+}

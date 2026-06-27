@@ -1,0 +1,72 @@
+# Default values for iris-bff. Env-agnostic: sane defaults, NO cluster knowledge.
+replicaCount: 1
+
+image:
+  repository: iris-bff
+  tag: ""          # defaults to .Chart.appVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 7410
+
+containerPort: 7410
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 1000m
+
+# Postgres session/audit persistence (Kantheon PG, `iris` DB). When db.enabled the
+# password is read from an existing secret (a CNPG/ESO basic-auth secret) — never inlined.
+db:
+  enabled: false
+  host: ""          # e.g. postgres-rw.data.svc.cluster.local
+  port: 5432
+  name: iris
+  user: iris
+  existingSecret: ""   # secret holding the password
+  passwordKey: password
+
+# Transitional new-golem /v2 dispatch target (deleted at Golem cutover). Not exercised
+# by a session-only smoke; set to the in-cluster golem service when a /v2 backend exists.
+golemV2BaseUrl: "http://golem:7420"
+
+# Bearer auth. verify-signature off → decode-only (sub/tenant/exp). On → JWKS RS256 verify
+# (jwksUri wins, else derived from keycloakIssuer); fails closed if neither is set.
+auth:
+  verifySignature: false
+  keycloakIssuer: ""
+  jwksUri: ""
+  audience: ""
+
+# Hash-chained audit signing key (Ed25519). Empty → ephemeral dev key (warning logged;
+# chain not verifiable across restarts). Production: a mounted Secret file path.
+audit:
+  signingKeyRef: ""
+
+# OpenTelemetry export. Off by default (matches golem: kantheon#27 otel-config emission gap).
+telemetry:
+  enabled: false
+  serviceName: iris-bff
+
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+extraEnv: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

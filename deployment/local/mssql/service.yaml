@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mssql
+  namespace: kantheon
+  labels:
+    app: mssql
+    tier: local-infra
+spec:
+  selector:
+    app: mssql
+  ports:
+    - name: tds
+      port: 1433
+      targetPort: 1433

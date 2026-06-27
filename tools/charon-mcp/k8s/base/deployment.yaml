@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charon-mcp
+  labels:
+    app: charon-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: charon-mcp
+  template:
+    metadata:
+      labels:
+        app: charon-mcp
+    spec:
+      containers:
+        - name: charon-mcp
+          image: charon-mcp:latest
+          ports:
+            - containerPort: 7252
+          env:
+            - name: CHARON_MCP_SERVER_PORT
+              value: "7252"
+            - name: CHARON_GRPC_HOST
+              value: "charon"
+            - name: CHARON_GRPC_PORT
+              value: "7251"
+            # capabilities-mcp registration endpoint (warn-and-continue if unset).
+            - name: CAPABILITIES_MCP_URL
+              value: "http://capabilities-mcp.kantheon.svc.cluster.local:7080"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7252
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7252
+            initialDelaySeconds: 15
+            periodSeconds: 20

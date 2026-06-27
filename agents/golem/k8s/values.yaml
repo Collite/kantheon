@@ -1,0 +1,64 @@
+# Default values for golem. Env-agnostic: sane defaults, NO cluster knowledge.
+replicaCount: 1
+
+image:
+  repository: golem
+  tag: ""          # defaults to .Chart.appVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 7420
+
+containerPort: 7420
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 1000m
+
+# Postgres persistence (per-pod database). When db.enabled, the password is read from an
+# existing secret (e.g. a CNPG/ESO basic-auth secret) — never inlined in values.
+db:
+  enabled: false
+  host: ""          # e.g. postgres-rw.data.svc.cluster.local
+  port: 5432
+  name: golem
+  user: golem
+  existingSecret: ""   # secret holding the password
+  passwordKey: password
+
+# The assembled Shem bundle, mounted at GOLEM_SHEM_DIR. Set `configMapName` to a
+# ConfigMap built from agents/golem/shems/<agent_id>/ (overlay shem.yaml +
+# prompts/{locale}/…) — e.g. the golem-ucetnictvi bundle. Empty = skeleton boot
+# (no Shem; pod stays ready on the DB only). The ConfigMap itself is created by
+# the deploying context (olymp), not by this chart.
+shem:
+  configMapName: ""
+  mountPath: /etc/golem/shem
+
+# OpenTelemetry export (golem's own toggle). Off by default.
+telemetry:
+  enabled: false
+  serviceName: golem
+
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+extraEnv: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

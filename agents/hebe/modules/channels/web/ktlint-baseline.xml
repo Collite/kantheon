@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/test/kotlin/org/tatrman/kantheon/hebe/channels/web/RoutesTest.kt">
+        <error line="162" column="46" source="standard:chain-method-continuation" />
+    </file>
+</baseline>

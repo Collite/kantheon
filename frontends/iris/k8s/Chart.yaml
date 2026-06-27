@@ -1,0 +1,12 @@
+apiVersion: v2
+name: iris
+description: |
+  The Kantheon Iris SPA (Vue, nginx) — an env-agnostic Helm chart. Holds no cluster
+  knowledge: image, replicas, resources, the runtime config (VITE_* → window.APP_CONFIG),
+  the same-origin /bff upstream (in-cluster iris-bff), Keycloak, and the Gateway API
+  HTTPRoute exposure are all values. Per-environment values live in the deploying GitOps
+  repo (Olymp), wired via ArgoCD multi-source (D3'). The FE is the first externally-exposed
+  Iris app — iris-bff stays ClusterIP and is reached same-origin through the nginx /bff proxy.
+type: application
+version: 0.1.0
+appVersion: "dev"

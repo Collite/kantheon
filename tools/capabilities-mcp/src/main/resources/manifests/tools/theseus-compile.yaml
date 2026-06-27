@@ -1,0 +1,24 @@
+# Bootstrap fixture — mirror of tools/theseus-mcp/src/main/resources/manifests/tools/compile.yaml
+# Lets capabilities-mcp cold-start the full forked tool inventory before any pod heartbeats.
+# The owning MCP wrapper re-registers this at runtime (runtime supersedes the fixture).
+# Kept in sync by ForkedToolRegistrySpec (drift guard): edit the source manifest, then re-copy here.
+capability_id: "theseus.compile:v1"
+category: "theseus"
+version: "1.0.0"
+description: |
+  Compile a query without executing it: run the front of the pipeline (Proteus
+  parse → Argos validate) and return the validated PlanNode, the parameters it
+  requires, and the predicted result schema fingerprint. Use for parameter
+  binding, dry-run / explain surfaces, and validating a query before showing it.
+service_endpoint: "http://theseus-mcp.kantheon.svc.cluster.local:7307"
+search_tags:
+  - theseus
+  - compile
+  - validate
+  - explain
+  - parameters
+cost_hints:
+  typical_latency_ms: 2000
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

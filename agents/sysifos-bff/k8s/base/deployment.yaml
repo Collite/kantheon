@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sysifos-bff
+  namespace: kantheon
+  labels:
+    app: sysifos-bff
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sysifos-bff
+  strategy:
+    # Single-instance local service: replace in place (matches midas-core).
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sysifos-bff
+    spec:
+      containers:
+        - name: sysifos-bff
+          image: sysifos-bff:dev
+          ports:
+            - name: http
+              containerPort: 7601
+          env:
+            - name: SYSIFOS_BFF_HTTP_PORT
+              value: "7601"
+            # Midas-core upstream (every write proxies here; Sysifos has no DB).
+            - name: SYSIFOS_MIDAS_BASE_URL
+              value: "http://midas-core:7310"
+            # Keycloak / JWKS (Stage 1.2). Issuer + audience are realm-dependent.
+            - name: SYSIFOS_AUTH_VERIFY_SIGNATURE
+              value: "true"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: sysifos-bff
+            - name: OTEL_ENABLED_SYSIFOS_BFF
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7601
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7601
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sysifos-bff
+  namespace: kantheon
+  labels:
+    app: sysifos-bff
+spec:
+  selector:
+    app: sysifos-bff
+  ports:
+    - name: http
+      port: 7601
+      targetPort: 7601

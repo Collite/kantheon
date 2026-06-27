@@ -1,0 +1,19 @@
+capability_id: "metis.model.simulate:v1"
+category: "metis"
+version: "1.0.0"
+description: |
+  Apply scenario deltas (JSON string) to an existing forecast DataFrame stored
+  in the session workspace and write the adjusted forecast to outputDf. Used
+  for what-if analysis without re-fitting.
+service_endpoint: "http://metis-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - metis
+  - simulate
+  - scenario
+  - what-if
+  - forecast
+cost_hints:
+  typical_latency_ms: 80
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 4

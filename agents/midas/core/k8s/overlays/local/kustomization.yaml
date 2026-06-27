@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kantheon
+
+resources:
+  - ../../base
+
+# Container matched by name via the `target` selector (namespace-agnostic); env
+# list merged by the `name` key. Local cluster has no Alloy/Tempo endpoint —
+# disable OTel export so the pod doesn't spam connection errors; pull the
+# jib-built local image only.
+patches:
+  - target:
+      kind: Deployment
+      name: midas-core
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: midas-core
+      spec:
+        template:
+          spec:
+            containers:
+              - name: midas-core
+                imagePullPolicy: Never
+                env:
+                  - name: OTEL_ENABLED_MIDAS_CORE
+                    value: "false"

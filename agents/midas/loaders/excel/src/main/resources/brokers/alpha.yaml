@@ -1,0 +1,23 @@
+# Broker template — "alpha" (a plain brokerage transactions export).
+# A flat sheet with the header on row 1 and ISO dates. See BrokerRegistry.
+broker_id: "alpha"
+display_name: "Alpha Brokerage"
+sheet: "Transactions"
+header_row: 1            # 1-based row holding the column headers
+date_format: "yyyy-MM-dd"
+columns:                 # logical field -> header text in the sheet
+  trade_date: "Trade Date"
+  settle_date: "Settlement Date"
+  kind: "Type"
+  symbol: "Symbol"
+  quantity: "Quantity"
+  price: "Price"
+  currency: "Currency"
+  fee: "Fees"
+  total: "Total"
+  external_id: "Reference"
+kind_map:                # broker's vocabulary -> midas TransactionKind
+  BUY: "TX_BUY"
+  SELL: "TX_SELL"
+  DIV: "TX_DIVIDEND"
+  FEE: "TX_FEE"

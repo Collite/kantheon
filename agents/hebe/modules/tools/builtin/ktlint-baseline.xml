@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/org/tatrman/kantheon/hebe/tools/builtin/k8s/KubectlTool.kt">
+        <error line="22" column="17" source="standard:property-naming" />
+    </file>
+</baseline>

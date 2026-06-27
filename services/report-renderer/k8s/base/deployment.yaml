@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-renderer
+  namespace: kantheon
+  labels:
+    app: report-renderer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: report-renderer
+  template:
+    metadata:
+      labels:
+        app: report-renderer
+    spec:
+      containers:
+        - name: report-renderer
+          image: report-renderer:dev
+          ports:
+            - name: http
+              containerPort: 7320
+          env:
+            - name: REPORT_RENDERER_HTTP_PORT
+              value: "7320"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: report-renderer
+            - name: OTEL_ENABLED_REPORT_RENDERER
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7320
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7320
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 500m
+            limits:
+              memory: 2Gi
+              cpu: "2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: report-renderer
+  namespace: kantheon
+  labels:
+    app: report-renderer
+spec:
+  selector:
+    app: report-renderer
+  ports:
+    - name: http
+      port: 7320
+      targetPort: 7320

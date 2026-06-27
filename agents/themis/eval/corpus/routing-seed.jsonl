@@ -1,0 +1,22 @@
+# Themis routing eval corpus (Phase 3 Stage 3.4 skeleton).
+# Schema: contracts.md §7.2. One seed per bucket anchors the shape; Bora's
+# content fill (~30/bucket, ~180 total) lands in parallel through Stage 3.5,
+# whose DONE gate is Layer-1 hit-rate >= 60%. Lines starting with '#' are
+# comments the eval harness skips (JSONL has no native comments).
+# PROCEDURAL — single Golem-ERP domain
+{"question":"Které faktury Shell ještě neuhradil?","lang":"cs","expected":{"intent_kind":"PROCEDURAL","chosen_agent_id":"golem-erp","alternates_present":[],"routing_layer_expected":1}}
+# PROCEDURAL — cross-domain (should route to Pythia)
+{"question":"How does headcount growth correlate with sales growth across regions?","lang":"en","expected":{"intent_kind":"PROCEDURAL","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}
+# RCA (should route to Pythia)
+{"question":"Proč klesly tržby Castrolu v soukromých garážích?","lang":"cs","expected":{"intent_kind":"RCA","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}
+# FORECAST (should route to Pythia)
+{"question":"Jaká bude předpověď tržeb Q3?","lang":"cs","expected":{"intent_kind":"FORECAST","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}
+# SIMULATION (should route to Pythia)
+{"question":"Co kdybychom zrušili řadu Sheron na Slovensku?","lang":"cs","expected":{"intent_kind":"SIMULATION","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}
+# Ambiguous (should fire Layer 3 needs_user_pick)
+{"question":"Jak si vede prodej?","lang":"cs","expected":{"intent_kind":"PROCEDURAL","chosen_agent_id":null,"alternates_present":["pythia","golem-erp"],"routing_layer_expected":3}}
+# Pythia buckets added for the joint routing eval (Pythia arc Stage 5.1 T4) — RCA / FORECAST / SIMULATION / cross-domain.
+{"question":"Why did our YoY revenue drop for the Private channel?","lang":"en","expected":{"intent_kind":"RCA","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}
+{"question":"Forecast our Q3 revenue from the German market","lang":"en","expected":{"intent_kind":"FORECAST","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}
+{"question":"What if we drop the Sheron line in Slovakia?","lang":"en","expected":{"intent_kind":"SIMULATION","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}
+{"question":"Jak souvisí mzdové náklady s poklesem marže u zákazníků s nezaplacenými fakturami?","lang":"cs","expected":{"intent_kind":"RCA","chosen_agent_id":"pythia","alternates_present":[],"routing_layer_expected":1}}

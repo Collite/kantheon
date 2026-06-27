@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "iris-bff.fullname" . }}
+  labels:
+    {{- include "iris-bff.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "iris-bff.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "iris-bff.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ include "iris-bff.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+          env:
+            - name: IRIS_BFF_HTTP_PORT
+              value: {{ .Values.containerPort | quote }}
+            - name: IRIS_DB_ENABLED
+              value: {{ .Values.db.enabled | quote }}
+            {{- if .Values.db.enabled }}
+            - name: IRIS_DB_HOST
+              value: {{ .Values.db.host | quote }}
+            - name: IRIS_DB_PORT
+              value: {{ .Values.db.port | quote }}
+            - name: IRIS_DB_NAME
+              value: {{ .Values.db.name | quote }}
+            - name: IRIS_DB_USER
+              value: {{ .Values.db.user | quote }}
+            - name: IRIS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "db.existingSecret is required when db.enabled" .Values.db.existingSecret }}
+                  key: {{ .Values.db.passwordKey }}
+            {{- end }}
+            - name: IRIS_GOLEM_V2_BASE_URL
+              value: {{ .Values.golemV2BaseUrl | quote }}
+            - name: IRIS_AUTH_VERIFY_SIGNATURE
+              value: {{ .Values.auth.verifySignature | quote }}
+            {{- with .Values.auth.keycloakIssuer }}
+            - name: IRIS_AUTH_KEYCLOAK_ISSUER
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.auth.jwksUri }}
+            - name: IRIS_AUTH_JWKS_URI
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.auth.audience }}
+            - name: IRIS_AUTH_AUDIENCE
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.audit.signingKeyRef }}
+            - name: IRIS_AUDIT_SIGNING_KEY_REF
+              value: {{ . | quote }}
+            {{- end }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ .Values.telemetry.serviceName | quote }}
+            - name: OTEL_ENABLED_IRIS_BFF
+              value: {{ .Values.telemetry.enabled | quote }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,162 @@
+{
+  "title": "iris-bff",
+  "uid": "iris-bff",
+  "schemaVersion": 39,
+  "tags": [
+    "kantheon",
+    "iris"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "title": "Turn latency (p50/p95/p99)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(iris_turn_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(iris_turn_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(iris_turn_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "title": "Turn outcome rate",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(iris_turn_duration_seconds_count[5m])) by (outcome)",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "title": "Routing pick-rate (needs_user_pick / turns)",
+      "type": "stat",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(iris_routing_needs_user_pick_total[30m])) / sum(rate(iris_turn_duration_seconds_count[30m]))",
+          "legendFormat": "pick-rate"
+        }
+      ]
+    },
+    {
+      "title": "Refusals by gap",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(iris_routing_refusal_total[5m])) by (code)",
+          "legendFormat": "{{code}}"
+        }
+      ]
+    },
+    {
+      "title": "Typed actions by kind + escalations",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(iris_typed_action_total[5m])) by (kind)",
+          "legendFormat": "{{kind}}"
+        },
+        {
+          "expr": "sum(rate(iris_escalation_total[5m]))",
+          "legendFormat": "escalation"
+        }
+      ]
+    },
+    {
+      "title": "Turn feedback by verdict/reason (PD-3)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(iris_feedback_total[15m])) by (verdict)",
+          "legendFormat": "{{verdict}}"
+        },
+        {
+          "expr": "sum(rate(iris_feedback_total{verdict=\"down\"}[15m])) by (reason)",
+          "legendFormat": "down:{{reason}}"
+        }
+      ]
+    },
+    {
+      "title": "Artifact refresh by result (PD-6)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(iris_artifact_refresh_total[15m])) by (result)",
+          "legendFormat": "{{result}}"
+        }
+      ]
+    },
+    {
+      "title": "Inbox lifecycle producer (PD-2)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 16
+      },
+      "targets": [
+        {
+          "expr": "iris_lifecycle_nats_connected",
+          "legendFormat": "nats connected (0=polling)"
+        }
+      ]
+    }
+  ]
+}

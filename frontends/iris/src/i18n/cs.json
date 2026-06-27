@@ -1,0 +1,331 @@
+{
+  "agent": {
+    "title": "AI Agent",
+    "placeholder": "Zeptejte se...",
+    "send": "Odeslat",
+    "scrollToLatest": "Přejít na nejnovější",
+    "languageLabel": "Vybrat jazyk",
+    "agentSettingsTitle": "Nastavení"
+  },
+  "tabs": {
+    "emptyTitle": "Žádné panely nejsou otevřeny",
+    "emptyBody": "Přesouvejte sem tabulky, grafy nebo markdown odpovědi z chatu. Hledejte ikonu \"otevřít v panelu\" v zápatí bublin chatu.",
+    "tabPanelsHeader": "Panely",
+    "closeTabAria": "Zavřít {title}"
+  },
+  "chat": {
+    "copy": "Kopírovat",
+    "copied": "Zkopírováno",
+    "copyFailed": "Kopírování se nezdařilo",
+    "openInTab": "Otevřít v panelu",
+    "openInTabComing": "Otevřít v panelu — připravujeme ve fázi {phase}",
+    "openInTabPlaintext": "Bubliny s prostým textem nelze otevřít v panelu",
+    "openInTabNoEnvelope": "Není co přesunout",
+    "openedInTab": "Otevřeno v panelu",
+    "workspaceNotReady": "Pracovní plocha není připravena",
+    "selectRowPrompt": "Vyberte řádek (1–{count}) kliknutím nebo zadáním čísla",
+    "investigate": {
+      "label": "Prozkoumat",
+      "tooltip": "Předat tuto otázku k hlubší analýze (Pythia)"
+    },
+    "pin": {
+      "label": "Připnout",
+      "tooltip": "Uložit tento pohled jako připnutí (lze obnovit)",
+      "pinned": "Připnuto",
+      "failed": "Připnutí se nezdařilo"
+    },
+    "feedback": {
+      "up": "Užitečné",
+      "down": "Nepomohlo",
+      "thanks": "Děkujeme za zpětnou vazbu",
+      "failed": "Zpětnou vazbu se nepodařilo uložit",
+      "reasonPrompt": "Co bylo špatně?",
+      "reasons": {
+        "wrong_data": "Špatná data",
+        "wrong_agent": "Špatný agent",
+        "wrong_format": "Špatný formát",
+        "too_slow": "Příliš pomalé",
+        "other": "Jiné"
+      }
+    },
+    "reask": {
+      "badge": "Odpověděl: {agent}",
+      "menuTitle": "Zeptat se jiného agenta",
+      "why": "{why}"
+    },
+    "actionQueued": {
+      "title": "Akce zařazena",
+      "detail": "Čeká se na dokončení předchozí odpovědi."
+    },
+    "chipStrip": {
+      "ariaLabel": "Navrhované dotazy",
+      "chipAriaLabel": "Dotaz: {label}"
+    },
+    "clarification": {
+      "ariaLabel": "Upřesnění",
+      "other": "Něco jiného…",
+      "more": "Více…",
+      "otherPlaceholder": "Vlastní odpověď",
+      "submit": "Odeslat"
+    },
+    "connection": {
+      "status": {
+        "ok": "Připojeno",
+        "degraded": "Degradováno",
+        "disconnected": "Odpojeno"
+      },
+      "lastPoll": "Poslední úspěšná odpověď: {time}",
+      "restartBannerTitle": "Server byl restartován",
+      "restartBannerBody": "Obnovte stránku pro nejnovější stav."
+    },
+    "edit": {
+      "save": "Uložit",
+      "cancel": "Zrušit",
+      "placeholder": "Upravte svou zprávu…"
+    }
+  },
+  "table": {
+    "copyTsv": "Kopírovat jako TSV",
+    "downloadCsv": "Stáhnout CSV",
+    "showAllColumns": "Zobrazit všechny sloupce",
+    "hideColumn": "Skrýt sloupec",
+    "showAsChart": "Zobrazit jako graf",
+    "filterPlaceholder": "Filtr…",
+    "empty": "Žádné řádky.",
+    "tableCopied": "Tabulka zkopírována (TSV)",
+    "csvDownloaded": "CSV staženo",
+    "noDrilldowns": "Žádná podrobnější analýza není k dispozici",
+    "sumTooltip": "Shrnout tento sloupec",
+    "sumAria": "Zobrazit součet sloupce {col}",
+    "sumLabel": "Součet:",
+    "statMin": "Min:",
+    "statMax": "Max:",
+    "statAvg": "Průměr:",
+    "statEmpty": "Prázdné buňky:",
+    "sumCaption": "Z {n} zobrazených řádků — statistiky pokrývají jen to, co je vidět.",
+    "sumCaptionPartial": "Z {n} zde načtených řádků — celý výsledek má {total} řádků.",
+    "v21Toast": {
+      "summary": "Serverové {action} přijde ve verzi v2.1",
+      "detail": "Toto UI je zatím pouze pro čtení.",
+      "drilldownSummary": "Drill-downy přijdou ve verzi v2.1"
+    }
+  },
+  "detail": {
+    "menuItem": "Zobrazit detail",
+    "prefill": "Ukaž mi detail tohoto",
+    "chip": "Vybraný řádek",
+    "chipClearAria": "Zrušit vybraný řádek"
+  },
+  "chart": {
+    "showAsTable": "Zobrazit jako tabulku",
+    "copyPng": "Kopírovat jako PNG",
+    "downloadCsv": "Stáhnout CSV",
+    "stack": "Skládat",
+    "stacked": "Skládáno",
+    "series": "Řady",
+    "noData": "Žádná data ke grafu.",
+    "typeLine": "Linkový",
+    "typeBar": "Sloupcový",
+    "typePie": "Koláčový",
+    "chartCopied": "Graf zkopírován (PNG)",
+    "chartDataUrlCopied": "URL grafu zkopírována",
+    "imageClipboardUnsupported": "Prohlížeč nepodporuje schránku obrázků.",
+    "noDrilldowns": "Žádná podrobnější analýza není k dispozici"
+  },
+  "slash": {
+    "clear": "Vymazat historii chatu (vyžádá potvrzení).",
+    "new": "Začít novou relaci (nová konverzace, čistý kontext).",
+    "refresh": "Obnovit služby a prompty agentů (vše, nebo jednu: metadata, query-runner, fuzzy-matcher, golem, resolver).",
+    "help": "Vypsat dostupné příkazy jako systémovou bublinu.",
+    "format": "Naznačit formát další odpovědi (table, chart, markdown, text).",
+    "export": "Exportovat historii chatu do souboru.",
+    "sql": "Suchý běh další otázky — zobrazit SQL bez provedení.",
+    "headerCommand": "Příkaz",
+    "headerDescription": "Popis",
+    "headerListTitle": "Lomítkové příkazy",
+    "clearConfirmHeader": "Potvrdit vymazání",
+    "clearConfirmMessage": "Opravdu vymazat celou historii chatu?",
+    "clearConfirmAccept": "Vymazat",
+    "clearConfirmReject": "Zrušit",
+    "chatCleared": "Chat vymazán",
+    "newSession": "Nová relace zahájena",
+    "newSessionFailed": "Novou relaci se nepodařilo zahájit",
+    "refreshAll": "všechny služby",
+    "refreshStarted": "Obnovuji {target}…",
+    "refreshDone": "Obnova dokončena",
+    "refreshDoneTitle": "Obnova — {target}",
+    "refreshPartial": "Obnova dokončena s chybami",
+    "refreshFailed": "Požadavek na obnovu selhal",
+    "refreshUsage": "Použití: /refresh [služba]",
+    "refreshUsageDetail": "služba ∈ {services} (nebo vynechejte pro všechny)",
+    "refreshColService": "Služba",
+    "refreshColStatus": "Stav",
+    "refreshColDetail": "Verze / detail",
+    "formatUsage": "Použití: /format <kind>",
+    "formatUsageDetail": "kind ∈ {kinds}",
+    "formatHint": "Další odpověď: {kind}",
+    "exportUsage": "Použití: /export <md|csv>",
+    "exportNothing": "Není co exportovat",
+    "markdownExported": "Markdown exportován",
+    "csvExported": "CSV exportováno",
+    "sqlHint": "Další odpověď: pouze SQL (dry run)",
+    "hintTagSql": "Další odpověď: pouze SQL",
+    "hintTagFormat": "Další odpověď: {kind}",
+    "hintCancelAria": "Zrušit nápovědu",
+    "reset": "Smazat konverzaci (snímek na serveru lze vrátit)",
+    "resetDone": "Konverzace smazána",
+    "resetFailed": "Smazání selhalo",
+    "undone": "Konverzace obnovena",
+    "undoFailed": "Není co vrátit",
+    "sqlUnavailable": "Náhled SQL zatím není dostupný (přijde ve fázi 3)"
+  },
+  "errors": {
+    "agentFailed": "Nepodařilo se získat odpověď od agenta.",
+    "unsupportedFormat": "Nepodporovaný formát ({kind}) — vykresluji jako prostý text."
+  },
+  "nav": {
+    "brand": "AI Agenti",
+    "primaryAria": "Hlavní",
+    "expand": "Rozbalit",
+    "collapse": "Sbalit",
+    "expandAria": "Rozbalit boční navigaci",
+    "collapseAria": "Sbalit boční navigaci",
+    "view": "Zobrazení",
+    "viewAria": "Přepnout viditelnost panelů ve spodním řádku",
+    "items": {
+      "agent": "Agent",
+      "agentAria": "Otevřít zobrazení agenta",
+      "agents": "Agenti",
+      "agentsAria": "Agenti",
+      "agentsToggleAria": "Přepnout podnabídku agentů",
+      "inspector": "MCP Inspektor",
+      "inspectorAria": "Otevřít MCP Inspektor",
+      "gateway": "LLM Gateway",
+      "gatewayAria": "Otevřít LLM Gateway"
+    },
+    "user": {
+      "loading": "Načítání…",
+      "signOut": "Odhlásit se",
+      "signOutAria": "Odhlásit se"
+    }
+  },
+  "layout": {
+    "reset": "Obnovit rozvržení",
+    "resetToastSummary": "Rozvržení obnoveno",
+    "resetToastDetail": "Obnoveny výchozí panely, oddělovače a stav bočního panelu."
+  },
+  "panes": {
+    "graph": {
+      "title": "Graf"
+    },
+    "artifacts": {
+      "title": "Připnutí a nástěnky"
+    },
+    "inbox": {
+      "title": "Vyšetřování"
+    },
+    "flow": {
+      "title": "Tok agenta",
+      "empty": "Pošlete zprávu, abyste viděli tok agenta.",
+      "verbose": "Podrobně",
+      "verboseAria": "Přepnout podrobné zobrazení obsahu",
+      "clear": "Vymazat",
+      "clearAria": "Vymazat přepis toku",
+      "copyAll": "Kopírovat vše",
+      "copyAllAria": "Kopírovat přepis toku do schránky",
+      "scrollLatestAria": "Přejít na nejnovější záznam",
+      "logRegionAria": "Přepis toku agenta",
+      "cleared": "Tok vymazán",
+      "copied": "Zkopírováno",
+      "copiedDetail": "{count} záznamů zkopírováno do schránky.",
+      "copyFailed": "Kopírování se nezdařilo",
+      "copyFailedDetail": "Přístup ke schránce byl odepřen."
+    },
+    "queries": {
+      "title": "Dotazy",
+      "sourcesAria": "Zdroje",
+      "refresh": "Obnovit",
+      "refreshAria": "Obnovit dotazy",
+      "count": "{count} položek ({local} lokálních, {platform} platformních)",
+      "loading": "Načítání…",
+      "warningsHeading": "Některé zdroje hlásily upozornění.",
+      "errorFetch": "Načtení metadat se nezdařilo",
+      "empty": "Žádné dotazy nejsou k dispozici — zkontrolujte dostupnost MCP metadat.",
+      "filterPlaceholder": "filtr…",
+      "columns": {
+        "name": "Název",
+        "pattern": "Vzor",
+        "description": "Popis",
+        "category": "Kategorie",
+        "source": "Zdroj"
+      },
+      "categories": {
+        "pattern": "Vzor",
+        "sql_query": "SQL",
+        "procedure": "Procedura",
+        "entity": "Entita",
+        "table": "Tabulka"
+      },
+      "sources": {
+        "local": "Lokální",
+        "platform": "Platforma",
+        "both": "Oba"
+      }
+    }
+  },
+  "sessions": {
+    "title": "Konverzace",
+    "new": "Nová konverzace",
+    "newAria": "Začít novou konverzaci",
+    "empty": "Zatím žádné konverzace",
+    "untitled": "Nová konverzace",
+    "turnCount": "{count} dotazů",
+    "undoReset": "Vrátit zpět",
+    "undoResetAria": "Obnovit právě smazanou konverzaci"
+  },
+  "discover": {
+    "title": "Na co se mohu zeptat?",
+    "subtitle": "Vyberte téma, nebo rovnou napište svůj dotaz.",
+    "examplesAria": "Příklady otázek pro {domain}"
+  },
+  "inbox": {
+    "title": "Vyšetřování",
+    "empty": "Zatím žádná vyšetřování.",
+    "badgeAria": "{running} běží, {needsInput} čeká na vstup",
+    "running": "Běží",
+    "needsInput": "Čeká na vstup",
+    "open": "Otevřít",
+    "cost": "Náklady: {cost}",
+    "status": {
+      "RUNNING": "Běží",
+      "NEEDS_INPUT": "Čeká na váš vstup",
+      "DONE": "Hotovo",
+      "FAILED": "Selhalo",
+      "CANCELLED": "Zrušeno"
+    },
+    "hypotheses": {
+      "title": "Hypotézy",
+      "empty": "Zatím žádné hypotézy.",
+      "confidence": "spolehlivost {value}",
+      "steps": "{count} kroků"
+    }
+  },
+  "artifacts": {
+    "title": "Připnutí a nástěnky",
+    "pins": "Připnutí",
+    "dashboards": "Nástěnky",
+    "empty": "Zatím žádná připnutí — použijte záložku u odpovědi s tabulkou nebo grafem.",
+    "refresh": "Obnovit",
+    "refreshAll": "Obnovit vše",
+    "remove": "Smazat",
+    "open": "Otevřít",
+    "back": "Zpět",
+    "refreshedAt": "Aktualizováno {at}",
+    "neverRefreshed": "zatím neobnoveno",
+    "noEnvelope": "Nic zachyceno",
+    "staleError": "Neaktuální — poslední obnovení selhalo: {error}",
+    "loadFailed": "Připnutí se nepodařilo načíst",
+    "refreshFailed": "Připnutí se nepodařilo obnovit",
+    "removeFailed": "Artefakt se nepodařilo smazat"
+  }
+}

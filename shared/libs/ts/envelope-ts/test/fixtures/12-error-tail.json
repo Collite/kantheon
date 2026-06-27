@@ -1,0 +1,13 @@
+{
+  "bubble_id": "b-0012",
+  "turn_id": "t-0012",
+  "thread_id": "s-0001",
+  "text": "Dotaz se nepodařilo vyhodnotit.",
+  "format": { "kind": "plaintext" },
+  "warnings": ["Časový limit dotazu překročen, vráceny částečné výsledky."],
+  "error_code": "QUERY_TIMEOUT",
+  "plan_source": "free_sql",
+  "plan_score": 0.0,
+  "created_at": "2026-06-17T09:11:00Z",
+  "agent_version": "golem-v2@1.4.0"
+}

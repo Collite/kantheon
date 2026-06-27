@@ -1,0 +1,19 @@
+{
+  "bubble_id": "b-0009",
+  "turn_id": "t-0009",
+  "thread_id": "s-0001",
+  "text": "Za jaké období?",
+  "format": { "kind": "plaintext" },
+  "pending_clarification": {
+    "kind": "missing_arg",
+    "resume_token": "rt-9c22",
+    "options": [
+      { "id": "2026-q1", "display": "1. čtvrtletí 2026" },
+      { "id": "2026-q2", "display": "2. čtvrtletí 2026" }
+    ]
+  },
+  "plan_source": "clarification",
+  "plan_score": 0.0,
+  "created_at": "2026-06-17T09:08:00Z",
+  "agent_version": "golem-v2@1.4.0"
+}

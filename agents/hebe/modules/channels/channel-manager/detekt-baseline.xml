@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:ChannelManagerImpl.kt$ChannelManagerImpl$observer.event(ObserverEvent.TurnEnd(sessionId = effectiveSessionId, turnId = turnId, outcome = "no_response"))</ID>
+    <ID>MaxLineLength:ChannelManagerImpl.kt$ChannelManagerImpl$observer.event(ObserverEvent.TurnEnd(sessionId = effectiveSessionId, turnId = turnId, outcome = "pending"))</ID>
+    <ID>MaxLineLength:ChannelManagerTest.kt$ChannelManagerTest$verify { observer.event(match { it is ObserverEvent.TurnEnd &amp;&amp; (it as ObserverEvent.TurnEnd).outcome == "failed" }) }</ID>
+    <ID>MaxLineLength:ChannelManagerTest.kt$ChannelManagerTest$verify { observer.event(match { it is ObserverEvent.TurnEnd &amp;&amp; (it as ObserverEvent.TurnEnd).outcome == "no_response" }) }</ID>
+    <ID>MaxLineLength:ChannelManagerTest.kt$ChannelManagerTest$verify { observer.event(match { it is ObserverEvent.TurnEnd &amp;&amp; (it as ObserverEvent.TurnEnd).outcome == "pending" }) }</ID>
+  </CurrentIssues>
+</SmellBaseline>

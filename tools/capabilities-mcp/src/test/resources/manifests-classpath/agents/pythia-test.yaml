@@ -1,0 +1,14 @@
+agent_kind: INVESTIGATOR
+agent_id: pythia-test
+display_name: "Pythia (test)"
+intent_kinds_supported: [RCA, FORECAST]
+description_for_router: "Test investigator manifest."
+example_questions:
+  - "Why are sales down?"
+counter_examples: []
+capability_refs: []
+service_endpoint: "http://pythia.kantheon.svc.cluster.local:7301"
+health_check_path: /health
+typical_latency_ms: 30000
+typical_cost_usd: 0.15
+hitl_default: INTERACTIVE

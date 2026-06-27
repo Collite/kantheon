@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midas-excel-loader
+  namespace: kantheon
+  labels:
+    app: midas-excel-loader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: midas-excel-loader
+  template:
+    metadata:
+      labels:
+        app: midas-excel-loader
+    spec:
+      containers:
+        - name: midas-excel-loader
+          image: midas-excel-loader:dev
+          ports:
+            - name: http
+              containerPort: 7315
+          env:
+            - name: EXCEL_LOADER_HTTP_PORT
+              value: "7315"
+            - name: MIDAS_CORE_BASE_URL
+              value: "http://midas-core:7310"
+            - name: EXCEL_LOADER_BLOB_DIR
+              value: "/var/lib/midas-loader/blobs"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: midas-excel-loader
+            - name: OTEL_ENABLED_MIDAS_EXCEL_LOADER
+              value: "true"
+          volumeMounts:
+            # Uploaded statement blobs (re-parsed for preview/commit). emptyDir: a
+            # re-upload regenerates the blob, and the janitor prunes after 24h, so
+            # losing it on pod restart only costs replay of in-flight runs.
+            - name: blobs
+              mountPath: /var/lib/midas-loader/blobs
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7315
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7315
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: "1"
+      volumes:
+        - name: blobs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midas-excel-loader
+  namespace: kantheon
+  labels:
+    app: midas-excel-loader
+spec:
+  selector:
+    app: midas-excel-loader
+  ports:
+    - name: http
+      port: 7315
+      targetPort: 7315

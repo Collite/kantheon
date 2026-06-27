@@ -1,0 +1,27 @@
+{
+  "_comment": [
+    "Stage 3.1 T1/T4 — golem-erp LLM-gateway upstream stub. Loaded at runtime into the",
+    "in-cluster WireMock via the §3 admin protocol (the Stage 2.1 InClusterWireMockLoader,",
+    "retargeted to this context's WireMock base URL). Golem's PlanComposer calls the LLM",
+    "gateway (Prometheus) to compose a MiniPlan; this stub stands in for the LLM upstream so",
+    "the turn is deterministic and offline.",
+    "",
+    "PLACEHOLDER — the exact request match (gateway path) + the plan-shaped completion body",
+    "are finalised when the golem-erp context goes live (Ariadne + Prometheus charts land and",
+    "the real LlmGatewayClient wire shape is confirmed against the deployed gateway). Until",
+    "then GolemErpIntegrationSpec gates the answer-turn assertions OFF (liveContext = false)."
+  ],
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/healthz"
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "status": "ok" }
+      }
+    }
+  ]
+}

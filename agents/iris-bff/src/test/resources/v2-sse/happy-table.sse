@@ -1,0 +1,31 @@
+: ready
+
+event: node_start
+data: {"node":"bootstrap"}
+
+event: node_done
+data: {"node":"bootstrap"}
+
+event: node_start
+data: {"node":"pick_plan"}
+
+event: node_done
+data: {"node":"pick_plan"}
+
+event: plan_pick
+data: {"source":"pattern","pattern_id":"revenue-by-month","score":0.93}
+
+: ping
+
+event: node_start
+data: {"node":"execute"}
+
+event: node_done
+data: {"node":"execute"}
+
+event: exec_done
+data: {"row_count":2,"duration_ms":812}
+
+event: envelope
+data: {"bubble_id":"b-1","turn_id":"v2t-1","thread_id":"s-1","content":[{"m":"2026-01","r":120}],"format":{"kind":"table","table":{"headers":[{"name":"m","title":"Měsíc"}]}},"plan_source":"pattern","plan_score":0.93,"created_at":"2026-06-17T09:00:00Z","agent_version":"golem-v2@1.4.0"}
+

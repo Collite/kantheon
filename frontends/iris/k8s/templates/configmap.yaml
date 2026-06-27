@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "iris.fullname" . }}-config
+  labels:
+    {{- include "iris.labels" . | nindent 4 }}
+data:
+  # Consumed at container start by scripts/generate-env.sh (→ /env.js,
+  # window.APP_CONFIG) and scripts/nginx-entrypoint.sh (→ /bff proxy).
+  VITE_BFF_BASE_URL: {{ .Values.config.bffBaseUrl | quote }}
+  BFF_UPSTREAM_PROTOCOL: {{ .Values.config.bffUpstream.protocol | quote }}
+  BFF_UPSTREAM_HOST: {{ .Values.config.bffUpstream.host | quote }}
+  BFF_UPSTREAM_PORT: {{ .Values.config.bffUpstream.port | quote }}
+  VITE_AUTH_ENABLED: {{ .Values.config.auth.enabled | quote }}
+  VITE_KEYCLOAK_URL: {{ .Values.config.auth.keycloakUrl | quote }}
+  VITE_KEYCLOAK_REALM: {{ .Values.config.auth.realm | quote }}
+  VITE_KEYCLOAK_CLIENT_ID: {{ .Values.config.auth.clientId | quote }}
+  VITE_TELEMETRY_ENABLED: {{ .Values.config.telemetry.enabled | quote }}
+  {{- range $k, $v := .Values.config.extra }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}

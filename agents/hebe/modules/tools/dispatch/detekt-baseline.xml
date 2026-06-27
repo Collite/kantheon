@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:Posture.kt$ToolFamily.Companion$fun of(toolName: String): ToolFamily</ID>
+    <ID>LongMethod:ToolDispatcher.kt$ToolDispatcher$suspend fun dispatch( call: ParsedToolCall, ctx: ToolContext, ): DispatchOutcome</ID>
+    <ID>LongParameterList:ToolDispatcher.kt$ToolDispatcher$( call: ParsedToolCall, result: ToolResult, ctx: ToolContext, span: Span, tool: Tool, startMs: Long, )</ID>
+    <ID>LongParameterList:ToolDispatcher.kt$ToolDispatcher$( private val registry: ToolRegistry, private val validators: List&lt;Validator&gt;, private val approvalGate: ApprovalGate, private val memory: MemoryStore, private val observer: Observer, private val leakDetector: LeakDetector, private val receipts: Receipts, // P2 Stage 2.4 — tool posture. Required (no default) so every dispatch path // must make a deliberate posture choice; an omitted gate previously defaulted // to unrestricted and silently bypassed posture (e.g. the MCP-server path). // Callers with no posture concern pass [PostureGate.unrestricted] explicitly. private val postureGate: PostureGate, )</ID>
+    <ID>MagicNumber:LoopDetector.kt$LoopDetector$3</ID>
+    <ID>MagicNumber:LoopDetector.kt$LoopDetector$5</ID>
+    <ID>MaxLineLength:Posture.kt$ToolFamily.Companion$n == "shell" || n == "bash" || n == "sh" || n.contains("exec") || n.contains("command") || n.contains("shell") -&gt; SHELL</ID>
+    <ID>MaxLineLength:Posture.kt$ToolFamily.Companion$n.contains("file") || n.contains("fs_") || n.startsWith("fs.") || n.contains("dir") || n.contains("path") -&gt; FILESYSTEM</ID>
+    <ID>MaxLineLength:Posture.kt$ToolFamily.Companion$n.startsWith("memory") || n.startsWith("mem_") || n.contains("recall") || n.contains("remember") -&gt; MEMORY</ID>
+    <ID>NestedBlockDepth:ToolDispatcher.kt$ToolDispatcher$suspend fun dispatch( call: ParsedToolCall, ctx: ToolContext, ): DispatchOutcome</ID>
+    <ID>ReturnCount:ToolDispatcher.kt$ToolDispatcher$suspend fun dispatch( call: ParsedToolCall, ctx: ToolContext, ): DispatchOutcome</ID>
+    <ID>TooGenericExceptionCaught:ToolDispatcher.kt$ToolDispatcher$e: Exception</ID>
+    <ID>UnusedParameter:ToolDispatcher.kt$ToolDispatcher$span: Span</ID>
+  </CurrentIssues>
+</SmellBaseline>

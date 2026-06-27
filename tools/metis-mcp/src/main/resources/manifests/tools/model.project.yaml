@@ -1,0 +1,19 @@
+capability_id: "metis.model.project:v1"
+category: "metis"
+version: "1.0.0"
+description: |
+  Generate a forecast from a fitted model for a given horizon (e.g. "+12" for
+  12 periods ahead). Writes the forecast DataFrame to the session workspace
+  under outputDf and returns the schema fingerprint.
+service_endpoint: "http://metis-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - metis
+  - project
+  - forecast
+  - horizon
+  - prediction
+cost_hints:
+  typical_latency_ms: 80
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 4

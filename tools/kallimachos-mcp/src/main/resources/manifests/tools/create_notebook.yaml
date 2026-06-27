@@ -1,0 +1,16 @@
+capability_id: "library.createNotebook:v1"
+category: "library"
+version: "1.0.0"
+description: |
+  Create a mart (ops/admin at v1).
+service_endpoint: "http://kallimachos-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - library
+  - notebooks
+  - marts
+  - admin
+cost_hints:
+  typical_latency_ms: 60
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 16

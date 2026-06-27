@@ -1,0 +1,13 @@
+# The Dockerfile only `COPY dist` (built bundle) + nginx config + scripts.
+# Keep the build context small and deterministic.
+node_modules
+.git
+.github
+tests
+e2e
+coverage
+*.md
+.env*
+.vscode
+.idea
+# keep: dist/, nginx.conf.template, scripts/, public/

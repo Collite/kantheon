@@ -1,0 +1,15 @@
+# Hebe (personal autonomous agent) bootstrap manifest — contracts (hebe) §2.
+# Runtime per-instance registration (agent_id: hebe-<instance_id>) supersedes this
+# fixture; it seeds discovery. non_routable keeps Hebe out of every Themis routing
+# layer (it is a client of the constellation, never a candidate).
+kind: AGENT
+agent_kind: PERSONAL_ASSISTANT
+agent_id: hebe-bora                 # hebe-<instance_id>
+display_name: "Hebe (Bora)"
+non_routable: true                  # NEVER a routing candidate — all Themis layers skip it
+description_for_router: ""          # deliberately empty; never enters Layer 2 prompts
+intent_kinds_supported: []          # none — Hebe answers no analytical intents
+capability_refs: []
+service_endpoint: http://hebe-bora.kantheon.svc:8765
+health_check_path: /healthz
+hitl_default: SPECULATIVE

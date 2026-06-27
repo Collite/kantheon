@@ -1,0 +1,3 @@
+# Missing agent_kind — loader must skip with a warning, not crash.
+agent_id: broken-agent
+display_name: "Broken"

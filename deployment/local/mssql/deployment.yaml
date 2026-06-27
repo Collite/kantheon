@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mssql
+  namespace: kantheon
+  labels:
+    app: mssql
+    tier: local-infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mssql
+  strategy:
+    # MSSQL holds an exclusive lock on its data dir; never run two pods at once.
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mssql
+        tier: local-infra
+    spec:
+      containers:
+        - name: mssql
+          # Upstream image — pulled from the registry (not a jib-built local image,
+          # so imagePullPolicy stays default, unlike the constellation services).
+          image: mcr.microsoft.com/mssql/server:2022-latest
+          ports:
+            - name: tds
+              containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_PID
+              value: Developer
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mssql-sa-secret
+                  key: SA_PASSWORD
+          readinessProbe:
+            tcpSocket:
+              port: 1433
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket:
+              port: 1433
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          volumeMounts:
+            - name: data
+              mountPath: /var/opt/mssql
+          resources:
+            requests:
+              memory: 2Gi
+              cpu: 500m
+            limits:
+              memory: 4Gi
+              cpu: "2"
+      volumes:
+        # Ephemeral local data — local-infra is disposable; the init Job reseeds
+        # the test database on every fresh pod. Swap for a PVC if persistence is wanted.
+        - name: data
+          emptyDir: {}

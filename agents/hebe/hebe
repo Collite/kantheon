@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+JAR_DIR="${HEBE_HOME:-/usr/local/lib/hebe}"
+JAR="$JAR_DIR/hebe.jar"
+if [ ! -f "$JAR" ]; then
+    JAR="$(dirname "$0")/modules/cli-app/build/libs/hebe.jar"
+fi
+exec java -jar "$JAR" "$@"

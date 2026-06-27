@@ -1,0 +1,18 @@
+capability_id: "midas.reconcile.statement:v1"
+category: "midas"
+version: "1.0.0"
+description: |
+  Reconcile an imported broker statement (loader run) against system
+  transactions, returning per-row diffs + a summary. v1 returns an empty
+  reconciliation until statement import lands (Stage 2.x).
+service_endpoint: "http://midas-core:7311"
+search_tags:
+  - reconcile
+  - statement
+  - diff
+  - audit
+cost_hints:
+  typical_latency_ms: 200
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 4

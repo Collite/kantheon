@@ -1,0 +1,13 @@
+apiVersion: v2
+name: themis-mcp
+description: |
+  The Kantheon themis-mcp agent (question understanding + routing) — an env-agnostic Helm chart.
+  Holds no cluster knowledge: image, replicas, resources, telemetry endpoint and the downstream
+  wiring (capabilities-mcp / kadmos / echo / prometheus) are all values. Per-environment values
+  live in the deploying repo (Olymp clusters via ArgoCD multi-source D3'; test contexts via the
+  Olymp scripted harness). Converted from the kustomize base/overlays, mirroring services/theseus/k8s
+  (HTTP/MCP-only — no gRPC port). The workload + Service are named `themis-mcp` (the name other
+  services resolve and the test-context readiness gate waits on).
+type: application
+version: 0.1.0
+appVersion: "dev"

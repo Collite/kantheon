@@ -1,0 +1,11 @@
+{
+  "bubble_id": "b-0006",
+  "turn_id": "t-0006",
+  "thread_id": "s-0001",
+  "text": "Pro rok 2026 evidujeme 1 248 aktivních zákazníků.",
+  "format": { "kind": "plaintext" },
+  "plan_source": "pattern",
+  "plan_score": 0.95,
+  "created_at": "2026-06-17T09:05:00Z",
+  "agent_version": "golem-v2@1.4.0"
+}

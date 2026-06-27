@@ -1,0 +1,46 @@
+# investment-overview:v1 — Midas content for the GENERIC Iris dashboard system (Stage 3.5).
+#
+# PD-6: the dashboard *system* (pins, dashboards, iris_artifacts, refresh) is generic and
+# lives in the Iris arc. This file is Midas-supplied CONTENT, loaded by the generic
+# template loader. Pane sources are expressed as common.v1.ViewProvenance (deterministic
+# typed-action/replay refresh), NOT the superseded agent_call_spec. Do NOT add the
+# contracts §7 dashboard/dashboard_pane DDL — that was superseded by the Iris artifact system.
+
+template_id: "investment-overview:v1"
+display_name: "Investment Overview"
+version: "1.0.0"
+
+params:
+  - { name: client_id,    kind: PARAM_CLIENT_ID,    required: true }
+  - { name: portfolio_id, kind: PARAM_PORTFOLIO_ID, required: true }
+  - { name: period,       kind: PARAM_PERIOD,       required: false, default: "ytd" }
+
+panes:
+  # A Golem-Investment chart: YTD performance for the portfolio (refresh = re-ask the Golem).
+  - id: performance_chart
+    kind: CHART
+    title: "Performance — {portfolio_id}"
+    source:
+      provenance_kind: AGENT_TURN
+      agent_id: golem-investment
+      question: "{period} performance for portfolio {portfolio_id}"
+
+  # A positions table straight from the Midas-core valuation tool.
+  - id: positions_table
+    kind: TABLE
+    title: "Positions"
+    source:
+      provenance_kind: TOOL_CALL
+      capability_id: "midas.position.valuation:v1"
+      args_json: '{"portfolio_id":"{portfolio_id}","as_of":"{period.end}"}'
+
+  # A report-preview pane: render-on-open the portfolio statement as HTML (the one
+  # Midas-specific pane mechanic — proxies to report-renderer).
+  - id: statement_preview
+    kind: REPORT_PREVIEW
+    title: "Portfolio Statement"
+    source:
+      provenance_kind: REPORT_RENDER
+      template_id: "portfolio-statement:v1"
+      output_format: OUTPUT_HTML
+      args_json: '{"portfolio_id":"{portfolio_id}","period":"{period}"}'

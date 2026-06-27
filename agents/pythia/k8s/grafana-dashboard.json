@@ -1,0 +1,90 @@
+{
+  "title": "Pythia — autonomous analytical investigator",
+  "uid": "pythia-investigations",
+  "tags": ["kantheon", "pythia", "investigator"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "id": 1,
+      "title": "Investigations/s by status + intent",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (status, intent_kind) (rate(pythia_investigations_total[5m]))",
+          "legendFormat": "{{intent_kind}} ({{status}})"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Investigation duration p50/p95 (ms) by intent",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, intent_kind) (rate(pythia_investigation_duration_ms_bucket[5m])))",
+          "legendFormat": "p50 {{intent_kind}}"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, intent_kind) (rate(pythia_investigation_duration_ms_bucket[5m])))",
+          "legendFormat": "p95 {{intent_kind}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Steps/s by node kind + status",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum by (node_kind, status) (rate(pythia_steps_total[5m]))", "legendFormat": "{{node_kind}} ({{status}})" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "LLM cost $/s by task kind",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "sum by (task_kind) (rate(pythia_llm_cost_usd_total[5m]))", "legendFormat": "{{task_kind}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Budget halts/s by ladder step",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "sum by (ladder_step) (rate(pythia_budget_halts_total[5m]))", "legendFormat": "ladder {{ladder_step}}" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "AWAITING entered/s + duration p95 by state",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+      "targets": [
+        { "expr": "sum by (state) (rate(pythia_awaiting_total[5m]))", "legendFormat": "enter {{state}}" },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, state) (rate(pythia_awaiting_duration_ms_bucket[5m])))",
+          "legendFormat": "p95 {{state}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Handle materialisations/s + plan revisions/s",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum by (from, to) (rate(pythia_handle_materialisations_total[5m]))",
+          "legendFormat": "{{from}}→{{to}}"
+        },
+        { "expr": "sum by (kind) (rate(pythia_plan_revisions_total[5m]))", "legendFormat": "revise {{kind}}" }
+      ]
+    }
+  ]
+}

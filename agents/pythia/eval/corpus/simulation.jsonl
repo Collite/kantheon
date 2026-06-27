@@ -1,0 +1,2 @@
+# Pythia eval corpus — SIMULATION bucket (contracts §8).
+{"id":"simulation-001","question":"What if we raise price 20% and volume drops 5%?","locale":"en","depth_budget":"NORMAL","fixture_llm_script":"scripts/simulation-001.yaml","expected":{"intent_kind":"SIMULATION","plan_valid":true,"min_hypotheses":1,"terminal_status":"DONE","stop_reason_in":["STOP_GOAL_REACHED"],"budget_max_usd":2.0}}

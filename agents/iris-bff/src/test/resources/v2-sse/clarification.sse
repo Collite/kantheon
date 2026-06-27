@@ -1,0 +1,17 @@
+: ready
+
+event: node_start
+data: {"node":"extract_entities"}
+
+event: node_done
+data: {"node":"extract_entities"}
+
+event: node_start
+data: {"node":"awaiting_clarification"}
+
+event: node_done
+data: {"node":"awaiting_clarification"}
+
+event: envelope
+data: {"bubble_id":"b-c","turn_id":"v2t-c","thread_id":"s-1","text":"Kterého zákazníka myslíte?","format":{"kind":"plaintext"},"pending_clarification":{"kind":"entity_choice","resume_token":"rt-abc","options":[{"id":"c-1","display":"Kaufland ČR v.o.s."},{"id":"c-2","display":"Kaufland Slovensko"}]},"plan_source":"clarification","plan_score":0.0,"created_at":"2026-06-17T09:07:00Z","agent_version":"golem-v2@1.4.0"}
+

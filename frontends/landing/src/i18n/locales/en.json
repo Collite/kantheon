@@ -1,0 +1,20 @@
+{
+  "header": {
+    "title": "Kantheon"
+  },
+  "dashboard": {
+    "title": "Cluster Dashboard",
+    "noUrl": "Configure VITE_GRAFANA_DASHBOARD_URL to view dashboard"
+  },
+  "links": {
+    "applications": "Applications",
+    "infrastructure": "Infrastructure",
+    "agent": "Agent",
+    "services": "Services",
+    "devPortal": "Developer's Portal",
+    "grafana": "Grafana",
+    "argocd": "ArgoCD",
+    "traefik": "Traefik",
+    "keycloak": "Keycloak"
+  }
+}

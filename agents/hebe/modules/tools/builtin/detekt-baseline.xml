@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:HttpTool.kt$HttpTool$override suspend fun invoke( args: JsonObject, ctx: ToolContext, ): ToolResult</ID>
+    <ID>LongMethod:GitPushTool.kt$GitPushTool$override suspend fun invoke( args: JsonObject, ctx: ToolContext, ): ToolResult</ID>
+    <ID>LongMethod:HttpTool.kt$HttpTool$override suspend fun invoke( args: JsonObject, ctx: ToolContext, ): ToolResult</ID>
+    <ID>LongMethod:ProcessRunner.kt$ProcessRunner$suspend fun run( cmd: String, cwd: Path? = null, timeoutMs: Long = DEFAULT_TIMEOUT_MS, env: Map&lt;String, String&gt; = emptyMap(), emergencyStop: EmergencyStop? = null, ): ProcessResult</ID>
+    <ID>LoopWithTooManyJumpStatements:ProcessRunner.kt$ProcessRunner$while</ID>
+    <ID>MagicNumber:BuiltinHttpClient.kt$10_000</ID>
+    <ID>MagicNumber:BuiltinHttpClient.kt$60_000</ID>
+    <ID>MagicNumber:GitPushTool.kt$GitPushTool$120</ID>
+    <ID>MagicNumber:GitPushTool.kt$GitPushTool$1_000</ID>
+    <ID>MagicNumber:GitPushTool.kt$GitPushTool$500</ID>
+    <ID>MagicNumber:GitTool.kt$GitTool$20</ID>
+    <ID>MagicNumber:GitTool.kt$GitTool$7</ID>
+    <ID>MagicNumber:HttpTool.kt$HttpTool$1_000_000</ID>
+    <ID>MagicNumber:KubectlTool.kt$KubectlTool$1000</ID>
+    <ID>MagicNumber:KubectlTool.kt$KubectlTool$120</ID>
+    <ID>MagicNumber:KubectlTool.kt$KubectlTool$500</ID>
+    <ID>MagicNumber:MemorySearchTool.kt$MemorySearchTool$10</ID>
+    <ID>MagicNumber:ProcessRunner.kt$ProcessRunner$1000</ID>
+    <ID>MagicNumber:ProcessRunner.kt$ProcessRunner$1_000_000</ID>
+    <ID>MagicNumber:ProcessRunner.kt$ProcessRunner$500</ID>
+    <ID>MagicNumber:ScheduleTool.kt$ScheduleTool$5</ID>
+    <ID>MagicNumber:ScheduleTool.kt$ScheduleTool$6</ID>
+    <ID>MagicNumber:ShellTool.kt$ShellTool$500</ID>
+    <ID>MagicNumber:ShellTool.kt$ShellTool$60000</ID>
+    <ID>MagicNumber:ShellTool.kt$ShellTool$60_000L</ID>
+    <ID>MagicNumber:WebSearchTool.kt$WebSearchTool$10</ID>
+    <ID>MaxLineLength:AskUserTool.kt$AskUserTool$description = "Ask the user a question. Returns NeedsApproval which is delivered via the originating channel."</ID>
+    <ID>MaxLineLength:FileSystemListTool.kt$FileSystemListTool$put("description", JsonPrimitive("Workspace-relative prefix (default: empty = root)"))</ID>
+    <ID>MaxLineLength:GitTool.kt$GitTool$override fun effectiveRequiresApproval(args: JsonObject): Boolean</ID>
+    <ID>MaxLineLength:GitTool.kt$GitTool$put("description", JsonPrimitive("git verb: clone | status | diff | log | branch | commit"))</ID>
+    <ID>MaxLineLength:HttpTool.kt$HttpTool$put("description", JsonPrimitive("Header name for secret injection (e.g. Authorization)"))</ID>
+    <ID>MaxLineLength:JobTools.kt$JobCreateTool$put("description", JsonPrimitive("Job kind: adhoc | routine | maintenance | heartbeat"))</ID>
+    <ID>MaxLineLength:KubectlTool.kt$KubectlTool$put("description", JsonPrimitive("kubectl verb (get, describe, apply, delete, etc.)"))</ID>
+    <ID>MaxLineLength:MemoryWriteTool.kt$MemoryWriteTool$put("description", JsonPrimitive("Category: Document, Fact, Preference, Skill (default: Document)"))</ID>
+    <ID>MaxLineLength:MemoryWriteToolTest.kt$MemoryWriteToolTest$coVerify { memory.appendDoc("notes/idea", "An interesting idea.", MemoryScope.Default, MemoryCategory.Document) }</ID>
+    <ID>MaxLineLength:ShellTool.kt$ShellTool$put("description", JsonPrimitive("Timeout in milliseconds (default: 60000, max: 600000)"))</ID>
+    <ID>ReturnCount:FileSystemReadTool.kt$FileSystemReadTool$override suspend fun invoke( args: JsonObject, ctx: ToolContext, ): ToolResult</ID>
+    <ID>ReturnCount:ScheduleTool.kt$ScheduleTool$private fun createRoutine(args: JsonObject): ToolResult</ID>
+    <ID>TooGenericExceptionCaught:BraveSearchProvider.kt$BraveSearchProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DuckDuckGoSearchProvider.kt$DuckDuckGoSearchProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FileSystemGlobTool.kt$FileSystemGlobTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FileSystemWriteTool.kt$FileSystemWriteTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GitPushTool.kt$GitPushTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GitTool.kt$GitTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HttpTool.kt$HttpTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:KubectlTool.kt$KubectlTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MemoryReadTool.kt$MemoryReadTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MemorySearchTool.kt$MemorySearchTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MemoryTreeTool.kt$MemoryTreeTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MemoryWriteTool.kt$MemoryWriteTool$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WikiWriteTool.kt$WikiWriteTool$e: Exception</ID>
+    <ID>UnusedPrivateMember:GitTool.kt$GitTool$private fun verbFromArgs(args: JsonObject): String</ID>
+    <ID>UnusedPrivateProperty:JobTools.kt$JobCreateTool$val payload = args["payload"]?.jsonPrimitive?.content ?: return ToolResult.Err("missing required argument: payload")</ID>
+    <ID>VariableNaming:KubectlTool.kt$KubectlTool$private val MUTATING_VERBS = setOf( "apply", "create", "delete", "patch", "replace", "scale", "rollout", "cordon", "drain", "uncordon", "taint", "label", "annotate", "exec", "port-forward", "set", "edit", )</ID>
+  </CurrentIssues>
+</SmellBaseline>

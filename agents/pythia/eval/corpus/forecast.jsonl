@@ -1,0 +1,2 @@
+# Pythia eval corpus — FORECAST bucket (contracts §8).
+{"id":"forecast-001","question":"What will our margin be at end of year?","locale":"en","depth_budget":"NORMAL","fixture_llm_script":"scripts/forecast-001.yaml","expected":{"intent_kind":"FORECAST","plan_valid":true,"min_hypotheses":1,"terminal_status":"DONE","stop_reason_in":["STOP_GOAL_REACHED"],"budget_max_usd":2.0}}

@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "golem.fullname" . }}
+  labels:
+    {{- include "golem.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "golem.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "golem.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ include "golem.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+          env:
+            - name: GOLEM_HTTP_PORT
+              value: {{ .Values.containerPort | quote }}
+            - name: GOLEM_DB_ENABLED
+              value: {{ .Values.db.enabled | quote }}
+            {{- if .Values.db.enabled }}
+            - name: GOLEM_DB_HOST
+              value: {{ .Values.db.host | quote }}
+            - name: GOLEM_DB_PORT
+              value: {{ .Values.db.port | quote }}
+            - name: GOLEM_DB_NAME
+              value: {{ .Values.db.name | quote }}
+            - name: GOLEM_DB_USER
+              value: {{ .Values.db.user | quote }}
+            - name: GOLEM_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "db.existingSecret is required when db.enabled" .Values.db.existingSecret }}
+                  key: {{ .Values.db.passwordKey }}
+            {{- end }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ .Values.telemetry.serviceName | quote }}
+            - name: OTEL_ENABLED_GOLEM
+              value: {{ .Values.telemetry.enabled | quote }}
+            {{- if .Values.shem.configMapName }}
+            - name: GOLEM_SHEM_DIR
+              value: {{ .Values.shem.mountPath | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.shem.configMapName }}
+          volumeMounts:
+            # The assembled Shem bundle (overlay shem.yaml + prompts/{locale}/…),
+            # mounted read-only at GOLEM_SHEM_DIR. The ConfigMap is created from
+            # agents/golem/shems/<agent_id>/ by the deploying context (olymp /
+            # `kubectl create configmap --from-file`), not templated here.
+            - name: shem
+              mountPath: {{ .Values.shem.mountPath }}
+              readOnly: true
+          {{- end }}
+      {{- if .Values.shem.configMapName }}
+      volumes:
+        - name: shem
+          configMap:
+            name: {{ .Values.shem.configMapName }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

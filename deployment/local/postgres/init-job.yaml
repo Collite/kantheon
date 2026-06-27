@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgres-init
+  namespace: kantheon
+  labels:
+    app: postgres
+    tier: local-infra
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      # Distinct label — the `postgres` Service selects `app: postgres`; the init
+      # pod must NOT be selected, or `pg_isready -h postgres` load-balances onto
+      # this pod (no 5432 listener) instead of the database.
+      labels:
+        app: postgres-init
+        tier: local-infra
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          # Debian/glibc variant (NOT -alpine): the alpine/musl resolver does not
+          # apply the cluster DNS search-domain to the `postgres` Service name the
+          # way glibc does, so the short name fails to resolve from a musl pod.
+          # glibc (like the mssql-tools init image) resolves it normally. The app
+          # images are glibc too, so they use the short name fine.
+          image: postgres:16
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Waiting for postgres to accept connections..."
+              for i in $(seq 1 60); do
+                if pg_isready -h postgres -U postgres -d postgres >/dev/null 2>&1; then
+                  echo "postgres is up; applying init.sql"
+                  PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgres -U postgres -d postgres \
+                    -v ON_ERROR_STOP=1 -v pw="$MIDAS_APP_PASSWORD" -f /init/init.sql
+                  echo "init.sql applied."
+                  exit 0
+                fi
+                echo "  not ready yet ($i/60), sleeping 5s..."
+                sleep 5
+              done
+              echo "postgres did not become ready in time" >&2
+              exit 1
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-superuser-secret
+                  key: POSTGRES_PASSWORD
+            - name: MIDAS_APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midas-db-secret
+                  key: password
+          volumeMounts:
+            - name: init-sql
+              mountPath: /init
+      volumes:
+        - name: init-sql
+          configMap:
+            name: postgres-init-sql

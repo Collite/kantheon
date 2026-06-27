@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:KoogLlmProvider.kt$KoogPromptExecutor${}</ID>
+    <ID>LongMethod:AgentLoopE2ETest.kt$AgentLoopE2ETest$@Test fun `multi-tool turn dispatched, receipt written, memory appended, final text returned`()</ID>
+    <ID>LongParameterList:ChatDelegate.kt$ChatDelegate$( private val sessionId: String, private val channel: Channel, private val memory: MemoryStore, private val dispatcher: ToolDispatcher, private val llmProvider: LlmProvider, private val costGuard: CostGuard, private val compactor: PreemptivePruner, private val observer: org.tatrman.kantheon.hebe.api.Observer, private val systemPrompt: String, private val toolsProvider: suspend (userMessage: String) -&gt; List&lt;org.tatrman.kantheon.hebe.api.ToolSpec&gt;, private val modelName: String, private val sessionMutex: Mutex, )</ID>
+    <ID>LongParameterList:CostGuard.kt$CostGuard$( turnId: String, model: String, tokensIn: Int, tokensOut: Int, costMicrosUsd: Long?, durationMs: Long = 0, tokensCached: Int = 0, )</ID>
+    <ID>LongParameterList:HebeAgent.kt$HebeAgent$( private val sessionManager: SessionManager, private val submissionParser: SubmissionParser, private val channel: Channel, private val memory: MemoryStore, private val dispatcher: ToolDispatcher, private val llmProvider: LlmProvider, private val costGuard: CostGuard, private val compactor: PreemptivePruner, private val hooks: HookRunner, private val observer: Observer, private val approvalGate: ApprovalGate, private val secretLookup: SecretLookup, private val secretStore: SecretStoreProvider, private val systemPrompt: String, private val toolsProvider: suspend (userMessage: String) -&gt; List&lt;ToolSpec&gt;, private val activeSkills: List&lt;String&gt;, )</ID>
+    <ID>LongParameterList:JobDelegate.kt$JobDelegate$( private val jobId: String, private val memory: MemoryStore, private val dispatcher: ToolDispatcher, private val llmProvider: LlmProvider, private val costGuard: CostGuard, private val compactor: PreemptivePruner, private val observer: Observer, private val systemPrompt: String, private val tools: List&lt;org.tatrman.kantheon.hebe.api.ToolSpec&gt;, private val modelName: String, )</ID>
+    <ID>MagicNumber:Compactor.kt$Compactor$1.3</ID>
+    <ID>MagicNumber:Compactor.kt$Compactor$10</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$1_000_000.0</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$3</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$4</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$5</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$6</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$7</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$8</ID>
+    <ID>MagicNumber:CostGuard.kt$CostGuard$9</ID>
+    <ID>MaxLineLength:Compactor.kt$Compactor$sb.appendLine("Summarise the following conversation concisely, preserving key facts, decisions, and action items.")</ID>
+    <ID>MaxLineLength:KoogLlmProvider.kt$KoogPromptExecutor$private fun kotlinx.serialization.json.JsonElement.safeAsJsonObject(): JsonObject</ID>
+    <ID>TooGenericExceptionCaught:Compactor.kt$Compactor$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HebeAgent.kt$HebeAgent$e: Exception</ID>
+    <ID>UnusedParameter:Compactor.kt$Compactor$turnId: String</ID>
+    <ID>UnusedParameter:CostGuard.kt$CostGuard$turnId: String</ID>
+    <ID>UnusedParameter:HebeAgent.kt$HebeAgent$submission: Submission.UserInput</ID>
+    <ID>UnusedPrivateClass:KoogLlmProvider.kt$KoogPromptExecutor : PromptExecutor</ID>
+    <ID>UnusedPrivateProperty:AgentLoopE2ETest.kt$AgentLoopE2ETest$val toolCallArgs = buildJsonObject { put("msg", JsonPrimitive("hello")) }</ID>
+    <ID>UnusedPrivateProperty:ChatDelegate.kt$ChatDelegate$private val channel: Channel</ID>
+    <ID>UnusedPrivateProperty:CostGuardTest.kt$CostGuardTest$private val config = mockk&lt;HebeConfig&gt;(relaxed = true).also { io.mockk.every { it.cost } returns CostSection(dailyUsdCap = 1.0, perTurnTokenCap = 1000) }</ID>
+    <ID>UnusedPrivateProperty:HookRunner.kt$HookRunner$private val logger = LoggerFactory.getLogger(javaClass)</ID>
+  </CurrentIssues>
+</SmellBaseline>

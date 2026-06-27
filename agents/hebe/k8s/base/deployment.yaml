@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hebe
+  namespace: kantheon
+  labels:
+    app: hebe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hebe
+  template:
+    metadata:
+      labels:
+        app: hebe
+    spec:
+      containers:
+        - name: hebe
+          image: hebe:dev
+          ports:
+            - name: http
+              containerPort: 8765
+          env:
+            # One pod per instance (architecture §5.1). The overlay sets the instance
+            # id + a matching nameSuffix; storage/workspace/receipts resolve to the
+            # k8s preset (postgres + ephemeral FS → PG workspace + PG receipts).
+            - name: HEBE_PROFILE
+              value: "k8s"
+            - name: HEBE_INSTANCE_ID
+              value: "dev"
+            - name: HEBE_SECRETS_DIR
+              value: "/var/run/secrets/hebe"
+          # Ready = config resolved + PG reachable + migrations at head + channels up
+          # (architecture §2.2 doctor parity). Liveness is the bare process check.
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8765
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8765
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: instance-secrets
+              mountPath: /var/run/secrets/hebe
+              readOnly: true
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+      volumes:
+        # Per-instance Secret skeleton (provision.sh step 3): PG creds, Keycloak
+        # client creds + bound user, llm-gateway key, Telegram bot token, receipts
+        # signing key.
+        - name: instance-secrets
+          secret:
+            secretName: hebe-dev
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hebe
+  namespace: kantheon
+  labels:
+    app: hebe
+spec:
+  selector:
+    app: hebe
+  ports:
+    - name: http
+      port: 8765
+      targetPort: 8765

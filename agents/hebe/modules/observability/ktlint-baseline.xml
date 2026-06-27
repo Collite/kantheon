@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/test/kotlin/org/tatrman/kantheon/hebe/observability/OtelBootstrapTest.kt">
+        <error line="30" column="28" source="standard:chain-method-continuation" />
+        <error line="30" column="39" source="standard:chain-method-continuation" />
+        <error line="30" column="47" source="standard:chain-method-continuation" />
+        <error line="30" column="52" source="standard:chain-method-continuation" />
+    </file>
+</baseline>

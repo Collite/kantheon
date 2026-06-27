@@ -1,0 +1,33 @@
+# envelope-ts codegen (Iris Stage 1.1, T1).
+#
+# Drives ts-proto via buf (self-contained — no system protoc; the Gradle
+# protobuf plugin owns the Kotlin/Python protoc). Scoped to envelope/v1 +
+# iris/v1; `--include-imports` (set in the `gen` npm script) pulls their
+# transitive imports — common/v1 (AgentId, HandoffContext, BlockProvenance,
+# ViewProvenance, EntityBinding, ResponseMessage) — into the bundle. No
+# themis/v1 (the AgentId move, cohesion review D2, keeps it out).
+#
+# snakeToCamel=keys: idiomatic camelCase TS message keys (bubbleId) WITH
+# snake_case JSON on the wire (fromJSON reads bubble_id, toJSON emits it) —
+# the golden-sample-compatible setting. The default keys_json would make
+# fromJSON expect camelCase JSON and silently miss every v2 snake_case field.
+# Input + path filter are passed on the CLI (see the `gen` npm script): the
+# proto module root is shared/proto/src/main/proto (anchored by its buf.yaml);
+# --path scopes to envelope/v1 + iris/v1; --include-imports adds common/v1.
+version: v2
+clean: true
+plugins:
+  - local: ./node_modules/.bin/protoc-gen-ts_proto
+    out: src/generated
+    opt:
+      - esModuleInterop=true
+      - snakeToCamel=keys
+      - outputJsonMethods=true
+      - useOptionals=messages
+      - forceLong=number
+      - outputServices=false
+      - useExactTypes=false
+      # JSON-only wire (REST + SSE). Dropping binary encode/decode removes the
+      # `@bufbuild/protobuf/wire` runtime import — envelope-ts needs no proto
+      # runtime dep, just the generated fromJSON/toJSON.
+      - outputEncodeMethods=false

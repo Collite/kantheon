@@ -1,0 +1,32 @@
+# validation-rules.yaml — the single declarative source generating FE Zod
+# (layer 1) + the BFF pre-flight validator (layer 2). Authoritative semantics
+# still live in Midas-core (layer 3). Contracts §4. Never hand-maintain the
+# generated layers — regenerate from this file (`npm run gen:zod` on the FE).
+TransactionForm:
+  portfolio_id: { required: true, type: uuid }
+  asset_id:     { required: true, type: uuid }
+  kind:         { required: true, enum: midas.v1.TransactionKind }
+  trade_date:   { required: true, type: date, max: today }
+  settle_date:  { required: false, type: date, gte_field: trade_date }
+  quantity:     { required: true, type: decimal, ne: 0 }
+  price.amount: { required: true, type: decimal, gte: 0 }
+  fee.amount:   { required: false, type: decimal, gte: 0 }
+  currency:     { required: true, type: iso4217 }
+ClientForm:
+  name:          { required: true, max_len: 200 }
+  contact_email: { required: false, type: email }
+PortfolioForm:
+  client_id:     { required: true, type: uuid }
+  name:          { required: true, max_len: 200 }
+  base_currency: { required: true, type: iso4217 }
+  track_cash:    { required: false, type: bool, default: true }
+BalanceEntryForm:
+  portfolio_id:    { required: true, type: uuid }
+  asset_id:        { required: true, type: uuid }
+  target_quantity: { required: true, type: decimal, gte: 0 }
+  as_of:           { required: true, type: date, max: today }
+AssetForm:
+  symbol:   { required: true, max_len: 32 }
+  name:     { required: true, max_len: 200 }
+  kind:     { required: true, enum: midas.v1.AssetKind }
+  currency: { required: true, type: iso4217 }

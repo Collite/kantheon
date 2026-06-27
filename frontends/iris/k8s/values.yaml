@@ -1,0 +1,73 @@
+# Default values for iris (the Vue SPA, nginx). Env-agnostic: sane defaults, NO
+# cluster knowledge. Per-environment overrides live in Olymp.
+replicaCount: 1
+
+image:
+  repository: iris
+  tag: ""           # defaults to .Chart.appVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 7012
+
+containerPort: 7012
+
+# An nginx static-file server is cheap.
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 250m
+
+# Runtime config. Rendered into a ConfigMap and `envFrom`'d into the container,
+# where the entrypoint scripts consume it: generate-env.sh writes the VITE_*
+# values into /env.js (window.APP_CONFIG), and nginx-entrypoint.sh substitutes
+# the BFF_UPSTREAM_* vars into the /bff proxy.
+config:
+  # The single backend origin. Same-origin '/bff' (nginx proxies to bffUpstream)
+  # keeps iris-bff ClusterIP — no external exposure, no CORS.
+  bffBaseUrl: "/bff"
+  bffUpstream:
+    protocol: http
+    host: iris-bff           # in-cluster iris-bff Service (same ns) — override per env
+    port: 7410
+  auth:
+    enabled: false
+    keycloakUrl: ""
+    realm: ""
+    clientId: ""
+  telemetry:
+    enabled: false
+  # Any extra VITE_* keys (e.g. VITE_GOLEM_AGENTS) as a string→string map.
+  extra: {}
+
+# Gateway API exposure (the FE is the first externally-routed Iris app). When
+# enabled, an HTTPRoute attaches to the shared Gateway and routes `hostname` to
+# the FE Service. iris-bff is NOT exposed — it's reached same-origin via /bff.
+httpRoute:
+  enabled: false
+  gateway:
+    name: eg
+    namespace: gateway
+  hostname: ""               # e.g. iris.192-168-1-38.nip.io
+
+readinessProbe:
+  path: /healthz
+  initialDelaySeconds: 2
+  periodSeconds: 5
+  failureThreshold: 6
+livenessProbe:
+  path: /healthz
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+extraEnv: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

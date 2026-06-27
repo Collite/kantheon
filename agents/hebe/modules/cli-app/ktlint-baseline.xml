@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/org/tatrman/kantheon/hebe/cli/AgentFactory.kt">
+        <error line="107" column="49" source="standard:chain-method-continuation" />
+    </file>
+    <file name="src/main/kotlin/org/tatrman/kantheon/hebe/cli/Main.kt">
+        <error line="881" column="141" source="standard:max-line-length" />
+    </file>
+</baseline>

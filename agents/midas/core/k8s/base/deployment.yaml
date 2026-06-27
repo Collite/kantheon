@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midas-core
+  namespace: kantheon
+  labels:
+    app: midas-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: midas-core
+  strategy:
+    # Single-instance local service: replace in place (the node can't fit two
+    # midas-core pods during a rolling surge). Matches the local-infra pattern.
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: midas-core
+    spec:
+      containers:
+        - name: midas-core
+          image: midas-core:dev
+          ports:
+            - name: http
+              containerPort: 7310
+            - name: mcp
+              containerPort: 7311
+          env:
+            - name: MIDAS_CORE_HTTP_PORT
+              value: "7310"
+            - name: MIDAS_CORE_MCP_PORT
+              value: "7311"
+            # Operational Postgres — the shared Kantheon PG, `midas` database
+            # (deployment/local Stage 1.1 T5). The midas_app password comes from
+            # the secret the postgres init provisions.
+            - name: MIDAS_DB_HOST
+              value: "postgres"
+            - name: MIDAS_DB_NAME
+              value: "midas"
+            - name: MIDAS_DB_USER
+              value: "midas_app"
+            - name: MIDAS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: midas-db-secret
+                  key: password
+            - name: CAPABILITIES_MCP_URL
+              value: "http://capabilities-mcp:7099"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: midas-core
+            - name: OTEL_ENABLED_MIDAS_CORE
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7310
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7310
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 500m
+            limits:
+              memory: 2Gi
+              cpu: "2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midas-core
+  namespace: kantheon
+  labels:
+    app: midas-core
+spec:
+  selector:
+    app: midas-core
+  ports:
+    - name: http
+      port: 7310
+      targetPort: 7310
+    - name: mcp
+      port: 7311
+      targetPort: 7311

@@ -1,0 +1,23 @@
+# Broker template — "beta" (a different export: two preamble rows, header on row 3,
+# day-first dates, different column wording + kind vocabulary). Exercises the
+# registry's per-broker mapping against alpha.
+broker_id: "beta"
+display_name: "Beta Securities"
+sheet: "Activity"
+header_row: 3            # rows 1-2 are a preamble/title block
+date_format: "dd/MM/yyyy"
+columns:
+  trade_date: "Date"
+  kind: "Action"
+  symbol: "Ticker"
+  quantity: "Shares"
+  price: "Unit Price"
+  fee: "Commission"
+  total: "Net Amount"
+  currency: "Ccy"
+  external_id: "OrderID"
+kind_map:
+  Buy: "TX_BUY"
+  Sell: "TX_SELL"
+  Dividend: "TX_DIVIDEND"
+  Interest: "TX_INTEREST"

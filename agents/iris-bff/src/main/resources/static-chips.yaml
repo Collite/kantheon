@@ -1,0 +1,14 @@
+# Curated static chips — the suggested-topic strip on a fresh session / empty
+# input box (Iris Stage 3.2 T3). Edited by Bora; no code change needed. Each
+# entry renders as a PromptChip{display, prompt, source: static}; clicking it
+# submits `prompt` as a normal turn (routed through Themis).
+#
+# Role-filtering against visibility_roles lands with the discovery surface
+# (Phase 4 Stage 4.3); these are global suggestions for now.
+chips:
+  - display: "Tržby za měsíc"
+    prompt: "Kolik jsme prodali minulý měsíc?"
+  - display: "Top zákazníci"
+    prompt: "Kdo jsou naši největší zákazníci podle obratu?"
+  - display: "Stav skladu"
+    prompt: "Které položky mají nízký stav skladu?"

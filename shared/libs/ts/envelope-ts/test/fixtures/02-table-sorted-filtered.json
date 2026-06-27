@@ -1,0 +1,26 @@
+{
+  "bubble_id": "b-0002",
+  "turn_id": "t-0002",
+  "thread_id": "s-0001",
+  "content": [{ "product": "Mléko 1l", "qty": 4200 }],
+  "format": {
+    "kind": "table",
+    "table": {
+      "alternateColors": "Rows",
+      "headers": [
+        { "name": "product", "title": "Produkt" },
+        { "name": "qty", "title": "Množství" }
+      ],
+      "sort": [{ "column": "qty", "direction": "desc" }],
+      "filters": [
+        { "column": "qty", "operator": "gte", "value": 1000 },
+        { "column": "product", "operator": "contains", "value": "Mléko" }
+      ],
+      "paging": { "page": 1, "page_size": 25, "total_rows": 1 }
+    }
+  },
+  "plan_source": "amend",
+  "plan_score": 0.71,
+  "created_at": "2026-06-17T09:01:00Z",
+  "agent_version": "golem-v2@1.4.0"
+}

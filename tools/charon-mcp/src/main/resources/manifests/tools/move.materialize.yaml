@@ -1,0 +1,14 @@
+capability_id: "charon.move.materialize:v1"
+category: "charon"
+version: "1.0.0"
+description: |
+  Materialize a source Location (seaweed / redis / worker_df / db_table) into a
+  seaweed, redis, or db_table target. Verifies + returns the canonical Arrow
+  schema fingerprint; no partial writes. Pythia's evidence-persist path.
+service_endpoint: "http://charon-mcp.kantheon.svc.cluster.local:7252"
+search_tags: [charon, move, materialize, arrow, evidence, seaweed, redis, db]
+cost_hints:
+  typical_latency_ms: 250
+  typical_cost_usd: 0.0
+  is_idempotent: false
+  max_concurrent: 8

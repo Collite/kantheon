@@ -1,0 +1,66 @@
+agent_kind: AREA_QA
+agent_id: golem-erp
+display_name: "Golem-ERP"
+intent_kinds_supported: [PROCEDURAL]
+description_for_router: |
+  # Bora fills: scope of ERP domain Q&A.
+  Placeholder description. Golem-ERP answers procedural questions about ERP-side
+  entities (customers, invoices, orders, …) — never about HR, sales analytics,
+  or other domains.
+example_questions:
+  # Bora fills: ~10 positive examples
+  - "Které faktury Shell ještě neuhradil?"
+  - "Jaké jsou objednávky od Kauflandu za tento měsíc?"
+  - "Show me unpaid invoices for customer Shell"
+counter_examples:
+  # Bora fills: ~5 examples that should NOT route to Golem-ERP
+  - "Proč klesly tržby Castrolu?"                 # RCA → Pythia
+  - "What's the wage cost on CC 4902?"            # HR domain → Golem-HR (future)
+capability_refs:
+  - theseus.query:v1
+  - theseus.compile:v1
+  - render.table:v1
+  - render.chart:v1
+service_endpoint: "http://golem-erp.kantheon.svc.cluster.local:7401"
+health_check_path: /health
+typical_latency_ms: 5000
+typical_cost_usd: 0.02
+hitl_default: INTERACTIVE
+
+# ─── Shem-specific ───
+area_name: "ERP"
+area_entities:
+  # Bora fills: entity-type IDs from Ariadne (ariadne-mcp) metadata
+  - customer
+  - supplier
+  - product
+  - invoice
+  - sales_order
+  - purchase_order
+  - cost_center
+area_terminology:
+  # Bora fills: domain-specific term definitions
+  - term: "objednávka"
+    definition: "v ERP může znamenat zákaznickou objednávku (sales_order) NEBO objednávku k dodavateli (purchase_order)"
+    synonyms: ["order"]
+preferred_queries:
+  # Bora fills: curated Ariadne (ariadne-mcp) query IDs in scope
+  - listUnpaidInvoices
+  - listOrdersByCustomer
+  - listProductsByCategory
+preferred_capabilities:
+  # Bora fills: curated ToolCapability IDs
+  - theseus.query:v1
+  - theseus.compile:v1
+style_addendum: |
+  # Bora fills: voice/presentation only. NEVER correctness-affecting knowledge.
+  # E.g.: "Czech responses default to plural-formal address; tables show currency in CZK by default."
+locale_defaults:
+  - locale: cs-CZ
+    greeting: "Dobrý den, jak vám mohu pomoci?"
+    date_format: "dd.MM.yyyy"
+    currency: "CZK"
+  - locale: en
+    greeting: "Hi, how can I help?"
+    date_format: "yyyy-MM-dd"
+    currency: "EUR"

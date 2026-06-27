@@ -1,0 +1,15 @@
+{
+  "_comment": "RRF parity golden oracle (Hebe P3 S3.1 T1). query -> the doc whose exact terms dominate the full-text candidates. Top-1 is the tokenizer-stable part of the ranking (FTS5 porter/unicode61 vs PG simple agree on exact-term hits); deeper ranks depend on the embedding model and are asserted only at the integration tier against live Postgres. The corpus + these expectations are the arbiter (plan.md P3.1 risk note).",
+  "corpus": {
+    "kotlin-coroutines.md": "Kotlin coroutines provide structured concurrency for asynchronous programming on the JVM.",
+    "postgres-indexes.md": "Postgres uses GIN indexes for full text search and HNSW indexes for vector similarity.",
+    "rrf-fusion.md": "Reciprocal rank fusion blends full text rankings and vector rankings with a constant offset.",
+    "telegram-delivery.md": "The Telegram channel delivers scheduled conclusions and deep links to the user."
+  },
+  "expected_top1": {
+    "kotlin coroutines": "kotlin-coroutines.md",
+    "telegram channel": "telegram-delivery.md",
+    "reciprocal rank fusion": "rrf-fusion.md",
+    "HNSW vector indexes": "postgres-indexes.md"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "bubble_id": "b-0005",
+  "turn_id": "t-0005",
+  "thread_id": "s-0001",
+  "text": "## Souhrn\n\n- Tržby vzrostly o **15 %**.\n\n```mermaid\ngraph TD; A-->B;\n```",
+  "format": {
+    "kind": "markdown",
+    "markdown": { "allow_mermaid": true, "allow_images": false }
+  },
+  "plan_source": "pattern",
+  "plan_score": 0.8,
+  "created_at": "2026-06-17T09:04:00Z",
+  "agent_version": "golem-v2@1.4.0"
+}

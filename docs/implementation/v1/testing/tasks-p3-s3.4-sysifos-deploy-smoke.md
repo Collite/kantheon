@@ -1,0 +1,40 @@
+# Testing Phase 3 Stage 3.4 — Sysifos deploy + workbench-smoke (bp-dsk)
+
+> **Goal.** Stand the Sysifos back-office workbench (FE nginx + `sysifos-bff`) up on the olymp **bp-dsk** cluster against the live Midas-core + Excel loader, and verify the data-entry surfaces end-to-end through a real browser/REST smoke: login → session → the hybrid write paths (sync CRUD + async draft) → bulk grid → statement import → balance entry → reconcile → audit. The integration-tier verification of the **Sysifos arc** — **owned by the Testing arc** (the per-stage "deploy + smoke" T7s were moved here from Sysifos Stages 1.2 / 1.3 / 2.3 / 2.5 / 2.6, 2026-06-24, Bora).
+>
+> **Nature.** A GitOps **deploy + live smoke**, mirroring the iris-bff Stage 1.4 deploy precedent and the Iris Stage 3.3 pattern — *not* (yet) a `@RequiresContext` nightly spec. It needs the cluster + credentials (GHCR push, Keycloak admin, ArgoCD) **and** a reachable Midas-core + Excel loader on the same cluster, so it runs with Bora driving, not in CI. Graduating it to an automated `@RequiresContext("sysifos-workbench")` nightly spec is a follow-on.
+>
+> **Reads with.** [`plan.md`](./plan.md) (this arc) · Sysifos [`../sysifos/plan.md`](../sysifos/plan.md) §6 (the deploy+smoke tasks consolidated here) · the per-stage task lists ([`../sysifos/tasks-p1-s1.2-bff-skeleton.md`](../sysifos/tasks-p1-s1.2-bff-skeleton.md), [`tasks-p1-s1.3-write-fe-shell.md`](../sysifos/tasks-p1-s1.3-write-fe-shell.md), [`tasks-p2-s2.3-bulk-grid.md`](../sysifos/tasks-p2-s2.3-bulk-grid.md), [`tasks-p2-s2.5-import.md`](../sysifos/tasks-p2-s2.5-import.md), [`tasks-p2-s2.6-reconcile-audit.md`](../sysifos/tasks-p2-s2.6-reconcile-audit.md)) for the per-surface acceptance · Stage 3.3 [`tasks-p3-s3.3-iris-deploy-smoke.md`](./tasks-p3-s3.3-iris-deploy-smoke.md) (the FE+BFF deploy precedent + bp-dsk gotchas) · [[no-ai-platform-olymp-clusters]] · [[sysifos-arc-state]].
+
+## Inputs (ready — Sysifos arc, code-complete 2026-06-24)
+
+- **BFF image** — `agents/sysifos-bff` Jib build + Kustomize `k8s/{base,overlays/local}` (`imagePullPolicy: Never` locally; port **7601**; env `SYSIFOS_MIDAS_BASE_URL`, `SYSIFOS_LOADER_BASE_URL`, `SYSIFOS_AUTH_*`). `kubectl kustomize overlays/local` builds clean.
+- **FE container** — `frontends/sysifos` `Dockerfile` (nginx:alpine), `nginx.conf.template` (listen **7602**, same-origin `/bff` proxy → `sysifos-bff:7601`, SSE-tuned), `scripts/{generate-env,nginx-entrypoint}.sh`, `public/env.js`. `just publish-fe-image sysifos` ready.
+- **Cluster deps (must be live on bp-dsk first):** Midas-core (Midas arc, deployed) + the **Excel loader** service (Midas S1.5) reachable by Service; ≥2 fixture broker templates for the import smoke.
+- **Note vs Iris (3.3):** Sysifos ships **Kustomize** overlays (like midas/core), **not** a Helm chart — the olymp bp-dsk app references the Kustomize base + a `bp-dsk` overlay/values, not a `helm` chart path.
+
+## Tasks
+
+- [ ] **T1 — Build + push both images.** Jib `sysifos-bff` → `ghcr.io/boraperusic/sysifos-bff:0.1.0`; `GHCR_USER=… GHCR_TOKEN=… just publish-fe-image sysifos 0.1.0` → `ghcr.io/boraperusic/sysifos:0.1.0` (linux/amd64; bp-dsk is amd64).
+
+- [ ] **T2 — Land the olymp app.** Commit + PR the `clusters/bp-dsk/apps/sysifos/{config.json,values.yaml}` (Kustomize-based; FE + BFF; the BFF env points `SYSIFOS_MIDAS_BASE_URL`/`SYSIFOS_LOADER_BASE_URL` at the in-cluster Midas-core + loader Services). ApplicationSet git-files generator → Application `sysifos`, ns `sysifos`. `chartRevision` = the Sysifos branch, flipped → `main` on merge (T6).
+
+- [ ] **T3 — `ghcr-pull` in ns `sysifos`.** Land the `clusterexternalsecret-ghcr-pull` selector edit (adds the `sysifos` ns); the `auth` Application materialises the dockerconfigjson. **Gotcha (1.4/3.3):** the first pod can race the secret → ImagePullBackOff; delete it once the secret exists.
+
+- [ ] **T4 — Keycloak `kantheon` realm: the `sysifos` SPA client + the `sysifos-bff` service account.** A public SPA client `sysifos` (redirect URIs + web origins for `https://sysifos.192-168-1-38.nip.io`) so the FE logs in and forwards the OBO bearer; the `sysifos-bff` confidential/service-account (the standing Sysifos pre-flight config item) so the BFF verifies JWTs (JWKS signature mode in-cluster) and forwards the tenant claim. **Required for the smoke** (the BFF demands a bearer; reads `SYSIFOS_AUTH_*`). Config-only. Include a `midas:admin` test user (for the Assets-write, Audit, and loader-trigger gated surfaces).
+
+- [ ] **T5 — ArgoCD sync + live workbench-smoke.** App `sysifos` Synced + Healthy (force the ApplicationSet refresh annotation if the git-generator lags — 1.4 gotcha). Then through `https://sysifos.192-168-1-38.nip.io`, the layered smokes consolidated from the per-stage T7s — each runs against a **fresh tenant**:
+  - **BFF edge (was S1.2 T7):** `/ready` → 200 with Midas-core up; `/dictionaries/currencies` → list; `GET /sessions/current` with a real Keycloak JWT → `SysifosSession`; 401 without a bearer.
+  - **Shell + async draft (was S1.3 T7):** login → nav + tenant name visible → navigate every route → POST a `DRAFT_CLIENT` via the draft path → observe `DraftAck`→`DraftCommitted` on `/stream` → confirm the client via `GET /midas/clients`.
+  - **Sync CRUD (S2.1/2.2/2.4):** create + edit + archive a client and a `track_cash` portfolio; create an asset (as `midas:admin`); single manual transaction → confirm the security leg **and its derived cash sub-rows** render; pencil-edit → reversal + replacement; balance entry preview → commit → ADJUSTMENT visible in Transactions.
+  - **Bulk grid (was S2.3 T7):** paste a real ~50-row block → commit → watch per-row pills resolve → confirm rows + derived cash sub-rows in Transactions. Re-submit the identical block → all skipped (idempotent on `external_id` where present; manual rows without `external_id` insert again — **document the behaviour**).
+  - **Statement import (was S2.5 T7):** upload both fixture brokers end-to-end (SSE `LoaderProgress` → preview → inline-correct an ERROR row via quick-create → commit `DRAFT_LOADER_RUN_COMMIT`); re-upload the same file → all DUPLICATE, commit skips zero new (idempotent on `external_id`).
+  - **Full operational round-trip (was S2.6 T7):** on one fresh tenant — create client → portfolio → import statement (with a correction) → edit a transaction → bulk-grid a block → balance entry → reconcile (decide each diff; resolved diffs don't re-prompt on the next run) → review the audit log (admin). All green.
+
+- [ ] **T6 — Tags + chartRevision flip.** Tag `sysifos-bff/v0.1.0` + `sysifos/v0.1.0` (FE), and the arc tag **`sysifos-arc/phase-2-data-entry-v1`**; flip the olymp `sysifos` `config.json` chartRevision feature-branch → `main` on the Sysifos PR merge. **This closes Sysifos Phase 2** — the back-office workbench is daily-usable on bp-dsk.
+
+**Pre-flight.** Sysifos arc code-complete (all 9 stages merged; mocked unit/component specs green); Midas-core **and** the Excel loader live + reachable on bp-dsk; the `sysifos-bff` Keycloak service account provisioned (T4). **DONE:** the layered workbench-smoke (T5) is green on a fresh tenant and the tags land (T6); the Sysifos stack is reachable + daily-usable. **Branch:** `feat/p3-s3.4-sysifos-deploy-smoke` (mostly olymp + live ops; minimal kantheon code — a smoke checklist / optional script). **Audit-endpoint caveat:** the Audit screen reads a Midas-core `GET /api/v1/audit` read endpoint (assumed in Sysifos S2.6); confirm it exists on the deployed Midas-core before the audit leg of T5, else that leg is deferred until Midas adds it.
+
+## Follow-on (not this stage)
+- **Automated `@RequiresContext("sysifos-workbench")` nightly spec** — once olymp can stand a Sysifos context up (FE + BFF + Midas-core + loader + PG), formalise the T5 layered smoke as a Phase-3 integration spec in the nightly run-set (joins 3.1's context roster). Until then T5 is a Bora-driven manual smoke.
+- **Midas `GET /api/v1/audit`** — if absent at deploy time, the audit leg of T5 graduates when Midas adds the read endpoint.

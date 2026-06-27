@@ -1,0 +1,14 @@
+capability_id: "charon.move.describe:v1"
+category: "charon"
+version: "1.0.0"
+description: |
+  Describe a Location: exists, schema fingerprint, row count, size, expiry.
+  The Pythia PD-5 resume-time liveness probe for any handle kind (blob /
+  db_table / worker_df). Read-only.
+service_endpoint: "http://charon-mcp.kantheon.svc.cluster.local:7252"
+search_tags: [charon, move, describe, liveness, fingerprint, pd5]
+cost_hints:
+  typical_latency_ms: 40
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

@@ -1,0 +1,4 @@
+hebe_api_version = "0.1.x"
+capabilities = ["tool"]
+permissions = []
+allowlist_domains = []

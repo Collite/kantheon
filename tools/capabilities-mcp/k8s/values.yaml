@@ -1,0 +1,59 @@
+# Default values for capabilities-mcp. Env-agnostic: sane defaults, NO cluster knowledge.
+# Deploying environments (Olymp per-cluster values) override image, telemetry endpoint, etc.
+
+replicaCount: 1
+
+image:
+  repository: capabilities-mcp
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# Service exposes the MCP HTTP port.
+service:
+  type: ClusterIP
+  port: 7501
+
+# The port the container listens on (also the probe + service target port).
+containerPort: 7501
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+
+# OpenTelemetry export. The otel-config lib reads host + grpc port separately (not a single
+# endpoint URL). Set telemetry.otlpHost to a real collector (e.g. the cluster's Alloy) and
+# enable; leave telemetry.enabled false where no collector exists.
+telemetry:
+  enabled: false
+  protocol: grpc
+  # e.g. mon-alloy.monitoring.svc.cluster.local
+  otlpHost: ""
+  otlpGrpcPort: 4317
+  serviceName: capabilities-mcp
+
+# Probes (HTTP on the container port). Tunable but sane for a fast-loading service.
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# Extra environment variables (list of {name,value} or full env entries) merged after the
+# telemetry-derived ones.
+extraEnv: []
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

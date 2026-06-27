@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kantheon
+
+# Owned local-infra for kantheon (kantheon-architecture §7.1). The single entry
+# point applied by `just local-infra-up` (Stage 4.1 T5). Started at fork Stage 3.3
+# with MSSQL — the backing store Brontes (the MSSQL worker) executes against.
+#
+# NOTE: WireMock-LLM upstreams for Prometheus are an integration-track concern
+# (Stage 2.5 T4) — the local Prometheus overlay runs on placeholder keys + the
+# in-memory `test` profile, so no LLM stub exists yet. When the integration track
+# adds the WireMock fixtures, they land here (this is the single entry point).
+resources:
+  - mssql
+  # The shared Kantheon Postgres (kantheon-architecture §7.1) — Midas introduces
+  # it (Midas Stage 1.1 T5); it owns the `midas` database + `midas_app` role.
+  # Later PG-backed agents add their own databases to the same instance.
+  - postgres

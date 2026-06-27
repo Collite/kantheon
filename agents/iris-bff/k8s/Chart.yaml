@@ -1,0 +1,11 @@
+apiVersion: v2
+name: iris-bff
+description: |
+  The Kantheon Iris dispatch BFF — an env-agnostic Helm chart. Holds no cluster knowledge:
+  image, replicas, resources, the Postgres connection (host/port/db/user + password secret),
+  the transitional new-golem /v2 dispatch target, bearer auth (JWKS), the audit signing key
+  and telemetry are all values. Per-environment values live in the deploying GitOps repo
+  (Olymp), wired via ArgoCD multi-source (D3').
+type: application
+version: 0.1.0
+appVersion: "dev"

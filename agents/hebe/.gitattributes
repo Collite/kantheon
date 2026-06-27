@@ -1,0 +1,3 @@
+# Native binaries — prevent git from applying line-ending conversion or diff heuristics
+modules/memory/src/main/resources/native/**/*.dylib binary
+modules/memory/src/main/resources/native/**/*.so    binary

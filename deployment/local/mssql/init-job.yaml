@@ -1,0 +1,51 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mssql-init
+  namespace: kantheon
+  labels:
+    app: mssql
+    tier: local-infra
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app: mssql
+        tier: local-infra
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init
+          image: mcr.microsoft.com/mssql-tools:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Waiting for mssql to accept connections..."
+              for i in $(seq 1 60); do
+                if /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P "$SA_PASSWORD" -Q "SELECT 1" -b -o /dev/null; then
+                  echo "mssql is up; applying init.sql"
+                  /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P "$SA_PASSWORD" -i /init/init.sql -b
+                  echo "init.sql applied."
+                  exit 0
+                fi
+                echo "  not ready yet ($i/60), sleeping 5s..."
+                sleep 5
+              done
+              echo "mssql did not become ready in time" >&2
+              exit 1
+          env:
+            - name: SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mssql-sa-secret
+                  key: SA_PASSWORD
+          volumeMounts:
+            - name: init-sql
+              mountPath: /init
+      volumes:
+        - name: init-sql
+          configMap:
+            name: mssql-init-sql

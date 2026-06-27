@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metis-mcp
+  labels:
+    app: metis-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metis-mcp
+  template:
+    metadata:
+      labels:
+        app: metis-mcp
+    spec:
+      containers:
+        - name: metis-mcp
+          image: metis-mcp:latest
+          ports:
+            - containerPort: 7262
+          env:
+            - name: METIS_MCP_SERVER_PORT
+              value: "7262"
+            - name: METIS_GRPC_HOST
+              value: "metis"
+            - name: METIS_GRPC_PORT
+              value: "7261"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 7262
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 7262
+            initialDelaySeconds: 15
+            periodSeconds: 20

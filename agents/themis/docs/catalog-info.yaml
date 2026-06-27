@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: resolver
+  description: Kotlin agent producing structured resolver responses; uses plain coroutines in v1 (Koog migration tracked for v1.1 — see memory `project_resolver_koog_deviation`)
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - kotlin
+    - ktor
+    - agent
+    - v1
+    - entities-only
+spec:
+  type: service
+  lifecycle: production
+  owner: df-platform
+  system: ai-platform

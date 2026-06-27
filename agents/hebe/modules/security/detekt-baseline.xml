@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:SsrfGuard.kt$SsrfGuard.BlockedRange$private fun parseIPv6(addr: String): ByteArray?</ID>
+    <ID>LongMethod:Receipts.kt$Receipts$override suspend fun append(partial: PartialReceipt): Long</ID>
+    <ID>MagicNumber:ConsoleAuth.kt$OidcSessionVerifier$1000</ID>
+    <ID>MagicNumber:OboTokenService.kt$OboTokenService$1000</ID>
+    <ID>MagicNumber:Receipts.kt$Receipts$16</ID>
+    <ID>MagicNumber:Receipts.kt$Receipts$7</ID>
+    <ID>MagicNumber:SecretPatterns.kt$SecretPatterns$32</ID>
+    <ID>MagicNumber:SecretPatterns.kt$SecretPatterns$4.5</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard$60_000L</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$0xFF</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$0xFFFFFFFFL</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$16</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$24</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$3</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$32</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$4</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$6</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$7</ID>
+    <ID>MagicNumber:SsrfGuard.kt$SsrfGuard.BlockedRange$8</ID>
+    <ID>MagicNumber:Verifier.kt$ReceiptVerifier$16</ID>
+    <ID>MagicNumber:Verifier.kt$ReceiptVerifier$20</ID>
+    <ID>MaxLineLength:AutonomyValidator.kt$AutonomyValidator$if (tool.readOnly) ValidationResult.Allow else ValidationResult.Deny("ReadOnly mode blocks side-effect tools")</ID>
+    <ID>MaxLineLength:ChannelAndConsoleSpec.kt$ChannelAndConsoleSpec$mapOf("iss" to "https://kc/realms/kantheon", "aud" to "hebe", "exp" to 2000, "preferred_username" to "bora")</ID>
+    <ID>MaxLineLength:ChannelAndConsoleSpec.kt$ChannelAndConsoleSpec$val v = OidcSessionVerifier(expectedIssuer = "https://kc/realms/kantheon", expectedAudience = "hebe", now = { 1000 })</ID>
+    <ID>MaxLineLength:CommandPatternChecker.kt$CommandPatternChecker.CommandSubstitutionChecker$if (cmd.contains(keyword)) return Pair(Severity.High, "Command substitution with dangerous keyword detected")</ID>
+    <ID>MaxLineLength:Verifier.kt$ReceiptVerifier$if</ID>
+    <ID>MaxLineLength:WorkspaceBoundaryValidator.kt$WorkspaceBoundaryValidator$val isWithinAllowedRoot = additionalAllowedRoots.any { normalized.startsWith(it.toAbsolutePath().normalize()) }</ID>
+    <ID>NestedBlockDepth:EstopIpc.kt$EstopIpc$fun startServer( socketPath: Path, onStop: () -&gt; Unit, )</ID>
+    <ID>NestedBlockDepth:SsrfGuard.kt$SsrfGuard$fun isBlocked(url: String): SsrfResult</ID>
+    <ID>NestedBlockDepth:SsrfGuard.kt$SsrfGuard.BlockedRange$private fun parseIPv6(addr: String): ByteArray?</ID>
+    <ID>ReturnCount:ConsoleAuth.kt$OidcSessionVerifier$fun verify( rawToken: String, claims: Map&lt;String, Any?&gt;, ): ConsoleAuthResult</ID>
+    <ID>ReturnCount:SsrfGuard.kt$SsrfGuard.BlockedRange$private fun containsIPv6( addr: String, cidr: String, ): Boolean</ID>
+    <ID>ReturnCount:Verifier.kt$ReceiptVerifier$fun verify( file: Path, publicKey: ByteArray, expectedFirstPrevHash: String = ZERO_HASH, ): VerifyResult</ID>
+    <ID>SwallowedException:DomainAllowlistValidator.kt$DomainAllowlistValidator$e: Exception</ID>
+    <ID>SwallowedException:EstopIpc.kt$EstopIpc$e: Exception</ID>
+    <ID>SwallowedException:Receipts.kt$Receipts$e: Exception</ID>
+    <ID>SwallowedException:SigningKey.kt$Ed25519Verifier$e: Exception</ID>
+    <ID>SwallowedException:SigningKey.kt$SigningKey$e: Exception</ID>
+    <ID>SwallowedException:SsrfGuard.kt$SsrfGuard$e: Exception</ID>
+    <ID>SwallowedException:SsrfGuard.kt$SsrfGuard.BlockedRange$e: Exception</ID>
+    <ID>SwallowedException:Verifier.kt$ReceiptVerifier$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DomainAllowlistValidator.kt$DomainAllowlistValidator$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:EstopIpc.kt$EstopIpc$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Receipts.kt$Receipts$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SigningKey.kt$Ed25519Verifier$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SigningKey.kt$SigningKey$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SsrfGuard.kt$SsrfGuard$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SsrfGuard.kt$SsrfGuard.BlockedRange$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Verifier.kt$ReceiptVerifier$e: Exception</ID>
+    <ID>UnusedPrivateProperty:SsrfGuard.kt$SsrfGuard.BlockedRange$val suffixStart = doubleColonIdx + (8 - parts.size)</ID>
+  </CurrentIssues>
+</SmellBaseline>

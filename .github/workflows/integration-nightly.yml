@@ -1,0 +1,155 @@
+# Integration tier (testing arc Phase 2 Stage 2.3) — the full constellation on a real cluster.
+# Drives the cross-repo loop for the `theseus-runquery` context:
+#   olymp infra-up  (scripted, NON-ArgoCD bring-up on the olymp test cluster)
+#     → :tools:theseus-mcp:integrationTest  (kantheon: @RequiresContext gate + the run_query suite)
+#   → olymp infra-down  (ALWAYS, via trap — even on test failure)
+#
+# Heavy (cluster + ~15 images + end-to-end wiring), so it is NOT on the PR gate — it runs
+# nightly + on release tags (testing architecture §8). The component tier (Testcontainers, no
+# cluster) stays in ci.yml on every PR + merge.
+#
+# Olymp owns bring-up/teardown (D3' / test-harness.md §6); this workflow only references the
+# context by name and reads the `namespace=` handshake. See contracts.md §5.2.
+name: integration-nightly
+
+on:
+  schedule:
+    - cron: "0 3 * * *"          # 03:00 UTC nightly
+  push:
+    tags:
+      - "*/v*"                    # release tags (per-service, e.g. theseus-mcp/v0.1.0)
+  workflow_dispatch: {}           # manual trigger for on-demand runs / first green (T5)
+
+concurrency:
+  group: integration-nightly
+  cancel-in-progress: false       # never cancel a run mid-bring-up (would leak a namespace)
+
+jobs:
+  integration:
+    # Self-hosted runner with kubeconfig access to the olymp test cluster (bp-olymp01) +
+    # just/helm/kubectl/python3. For forks without that access, swap to `ubuntu-latest` and
+    # stand a throwaway k3d cluster before infra-up (test-harness.md §9 — documented fallback).
+    runs-on: [self-hosted, olymp-test]
+    env:
+      CONTEXT: theseus-runquery
+      # The kubectl context name on the runner (the olymp test cluster). Overridable via a repo
+      # variable so the same workflow targets bp-olymp01 or a k3d context.
+      KUBE_CONTEXT: ${{ vars.OLYMP_KUBE_CONTEXT || 'bp-olymp01' }}
+      # Existing in-cluster dockerconfig for the private GHCR images; copied per-run into the run
+      # namespace by infra-up (test-harness.md §7). On bp-olymp01 this is argocd/ghcr-pull.
+      GHCR_FROM: ${{ vars.OLYMP_GHCR_FROM || 'argocd/ghcr-pull' }}
+    # The failure step opens/updates a tracked issue (architecture §8); the default GITHUB_TOKEN
+    # is read-only on this repo, so grant issues:write explicitly (contents:read for checkout).
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout kantheon (the SHA under test)
+        uses: actions/checkout@v4
+
+      - name: Checkout olymp (the harness + contexts)
+        uses: actions/checkout@v4
+        with:
+          repository: Collite/olymp
+          token: ${{ secrets.OLYMP_GITHUB_TOKEN }}
+          path: olymp
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: infra-up → integrationTest → infra-down
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          # The namespace is deterministic (kantheon-<context>-<run-id>), so we can dump
+          # diagnostics even when infra-up fails BEFORE printing the handshake.
+          NS_EXPECTED="kantheon-${CONTEXT}-${RUN_ID}"
+          OK=0
+
+          # On any failure, capture pod status/events/logs from the run namespace BEFORE teardown
+          # deletes it — otherwise a failed bring-up is undiagnosable (the ns is gone).
+          diagnostics() {
+            echo "::group::failure diagnostics — $NS_EXPECTED"
+            kubectl --context "$KUBE_CONTEXT" -n "$NS_EXPECTED" get pods -o wide || true
+            kubectl --context "$KUBE_CONTEXT" -n "$NS_EXPECTED" get events --sort-by=.lastTimestamp || true
+            for d in theseus-mcp theseus proteus argos kyklop brontes; do
+              echo "--- describe deploy/$d ---"
+              kubectl --context "$KUBE_CONTEXT" -n "$NS_EXPECTED" describe deploy "$d" 2>/dev/null | sed -n '/Conditions:/,/Events:/p' || true
+              echo "--- logs deploy/$d (tail) ---"
+              kubectl --context "$KUBE_CONTEXT" -n "$NS_EXPECTED" logs "deploy/$d" --all-containers --tail=40 2>/dev/null || true
+            done
+            echo "::endgroup::"
+          }
+
+          # Teardown ALWAYS runs (success, test failure, or a half-failed bring-up). infra-down
+          # is idempotent/safe-if-absent (test-harness.md §6), so the trap can always fire.
+          cleanup() {
+            [ "$OK" = "1" ] || diagnostics
+            just -f olymp/justfile infra-down "$CONTEXT" "$RUN_ID" "$KUBE_CONTEXT" || true
+          }
+          trap cleanup EXIT
+
+          # The ONLY stdout line from infra-up is `namespace=<ns>` (C2); logs go to stderr.
+          START=$(date +%s)
+          NS=$(just -f olymp/justfile infra-up "$CONTEXT" "$RUN_ID" "$KUBE_CONTEXT" \
+                 --kantheon "$GITHUB_WORKSPACE" --ghcr-from "$GHCR_FROM" \
+                 | sed -n 's/^namespace=//p')
+          UP_DONE=$(date +%s)
+          echo "resolved namespace: $NS"
+          test -n "$NS"   # fail loudly if the handshake was empty
+
+          # The readiness gate's fabric8 client uses the kubeconfig CURRENT-context, but the
+          # runner's default context may be another (unreachable) cluster — so the gate would time
+          # out talking to the wrong API server. Steer it with a job-scoped kubeconfig whose
+          # current-context is KUBE_CONTEXT (the same cluster infra-up used). This keeps the
+          # kantheon test code cluster-agnostic (it only ever uses "current context", D3′); the
+          # CI — which legitimately knows the cluster — does the steering.
+          KCFG="$(mktemp)"
+          kubectl config view --raw > "$KCFG"
+          KUBECONFIG="$KCFG" kubectl config use-context "$KUBE_CONTEXT" >/dev/null
+
+          # The suite lives in tools/theseus-mcp; -Pcontext makes the integrationTest task run
+          # (it skips with no context), -Pnamespace hands it the resolved ns for the gate.
+          KUBECONFIG="$KCFG" ./gradlew :tools:theseus-mcp:integrationTest \
+            -Pcontext="$CONTEXT" -Pnamespace="$NS" --no-daemon
+          rm -f "$KCFG"
+          TEST_DONE=$(date +%s)
+
+          # Timing for the Phase 3 image-supply budget (T5).
+          echo "bring-up: $((UP_DONE-START))s | test: $((TEST_DONE-UP_DONE))s" >> "$GITHUB_STEP_SUMMARY"
+
+          OK=1   # success — the cleanup trap skips diagnostics and just tears down
+
+      - name: Open/refresh a tracked issue on failure (ratified policy — architecture §8)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `nightly integration red: ${process.env.CONTEXT}`;
+            const body = [
+              `Nightly integration failed for context **${process.env.CONTEXT}**.`,
+              ``,
+              `- Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              `- Commit: ${context.sha}`,
+              ``,
+              `Teardown still ran (trap); a leaked namespace, if any, is swept by the reaper`,
+              `(olymp Phase B). A red nightly is a tracked issue, not a retroactive block on the`,
+              `window's merges.`,
+            ].join("\n");
+            const { owner, repo } = context.repo;
+            const existing = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", labels: "integration-nightly",
+            });
+            const hit = existing.data.find(i => i.title === title);
+            if (hit) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: hit.number, body });
+            } else {
+              await github.rest.issues.create({
+                owner, repo, title, body, labels: ["integration-nightly"],
+              });
+            }

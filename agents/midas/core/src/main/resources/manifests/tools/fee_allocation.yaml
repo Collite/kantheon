@@ -1,0 +1,16 @@
+capability_id: "midas.transaction.fee_allocation:v1"
+category: "midas"
+version: "1.0.0"
+description: |
+  Allocate a transaction's fees across holdings (pro-rata by value / equal).
+  v1 is a stub (zero allocation); the allocator lands in Stage 3.3.
+service_endpoint: "http://midas-core:7311"
+search_tags:
+  - fees
+  - allocation
+  - transaction
+cost_hints:
+  typical_latency_ms: 50
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

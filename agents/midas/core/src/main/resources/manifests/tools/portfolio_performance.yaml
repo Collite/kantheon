@@ -1,0 +1,21 @@
+capability_id: "midas.portfolio.performance:v1"
+category: "midas"
+version: "1.0.0"
+description: |
+  Portfolio performance over a period — TWR, MWR, total return. v1 is a stub
+  (returns zeros); the real time-weighted / money-weighted return lands in
+  Stage 3.3.
+service_endpoint: "http://midas-core:7311"
+search_tags:
+  - portfolio
+  - performance
+  - twr
+  - mwr
+  - return
+  - ytd
+  - investment
+cost_hints:
+  typical_latency_ms: 100
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

@@ -1,0 +1,22 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 140
+ij_kotlin_imports_layout = *
+ij_kotlin_packages_to_use_import_on_demand = unset
+# P1 Stage 1.2 — the package rename (`com.hebe.*` → `org.tatrman.kantheon.hebe.*`)
+# reorders intra-package imports under the `*` layout. kantheon's root
+# `.editorconfig` already disables this rule repo-wide; Hebe's `root = true`
+# blocks that inheritance, so align explicitly here rather than baseline the
+# rename churn.
+ktlint_standard_import-ordering = disabled
+
+[*.gradle.kts]
+indent_size = 4

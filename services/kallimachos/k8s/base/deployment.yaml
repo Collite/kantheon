@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kallimachos
+  namespace: kantheon
+  labels:
+    app: kallimachos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kallimachos
+  template:
+    metadata:
+      labels:
+        app: kallimachos
+    spec:
+      containers:
+        - name: kallimachos
+          image: kallimachos:dev
+          ports:
+            - name: probe
+              containerPort: 7260
+            - name: http
+              containerPort: 7261
+          env:
+            - name: KALLIMACHOS_PROBE_PORT
+              value: "7260"
+            - name: KALLIMACHOS_HTTP_PORT
+              value: "7261"
+            # Deploy uses the `postgres` profile (Flyway migrate + Exposed/PG
+            # adapters) on the `kallimachos` database (topology §7.1). The DB +
+            # the vector/age extensions are provisioned as a cluster step (the
+            # live smoke is the Stage 1.3 deploy gate). Local in-process dev
+            # defaults to the `memory` profile (application.conf).
+            - name: KALLIMACHOS_STORAGE_PROFILE
+              value: "postgres"
+            - name: KALLIMACHOS_DB_URL
+              value: "jdbc:postgresql://kantheon-pg:5432/kallimachos"
+            - name: KALLIMACHOS_DB_USER
+              value: "kallimachos"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: kallimachos
+            - name: OTEL_ENABLED_KALLIMACHOS
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7260
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7260
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kallimachos
+  namespace: kantheon
+  labels:
+    app: kallimachos
+spec:
+  selector:
+    app: kallimachos
+  ports:
+    - name: probe
+      port: 7260
+      targetPort: 7260
+    - name: http
+      port: 7261
+      targetPort: 7261

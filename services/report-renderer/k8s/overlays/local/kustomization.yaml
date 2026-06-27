@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kantheon
+
+resources:
+  - ../../base
+
+patches:
+  - target:
+      kind: Deployment
+      name: report-renderer
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: report-renderer
+      spec:
+        template:
+          spec:
+            containers:
+              - name: report-renderer
+                imagePullPolicy: Never
+                env:
+                  - name: OTEL_ENABLED_REPORT_RENDERER
+                    value: "false"

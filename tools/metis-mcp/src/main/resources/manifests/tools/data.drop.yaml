@@ -1,0 +1,19 @@
+capability_id: "metis.data.drop:v1"
+category: "metis"
+version: "1.0.0"
+description: |
+  Drop a named entry (DataFrame or fitted model) from the Metis session
+  workspace. Returns whether the entry existed. Idempotent — dropping a
+  non-existent entry is not an error.
+service_endpoint: "http://metis-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - metis
+  - data
+  - drop
+  - workspace
+  - cleanup
+cost_hints:
+  typical_latency_ms: 30
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

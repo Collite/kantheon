@@ -1,0 +1,18 @@
+capability_id: "midas.position.cost_basis:v1"
+category: "midas"
+version: "1.0.0"
+description: |
+  FIFO cost-basis lots per holding (remaining quantity, cost per unit, total
+  cost). v1 is a stub (empty lots); the FIFO lot engine lands in Stage 3.3.
+service_endpoint: "http://midas-core:7311"
+search_tags:
+  - cost_basis
+  - fifo
+  - lots
+  - tax
+  - gain
+cost_hints:
+  typical_latency_ms: 100
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 8

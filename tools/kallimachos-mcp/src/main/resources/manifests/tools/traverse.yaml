@@ -1,0 +1,16 @@
+capability_id: "library.traverse:v1"
+category: "library"
+version: "1.0.0"
+description: |
+  Walk wiki links from a node (browse the wiki-graph).
+service_endpoint: "http://kallimachos-mcp.kantheon.svc.cluster.local:7262"
+search_tags:
+  - library
+  - traverse
+  - graph
+  - browse
+cost_hints:
+  typical_latency_ms: 80
+  typical_cost_usd: 0.0
+  is_idempotent: true
+  max_concurrent: 16

@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>InvalidPackageDeclaration:RemoteToolTest.kt$package org.tatrman.kantheon.hebe.mcp</ID>
+    <ID>LoopWithTooManyJumpStatements:McpClientManager.kt$McpClientManager$while</ID>
+    <ID>MagicNumber:McpClientManager.kt$McpClientManager$1000</ID>
+    <ID>MagicNumber:McpClientManager.kt$McpClientManager$1000L</ID>
+    <ID>MagicNumber:McpClientManager.kt$McpClientManager$30_000L</ID>
+    <ID>MagicNumber:McpClientManager.kt$McpClientManager$5</ID>
+    <ID>MagicNumber:McpClientManager.kt$McpClientManager$5_000L</ID>
+    <ID>MagicNumber:McpClientManager.kt$McpClientManager$60</ID>
+    <ID>MaxLineLength:McpClientManager.kt$McpClientManager$logger.warn("MCP server '{}' connection failed (attempt $attempt), retrying in ${currentRetryMs / 1000}s: {}", config.name, e.message)</ID>
+    <ID>NewLineAtEndOfFile:McpClientManager.kt$org.tatrman.kantheon.hebe.tools.mcp.McpClientManager.kt</ID>
+    <ID>TooGenericExceptionCaught:McpClientManager.kt$McpClientManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:McpClientManager.kt$McpClientManager$re: RuntimeException</ID>
+    <ID>TooGenericExceptionThrown:McpClientManager.kt$McpClientManager$throw RuntimeException(message, e)</ID>
+    <ID>VariableNaming:McpClientManager.kt$McpClientManager$private val INITIAL_RETRY_MS = 5_000L</ID>
+    <ID>VariableNaming:McpClientManager.kt$McpClientManager$private val MAX_RETRY_MS = 5 * 60 * 1000L // 5 minutes</ID>
+    <ID>VariableNaming:McpClientManager.kt$McpClientManager$private val MAX_TOTAL_RETRY_MS = 60 * 60 * 1000L // 1 hour</ID>
+    <ID>VariableNaming:McpClientManager.kt$McpClientManager$private val SENSITIVE_ENV_KEYS = setOf( "API_KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL", "AUTH", )</ID>
+  </CurrentIssues>
+</SmellBaseline>

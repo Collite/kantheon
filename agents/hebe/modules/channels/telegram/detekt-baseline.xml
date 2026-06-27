@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:DraftThrottlerTest.kt$DraftThrottlerTest$throttler.throttle(backgroundScope, messageId = 1, chatId = 123L, newText = "ab + much more text", sender = sender)</ID>
+    <ID>MaxLineLength:DraftThrottlerTest.kt$DraftThrottlerTest$throttler.throttle(backgroundScope, messageId = 1, chatId = 123L, newText = "after-interval", sender = sender)</ID>
+    <ID>MaxLineLength:TelegramChannelTest.kt$TelegramChannelTest$private fun makeReplyContext(sessionId: String = "123456789")</ID>
+    <ID>UnusedPrivateProperty:TelegramChannel.kt$TelegramChannel$private val mutex = Mutex()</ID>
+  </CurrentIssues>
+</SmellBaseline>

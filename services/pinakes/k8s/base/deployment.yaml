@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pinakes
+  namespace: kantheon
+  labels:
+    app: pinakes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pinakes
+  template:
+    metadata:
+      labels:
+        app: pinakes
+    spec:
+      containers:
+        - name: pinakes
+          image: pinakes:dev
+          ports:
+            - name: http
+              containerPort: 7280
+            - name: grpc
+              containerPort: 7281
+          env:
+            - name: PINAKES_HTTP_PORT
+              value: "7280"
+            - name: PINAKES_GRPC_PORT
+              value: "7281"
+            - name: PINAKES_SEAWEED_ENDPOINT
+              value: "http://data-seaweedfs:8333"
+            - name: PINAKES_SEAWEED_BUCKET
+              value: "docwh-stage"
+            - name: PINAKES_KALLIMACHOS_HOST
+              value: "kallimachos"
+            - name: PINAKES_KALLIMACHOS_PORT
+              value: "7261"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.observability.svc.cluster.local:4317
+            - name: OTEL_SERVICE_NAME
+              value: pinakes
+            - name: OTEL_ENABLED_PINAKES
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7280
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7280
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pinakes
+  namespace: kantheon
+  labels:
+    app: pinakes
+spec:
+  selector:
+    app: pinakes
+  ports:
+    - name: http
+      port: 7280
+      targetPort: 7280
+    - name: grpc
+      port: 7281
+      targetPort: 7281

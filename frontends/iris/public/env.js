@@ -1,0 +1,50 @@
+// Default (no-op) runtime config used by `vite dev` / `vite build`.
+// In the container this file is OVERWRITTEN at start by
+// scripts/generate-env.sh, which substitutes the real VITE_* env vars.
+// Every value is empty here so the app falls back to import.meta.env
+// (dev) and then to the in-code defaults in src/config/index.ts.
+window.APP_CONFIG = {
+  VITE_USER_ID: "",
+  VITE_USER_NAME: "",
+
+  VITE_AUTH_ENABLED: "",
+  VITE_KEYCLOAK_URL: "",
+  VITE_KEYCLOAK_REALM: "",
+  VITE_KEYCLOAK_CLIENT_ID: "",
+
+  VITE_TELEMETRY_ENABLED: "",
+  VITE_OTEL_EXPORTER_OTLP_HOST: "",
+  VITE_OTEL_EXPORTER_OTLP_HTTP_PORT: "",
+  VITE_OTEL_EXPORTER_OTLP_HTTPS_PORT: "",
+  VITE_OTEL_EXPORTER_OTLP_GRPC_PORT: "",
+  VITE_AGENTS_FE_OTEL_PROTOCOL: "",
+
+  VITE_LLM_GTW_SERVER: "",
+  VITE_LLM_GTW_SERVER_PORT: "",
+  VITE_LLM_GTW_SERVER_PATH: "",
+  VITE_LLM_GTW_SERVER_PROTOCOL: "",
+
+  VITE_GOLEM_SERVER: "",
+  VITE_GOLEM_SERVER_PORT: "",
+  VITE_GOLEM_SERVER_PROTOCOL: "",
+
+  VITE_MCP_ERP_SERVER: "",
+  VITE_MCP_ERP_SERVER_PORT: "",
+  VITE_MCP_ERP_SERVER_PATH: "",
+  VITE_MCP_ERP_SERVER_PROTOCOL: "",
+
+  VITE_MCP_FUZZY_SERVER: "",
+  VITE_MCP_FUZZY_SERVER_PORT: "",
+  VITE_MCP_FUZZY_SERVER_PATH: "",
+  VITE_MCP_FUZZY_SERVER_PROTOCOL: "",
+
+  VITE_MCP_METADATA_SERVER: "",
+  VITE_MCP_METADATA_SERVER_PORT: "",
+  VITE_MCP_METADATA_SERVER_PATH: "",
+  VITE_MCP_METADATA_SERVER_PROTOCOL: "",
+
+  VITE_MCP_LOCAL_METADATA_SERVER: "",
+  VITE_MCP_LOCAL_METADATA_SERVER_PORT: "",
+  VITE_MCP_LOCAL_METADATA_SERVER_PATH: "",
+  VITE_MCP_LOCAL_METADATA_SERVER_PROTOCOL: ""
+};
