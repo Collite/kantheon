@@ -102,7 +102,7 @@ lettuce                   = "6.8.0.RELEASE"
 # `model-ttr/areas/*.ttrm` for ResolveArea) exists only in modeler ≥ 0.7.0.
 # 0.4.0→0.7.0 renamed the mapping AST `Mapping* → Binding*`; the Ariadne
 # Source/ModelToDefinitions migration landed with the bump (full suite is the gate).
-tatrman-modeler           = "0.7.0"
+tatrman-modeler           = "0.8.4"
 
 # gRPC — kantheon v1 prefers MCP over gRPC for new services, but `logging-config`
 # carries gRPC interceptors for cross-service reuse. Only the kotlin-stub is exposed

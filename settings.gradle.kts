@@ -14,16 +14,16 @@ dependencyResolutionManagement {
         // The ai-platform GitHub Packages repo (DFPartner/ai-platform, group
         // cz.dfpartner) was removed in fork Stage 2.6 — Themis retargeted off
         // cz.dfpartner:shared-proto (nlp.v1 → in-repo kadmos.v1). No ai-platform
-        // Maven coupling remains. The Collite/modeler repo below stays (third-
+        // Maven coupling remains. The Collite/tatrman repo below stays (third-
         // party TTR toolchain, org.tatrman:* — permanent, see CLAUDE.md §7.3).
         maven {
-            // TTR parser/writer/semantics (third-party, from the `Collite/modeler` repo).
-            // The `org.tatrman:ttr-{parser,writer,semantics}:0.4.0` artifacts are NOT
+            // TTR parser/writer/semantics (third-party, from the `Collite/tatrman` repo (ex-modeler, forked 2026-07-03)).
+            // The `org.tatrman:ttr-{parser,writer,semantics}:0.8.4` artifacts are NOT
             // published to Maven Central; they live in this GitHub Packages repo. The
             // same `gpr.*` PAT works (GitHub Packages auth is per-user, per-package-visibility).
             // Stage 2.1 (Ariadne) and 2.4 (Proteus) consume these.
-            name = "ColliteModeler"
-            url = uri("https://maven.pkg.github.com/Collite/modeler")
+            name = "Tatrman"
+            url = uri("https://maven.pkg.github.com/Collite/tatrman")
             credentials {
                 username = providers.gradleProperty("gpr.user").orNull
                     ?: System.getenv("GITHUB_ACTOR")
