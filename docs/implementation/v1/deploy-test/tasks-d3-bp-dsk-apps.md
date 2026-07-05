@@ -10,28 +10,31 @@
 
 Every v1 module reconciles Synced/Healthy on bp-dsk in dependency-wave order; platform deps (PG dbs, Seaweed buckets, Keycloak clients/SAs, ghcr-pull) exist; landing is reachable (backstage/kallimachos-browse best-effort).
 
+> **Approach (decided 2026-07-05):** **single shared `kantheon` namespace** for the whole
+> constellation (bare service names resolve — the local-infra topology; app values = image +
+> ghcr-pull only), and **query-path-first** sequencing (foundation + waves 1–2 → MP-1, then the
+> rest). Live bring-up is a hand-off (images + olymp→master merge) — see [`d3-bring-up.md`](./d3-bring-up.md).
+
 ## Pre-flight
 
-- [ ] D2 DONE (all charts render + images published + descriptor index).
-- [ ] bp-dsk ArgoCD healthy; platform base (CNPG `postgres`, MSSQL, Redis, Seaweed, Keycloak realm `kantheon`, ESO, gateway, monitoring) live (✓).
-- [ ] **WS-R1 reconcile-boundary** noted (apps live under `clusters/bp-dsk/apps/*`; test runs under `it-*` stay outside — don't cross them).
-- [ ] Branch `feat/d3-bp-dsk-apps` in **both** repos.
+- [x] D2 DONE (all charts render + descriptor index; **images = T6 runbook, published at bring-up**).
+- [x] bp-dsk ArgoCD healthy; platform base live (✓). **Found + fixed:** the appset/projects pointed at the stale **`BoraPerusic/kantheon`** repo (→ `Collite/kantheon`); this un-breaks the `Unknown` apps.
+- [x] **WS-R1 reconcile-boundary** respected (single `kantheon` app ns; test runs stay in `it-*`/`kantheon-<ctx>-<run>`).
+- [x] Branch `feat/d3-bp-dsk-apps` in **both** repos (olymp + kantheon on `feat/d2-charts-images`).
 
 ## Tasks (per wave: add platform deps [O] → add apps [O] → sync + smoke → flip chartRevision→main [K/O])
 
-- [ ] **T1 [O] — Platform-dep top-up.** Add CNPG databases + roles + `ExternalSecret` creds for the agents that need them (`midas`, `hebe`, `kleio`; `pythia`/`golem`/`iris`/`whois` exist) to `platform/data/postgres/base/{databases.yaml,cluster.yaml}` + `overlays/bp-dsk`. Add Seaweed buckets (charon/kleio artifacts). Add Keycloak clients/SAs (per descriptor: FE SPA clients + BFF/service accounts). Ensure `ghcr-pull` ClusterExternalSecret selector covers the new namespaces.
-- [ ] **T2 [O] — Wave 1–2 apps: registry + core services.** Add `clusters/bp-dsk/apps/{ariadne,prometheus,echo,kadmos,ariadne-mcp,echo-mcp,kadmos-mcp}/{config.json,values.yaml}` (capabilities-mcp ✓). config.json `chartRevision` on the integration branch initially; values per descriptor + in-cluster wiring. Sync → Healthy.
-- [ ] **T3 [O] — Wave 3 apps: query path (= MP-1).** Add `{proteus,argos,kyklop,theseus,theseus-mcp,brontes,arges,steropes}`. Wire Arges `extraEnv` for `pg-midas` + `pg-tpcds` (→ `test-pg`, from WS-T). Sync → Healthy. **This wave crossing = MP-1** (query path live → unblocks the TPC-DS load target + `tpcds-query`).
-- [ ] **T4 [O] — Wave 4 apps: agents.** Add `{themis,pythia}` + `{charon-mcp,metis-mcp}` (golem/iris/iris-bff ✓). Wire DBs (pythia) + downstream. Sync → Healthy; smoke each `/health`.
-- [ ] **T5 [O] — Wave 5 apps: domain.** Add `{midas-core,midas-loaders-excel,report-renderer,golem-investment,sysifos-bff}` + `frontends/sysifos`. (Golem-Investment = the assembled Shem from Midas S3.1; sysifos pairs with testing S3.4.) Wire `midas` DB + Keycloak SAs. Sync → Healthy + the testing-S3.3/S3.4 deploy-smokes.
-- [ ] **T6 [O] — Wave 6–7 apps: librarian + infra.** Add `{kleio,kallimachos,pinakes,kallimachos-mcp}` + `infra/{whois,health,backstage}` + `frontends/{landing,kallimachos-browse}`. **landing must work** (smoke the host); **backstage + kallimachos-browse best-effort** (don't gate). Sync.
-- [ ] **T7 [K/O] — Estate smoke + chartRevision flips.** Confirm all apps Synced/Healthy (`just apps dsk`); run the per-stack smokes (Iris session, Sysifos workbench, a TPC-DS query via the live path). Flip each app's `config.json chartRevision` → `main` as its kantheon PR merges (contracts §2.1). Record the live estate in the master-plan status.
+- [x] **T1 [O] — Platform-dep top-up.** CNPG DB + role + `pg-{midas,hebe,kleio}-cred` ExternalSecret added (`base/{cluster,databases}.yaml` + `overlays/bp-dsk` + kustomization); **backstage uses its own existing `backstage-postgres`** (not the shared cluster). Seaweed buckets `charon` + `docwh-stage` added. `ghcr-pull` + `pg-iris`/`pg-golem` cred ClusterExternalSecrets **retargeted to the `kantheon` ns**. Keycloak clients = **hand-off** (realm JSON has none for iris/FEs yet; later waves).
+- [x] **T2/T3 [O] — Waves 1–2 apps: registry/core + query path (= MP-1).** Authored `clusters/bp-dsk/apps/*` for the 19 wave-1/2 modules (ariadne/prometheus/echo/kadmos + their `-mcp`; charon/proteus/argos/kyklop/theseus/theseus-mcp/brontes/steropes/charon-mcp/metis/metis-mcp/**arges**). Single `kantheon` ns → values = image (`:testing`, `pullPolicy: Always`) + `ghcr-pull`. The 4 existing apps repointed to `feat/d2-charts-images` + migrate into `kantheon`. All 23 render green with their values overlay. **arges** `pg-midas`/`pg-tpcds` wiring deferred to Midas/WS-T (fails lazily). **Live sync = hand-off** (images + olymp→master merge — [`d3-bring-up.md`](./d3-bring-up.md)).
+- [ ] **T4–T6 [O] — Waves 3–7: agents / domain / librarian / infra (DEFERRED — next D3 chunk).** themis, pythia, midas-core, midas-excel-loader, report-renderer, sysifos-bff, kleio, kallimachos, pinakes, kallimachos-mcp, hebe, whois, health, backstage + FEs (sysifos/landing/kallimachos-browse). Adds the DB-cred ClusterExternalSecrets (+ Azure KV `pg-{midas,hebe,kleio}` keys) and Keycloak realm clients.
+- [ ] **T7 [K/O] — Estate smoke + chartRevision→`master` flips.** Post-merge, on each kantheon PR merge.
 
-## DONE
+## DONE (this chunk — query-path-first)
 
-- [ ] Full estate reconciled Synced/Healthy on bp-dsk (landing in; backstage/kallimachos-browse best-effort).
-- [ ] Query path live (MP-1) — Arges reachable with `pg-midas` + `pg-tpcds`.
-- [ ] Per-stack smokes green; chartRevisions flipped to `main` on merge.
+- [x] Repo-URL fix (Collite/kantheon) + single-`kantheon`-ns appset + platform-dep top-up.
+- [x] Waves 1–2 apps authored + render-validated; existing 4 repointed. **Live sync pending** the T6 image publish + the olymp→master merge (runbook `d3-bring-up.md`).
+- [ ] MP-1 confirmed live on bp-dsk (after the merge + images).
+- [ ] Waves 3–7 + smokes + chartRevision flips (next chunk).
 
 ## Follow-ups → next stage
 

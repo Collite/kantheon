@@ -26,7 +26,7 @@ A task is DONE only when its specs are green **both locally and on bp-dsk** (whe
 |---|---|---|---|---|
 | **D — Deployment** | D1 — Helm library chart + chart migration | [`tasks-d1-chart-library.md`](./tasks-d1-chart-library.md) | K | **done** (2026-07-05) |
 | | D2 — Author the 22 missing charts + publish images | [`tasks-d2-charts-images.md`](./tasks-d2-charts-images.md) | K | **done** (2026-07-05; T6 image-push handed off) |
-| | D3 — bp-dsk ArgoCD apps + platform deps (waves 1–7) | [`tasks-d3-bp-dsk-apps.md`](./tasks-d3-bp-dsk-apps.md) | O (+K descriptors) | written |
+| | D3 — bp-dsk ArgoCD apps + platform deps (waves 1–7) | [`tasks-d3-bp-dsk-apps.md`](./tasks-d3-bp-dsk-apps.md) | O (+K descriptors) | **query-path chunk authored** (2026-07-05; single-ns; waves 1–2 + platform; live sync + waves 3–7 pending) |
 | **T — TPC-DS** | T1 — `test-pg` server + `tpc-ds-1g` + load Job | [`tasks-t1-test-pg-load.md`](./tasks-t1-test-pg-load.md) | O (+K DDL) | written |
 | | T2 — Ariadne TPC-DS model + curated queries + `pg-tpcds` profile | [`tasks-t2-model-connection.md`](./tasks-t2-model-connection.md) | K | written |
 | **C — Test suite** | C1 — Component-tier real-dep matrix | [`tasks-c1-component-matrix.md`](./tasks-c1-component-matrix.md) | K | written |
