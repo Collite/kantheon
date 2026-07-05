@@ -103,6 +103,11 @@ lettuce                   = "6.8.0.RELEASE"
 # 0.4.0→0.7.0 renamed the mapping AST `Mapping* → Binding*`; the Ariadne
 # Source/ModelToDefinitions migration landed with the bump (full suite is the gate).
 tatrman-modeler           = "0.8.4"
+# ttr-metadata adoption (Stage M4.1): TEMPORARY Maven-Local pin while the swap is
+# validated locally; flip to the released "0.1.x" once kotlin-metadata/v0.1.0 is on
+# GitHub Packages (arc-checklist item 1). ttr-metadata re-exports parser/writer/
+# semantics as `api`, so Ariadne no longer declares those three directly.
+tatrman-ttr-metadata      = "0.0.1-LOCAL"
 
 # gRPC — kantheon v1 prefers MCP over gRPC for new services, but `logging-config`
 # carries gRPC interceptors for cross-service reuse. Only the kotlin-stub is exposed
@@ -293,6 +298,8 @@ calcite-core                        = { module = "org.apache.calcite:calcite-cor
 tatrman-ttr-parser                  = { module = "org.tatrman:ttr-parser",                                version.ref = "tatrman-modeler" }
 tatrman-ttr-writer                  = { module = "org.tatrman:ttr-writer",                                version.ref = "tatrman-modeler" }
 tatrman-ttr-semantics               = { module = "org.tatrman:ttr-semantics",                            version.ref = "tatrman-modeler" }
+tatrman-ttr-metadata                = { module = "org.tatrman:ttr-metadata",                              version.ref = "tatrman-ttr-metadata" }
+tatrman-ttr-metadata-git            = { module = "org.tatrman:ttr-metadata-git",                          version.ref = "tatrman-ttr-metadata" }
 exposed-core                        = { module = "org.jetbrains.exposed:exposed-core",                    version.ref = "exposed" }
 exposed-jdbc                        = { module = "org.jetbrains.exposed:exposed-jdbc",                    version.ref = "exposed" }
 exposed-java-time                   = { module = "org.jetbrains.exposed:exposed-java-time",               version.ref = "exposed" }
