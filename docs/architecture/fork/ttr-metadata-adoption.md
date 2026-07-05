@@ -21,11 +21,13 @@ Ariadne becomes a thin service wrapper — the same consume-published-artifacts 
 
 The 0.8.4 re-point (`1eaaac8`) shipped without a compile/test gate. Status: compile fixed 2026-07-05 (`Source.kt` → `modelDirective.modelCode`/`.schema`, grammar-4.0 rename), **suite still red**. Review-and-fix checklist — the DONE bar is `just test-kt ariadne` fully green, and that green tree is the frozen baseline tatrman M1 copies from:
 
-- [ ] Migrate the 12 pre-4.0 test fixtures (`src/test/resources/{fixture-model, fixture-packages, fixture-packages-noimport, v2-1-samples}/…`): file directive `schema <code> [namespace]` → `model <code> [schema <id>]`; verify each still parses via a quick `TtrLoader.parseString` loop or the owning spec
-- [ ] Sweep the ~9 specs embedding inline TTR snippets (`grep -rln '"schema \|schema db\|schema er' src/test/kotlin`) — same directive migration inside string literals
-- [ ] Review qname-form drift from the 4.0 qname-redesign (reference spellings like `er.entity.X`, `db.query.Y` in fixtures — check against grammar 4.0's reference forms; fix fixtures, not the loader, unless the loader is provably wrong)
-- [ ] Re-run per-package: `just test-kt ariadne`; triage anything left that is NOT fixture syntax (behavioral drift → record here + evaluate: fixture bug vs 0.8.4 regression; a 0.8.4 regression is a **tatrman** issue — file it there, do not patch around it in Ariadne)
-- [ ] On green: record the commit hash here as the **frozen baseline** for tatrman M1.1's copy step: `baseline = ________`
+- [x] Migrate the 12 pre-4.0 test fixtures (`src/test/resources/{fixture-model, fixture-packages, fixture-packages-noimport, v2-1-samples, fixture-fuzzy}/…`): file directive `schema <code> [namespace]` → `model <code> [schema <id>]`. Done 2026-07-05 (`9328e98`).
+- [x] Sweep the specs embedding inline TTR snippets (8 specs) — same directive migration inside string literals + rendered-output assertions. Includes fixing a stale pre-3.0 `schema binding namespace map` → `model binding` in `ListObjectsFuzzyAttributeMappingSpec`.
+- [x] Re-run `:services:ariadne:test`: **56 failing → 2 failing** (all 54 fixture-syntax failures cleared).
+- [ ] **2 remaining — PRE-EXISTING 0.8.4/qname-redesign behavioral regressions (failed before the migration too; NOT fixture syntax). Per this checklist they are tatrman issues, fixed during the M1 port, not patched in Ariadne core:**
+  - `StockRoleResolutionSpec > bare stock-role … auto-import`: `BuiltinStockSource` keys the stock-role internalId on the pre-D15 doubled `cnc.cnc.role.<name>` while 0.8.4 semantics load it as `cnc.role.<name>` (the spec's *final* assertion already expects `cnc.role`), so the `cnc.*` auto-import can't match `fact`. → Fix in the ported `BuiltinStockSource`/`ReferenceResolutionPass`/`PublishedResolverAdapter` (this spec is in the M1.1 port roster and goes green in tatrman; it does not re-run in Ariadne after M4).
+  - `ResolutionIntegrationSpec > same-package ref … non-default namespace (sales)`: exercises a pre-4.0 er-`namespace` resolution concept the 4.0 qname redesign changed (er has no schema/namespace slot; `modelHasSchema` is db-only). → Needs a 4.0-intent decision on whether Ariadne's per-file `namespace` still drives same-package er resolution; `resolve/` ports in M1.2, so decide/fix there.
+- [ ] On green: record the commit hash here as the **frozen baseline** for tatrman M1.1's copy step: `baseline = ________` (currently `9328e98` = "green except the 2 documented behavioral regressions above").
 
 ## Core freeze (effective at tatrman Phase M1 start)
 
