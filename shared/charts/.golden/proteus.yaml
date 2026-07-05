@@ -1,0 +1,91 @@
+---
+# Source: proteus/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: proteus
+  labels:
+    app.kubernetes.io/name: proteus
+    app.kubernetes.io/instance: proteus
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: proteus-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: proteus
+    app.kubernetes.io/instance: proteus
+  ports:
+    - name: http
+      port: 7275
+      targetPort: 7275
+    - name: grpc
+      port: 7276
+      targetPort: 7276
+
+---
+# Source: proteus/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proteus
+  labels:
+    app.kubernetes.io/name: proteus
+    app.kubernetes.io/instance: proteus
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: proteus-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: proteus
+      app.kubernetes.io/instance: proteus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: proteus
+        app.kubernetes.io/instance: proteus
+    spec:
+      containers:
+        - name: proteus
+          image: "proteus:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7275
+            - name: grpc
+              containerPort: 7276
+          env:
+            - name: PROTEUS_SERVER_PORT
+              value: "7275"
+            - name: PROTEUS_SERVER_GRPC_PORT
+              value: "7276"
+            - name: OTEL_SERVICE_NAME
+              value: "proteus"
+            - name: OTEL_ENABLED_PROTEUS
+              value: "false"
+            - name: ARIADNE_GRPC_HOST
+              value: ariadne
+            - name: ARIADNE_GRPC_PORT
+              value: "7261"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7275
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7275
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi

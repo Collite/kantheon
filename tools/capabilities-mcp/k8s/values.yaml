@@ -11,13 +11,12 @@ image:
 
 imagePullSecrets: []
 
-# Service exposes the MCP HTTP port.
 service:
   type: ClusterIP
-  port: 7501
 
-# The port the container listens on (also the probe + service target port).
-containerPort: 7501
+# Container/service/probe port (library reads ports.http; HTTP-only).
+ports:
+  http: 7501
 
 resources:
   requests:

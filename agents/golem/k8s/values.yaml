@@ -10,9 +10,10 @@ imagePullSecrets: []
 
 service:
   type: ClusterIP
-  port: 7420
 
-containerPort: 7420
+# Container/service/probe port (library reads ports.http; golem is HTTP-only).
+ports:
+  http: 7420
 
 resources:
   requests:

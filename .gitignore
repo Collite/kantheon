@@ -55,3 +55,7 @@ agents/themis/eval/results/
 # Backup files
 *.bak
 *.orig
+
+# Helm: vendored library-chart deps are rebuilt by `just validate-charts`
+**/k8s/charts/
+**/k8s/Chart.lock

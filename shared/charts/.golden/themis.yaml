@@ -1,0 +1,108 @@
+---
+# Source: themis-mcp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: themis-mcp
+  labels:
+    app.kubernetes.io/name: themis-mcp
+    app.kubernetes.io/instance: themis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: themis-mcp-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: themis-mcp
+    app.kubernetes.io/instance: themis
+  ports:
+    - name: http
+      port: 7901
+      targetPort: 7901
+
+---
+# Source: themis-mcp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: themis-mcp
+  labels:
+    app.kubernetes.io/name: themis-mcp
+    app.kubernetes.io/instance: themis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: themis-mcp-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: themis-mcp
+      app.kubernetes.io/instance: themis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: themis-mcp
+        app.kubernetes.io/instance: themis
+    spec:
+      containers:
+        - name: themis-mcp
+          image: "themis-mcp:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7901
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: "themis-mcp"
+            - name: TELEMETRY_ENABLED
+              value: "false"
+            - name: HMAC_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: themis-hmac
+                  key: secret
+                  optional: true
+            - name: CAPABILITIES_MCP_HOST
+              value: capabilities-mcp
+            - name: CAPABILITIES_MCP_PORT
+              value: "7501"
+            - name: CAPABILITIES_MCP_URL
+              value: http://capabilities-mcp:7501
+            - name: NLP_MCP_HOST
+              value: kadmos
+            - name: NLP_MCP_PORT
+              value: "7270"
+            - name: NLP_MCP_URL
+              value: http://kadmos:7270
+            - name: FUZZY_MCP_HOST
+              value: echo
+            - name: FUZZY_MCP_PORT
+              value: "7265"
+            - name: FUZZY_MCP_URL
+              value: http://echo:7265
+            - name: LLM_GATEWAY_HOST
+              value: prometheus
+            - name: LLM_GATEWAY_PORT
+              value: "7280"
+            - name: LLM_GATEWAY_URL
+              value: http://prometheus:7280
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7901
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7901
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi

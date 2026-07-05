@@ -1,0 +1,91 @@
+---
+# Source: kyklop/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kyklop
+  labels:
+    app.kubernetes.io/name: kyklop
+    app.kubernetes.io/instance: kyklop
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kyklop-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kyklop
+    app.kubernetes.io/instance: kyklop
+  ports:
+    - name: http
+      port: 7290
+      targetPort: 7290
+    - name: grpc
+      port: 7291
+      targetPort: 7291
+
+---
+# Source: kyklop/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyklop
+  labels:
+    app.kubernetes.io/name: kyklop
+    app.kubernetes.io/instance: kyklop
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kyklop-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kyklop
+      app.kubernetes.io/instance: kyklop
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kyklop
+        app.kubernetes.io/instance: kyklop
+    spec:
+      containers:
+        - name: kyklop
+          image: "kyklop:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7290
+            - name: grpc
+              containerPort: 7291
+          env:
+            - name: KYKLOP_SERVER_PORT
+              value: "7290"
+            - name: KYKLOP_SERVER_GRPC_PORT
+              value: "7291"
+            - name: OTEL_SERVICE_NAME
+              value: "kyklop"
+            - name: OTEL_ENABLED_KYKLOP
+              value: "false"
+            - name: KYKLOP_WORKER_BRONTES_ENDPOINT
+              value: brontes:7296
+            - name: KYKLOP_WORKER_STEROPES_ENDPOINT
+              value: steropes:7301
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7290
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7290
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi

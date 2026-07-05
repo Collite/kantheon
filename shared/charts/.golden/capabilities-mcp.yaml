@@ -1,0 +1,80 @@
+---
+# Source: capabilities-mcp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: capabilities-mcp
+  labels:
+    app.kubernetes.io/name: capabilities-mcp
+    app.kubernetes.io/instance: capabilities-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: capabilities-mcp-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: capabilities-mcp
+    app.kubernetes.io/instance: capabilities-mcp
+  ports:
+    - name: http
+      port: 7501
+      targetPort: 7501
+
+---
+# Source: capabilities-mcp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capabilities-mcp
+  labels:
+    app.kubernetes.io/name: capabilities-mcp
+    app.kubernetes.io/instance: capabilities-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: capabilities-mcp-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: capabilities-mcp
+      app.kubernetes.io/instance: capabilities-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: capabilities-mcp
+        app.kubernetes.io/instance: capabilities-mcp
+    spec:
+      containers:
+        - name: capabilities-mcp
+          image: "capabilities-mcp:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7501
+          env:
+            - name: TELEMETRY_ENABLED
+              value: "false"
+            - name: OTEL_SERVICE_NAME
+              value: "capabilities-mcp"
+            - name: CAPABILITIES_OTEL_PROTOCOL
+              value: "grpc"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7501
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7501
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi

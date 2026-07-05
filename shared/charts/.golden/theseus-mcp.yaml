@@ -1,0 +1,90 @@
+---
+# Source: theseus-mcp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: theseus-mcp
+  labels:
+    app.kubernetes.io/name: theseus-mcp
+    app.kubernetes.io/instance: theseus-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: theseus-mcp-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: theseus-mcp
+    app.kubernetes.io/instance: theseus-mcp
+  ports:
+    - name: http
+      port: 7307
+      targetPort: 7307
+
+---
+# Source: theseus-mcp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: theseus-mcp
+  labels:
+    app.kubernetes.io/name: theseus-mcp
+    app.kubernetes.io/instance: theseus-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: theseus-mcp-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: theseus-mcp
+      app.kubernetes.io/instance: theseus-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: theseus-mcp
+        app.kubernetes.io/instance: theseus-mcp
+    spec:
+      containers:
+        - name: theseus-mcp
+          image: "theseus-mcp:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7307
+          env:
+            - name: THESEUS_MCP_SERVER_PORT
+              value: "7307"
+            - name: THESEUS_MCP_REQUIRE_IDENTITY
+              value: "true"
+            - name: OTEL_SERVICE_NAME
+              value: "theseus-mcp"
+            - name: OTEL_ENABLED_THESEUS_MCP
+              value: "false"
+            - name: THESEUS_SERVER
+              value: theseus
+            - name: PROTEUS_SERVER
+              value: proteus
+            - name: ARGOS_SERVER
+              value: argos
+            - name: ARIADNE_SERVER
+              value: ariadne
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7307
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7307
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi

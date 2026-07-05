@@ -197,6 +197,16 @@ test-component service="":
         ./gradlew "$(just _resolve {{service}}):componentTest" --no-daemon; \
     fi
 
+# Render every module chart (`<module>/k8s`) with `helm template` (chart default
+# values) and diff against the checked-in goldens in shared/charts/.golden/. The
+# regression gate for the kantheon-service library-chart migration (WS-D S1):
+# after a chart moves onto the library its render must stay BYTE-EQUIVALENT.
+#   just validate-charts            # check (CI gate)
+#   just validate-charts capture    # (re)write goldens from current charts
+# Needs Helm ≥ 3.8. See shared/charts/validate.sh + tasks-d1-chart-library.md.
+validate-charts mode="check":
+    ./shared/charts/validate.sh {{mode}}
+
 # ktlint check across all modules + the Hebe detekt pass (the mutation-funnel
 # rule — every state change must flow through ToolDispatcher.dispatch). The
 # `detekt` task only exists on the `:agents:hebe:` modules (they alone apply the

@@ -1,0 +1,93 @@
+---
+# Source: theseus/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: theseus
+  labels:
+    app.kubernetes.io/name: theseus
+    app.kubernetes.io/instance: theseus
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: theseus-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: theseus
+    app.kubernetes.io/instance: theseus
+  ports:
+    - name: http
+      port: 7305
+      targetPort: 7305
+    - name: grpc
+      port: 7306
+      targetPort: 7306
+
+---
+# Source: theseus/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: theseus
+  labels:
+    app.kubernetes.io/name: theseus
+    app.kubernetes.io/instance: theseus
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: theseus-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: theseus
+      app.kubernetes.io/instance: theseus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: theseus
+        app.kubernetes.io/instance: theseus
+    spec:
+      containers:
+        - name: theseus
+          image: "theseus:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7305
+            - name: grpc
+              containerPort: 7306
+          env:
+            - name: THESEUS_SERVER_PORT
+              value: "7305"
+            - name: THESEUS_SERVER_GRPC_PORT
+              value: "7306"
+            - name: OTEL_SERVICE_NAME
+              value: "theseus"
+            - name: OTEL_ENABLED_THESEUS
+              value: "false"
+            - name: PROTEUS_SERVER
+              value: proteus
+            - name: ARGOS_SERVER
+              value: argos
+            - name: KYKLOP_SERVER
+              value: kyklop
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7305
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7305
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi

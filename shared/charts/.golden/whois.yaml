@@ -1,0 +1,90 @@
+---
+# Source: whois/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: whois
+  labels:
+    app.kubernetes.io/name: whois
+    app.kubernetes.io/instance: whois
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: whois-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: whois
+    app.kubernetes.io/instance: whois
+  ports:
+    - name: http
+      port: 7110
+      targetPort: 7110
+
+---
+# Source: whois/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whois
+  labels:
+    app.kubernetes.io/name: whois
+    app.kubernetes.io/instance: whois
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: whois-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: whois
+      app.kubernetes.io/instance: whois
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: whois
+        app.kubernetes.io/instance: whois
+    spec:
+      containers:
+        - name: whois
+          image: "whois:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7110
+          env:
+            - name: WHOIS_SERVER_PORT
+              value: "7110"
+            - name: WHOIS_REPOSITORY_TYPE
+              value: "json"
+            - name: OTEL_SERVICE_NAME
+              value: "whois"
+            - name: OTEL_ENABLED_WHOIS
+              value: "false"
+            - name: WHOIS_DB_HOST
+              value: kantheon-postgres
+            - name: WHOIS_DB_PORT
+              value: "5432"
+            - name: WHOIS_DB_NAME
+              value: whois
+            - name: WHOIS_DB_USER
+              value: whois
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7110
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7110
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi

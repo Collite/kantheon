@@ -125,6 +125,28 @@ jobs:
       - name: build
         run: cd frontends/iris && npm run build
 
+  # Helm charts — render every module chart (`<module>/k8s`) and diff against the
+  # checked-in goldens (shared/charts/.golden/). The regression gate for the
+  # kantheon-service library chart (deploy-test WS-D S1): a chart that drifts off
+  # the shared shape (or a library change that alters any render) turns CI red.
+  # Self-contained: Helm + just only, no JVM. See shared/charts/validate.sh.
+  helm-charts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: install just
+        uses: extractions/setup-just@v2
+
+      - name: validate charts (render + golden diff)
+        run: just validate-charts
+
   # Sysifos SPA (Vue/TS) — back-office data-entry workbench (Sysifos arc, Stage
   # 1.1). Self-contained node job, mirroring frontend-iris. Its sysifos/v1 TS
   # bindings are GENERATED (frontends/sysifos/.gitignore lists src/generated),

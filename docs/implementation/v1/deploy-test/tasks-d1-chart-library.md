@@ -11,23 +11,23 @@
 
 ## Pre-flight
 
-- [ ] Helm ≥ 3.8 + `helm-unittest` (or a `helm template` + diff harness) available locally + in CI.
-- [ ] Branch `feat/d1-chart-library` from `main`.
+- [x] Helm ≥ 3.8 + a `helm template` + diff harness available locally + in CI. *(Helm v4 local, `azure/setup-helm@v3.16.2` in CI; harness = `shared/charts/validate.sh`, no `helm-unittest` needed.)*
+- [x] Branch `feat/d1-chart-library` from `main`.
 
 ## Tasks
 
-- [ ] **T1 — Golden render snapshot (tests first).** Before touching anything, capture `helm template` output for **all 18 existing charts** (with a representative values file each) into `shared/charts/.golden/<module>.yaml`. This is the regression oracle for T4. Add a `just validate-charts` recipe that re-renders + diffs against the goldens (fails on drift).
-- [ ] **T2 — Extract `shared/charts/kantheon-service` (library).** `Chart.yaml` (`type: library`, contracts §1.1) + named templates `kantheon-service.{deployment,service,helpers}` lifted verbatim from `services/theseus/k8s/templates`. Parametrise over the §1.3 values schema (replicaCount/image/imagePullSecrets/ports{http,grpc}/service/resources/telemetry/extraEnv/probes). `grpc` port optional (HTTP-only modules omit it).
-- [ ] **T3 — FE + HTTPRoute named templates.** Add `kantheon-service.httproute` (gated `.Values.httpRoute.enabled`) + `kantheon-service.fe-configmap` (nginx `config.*` block) from the `frontends/iris/k8s` shape, so FE charts (iris/sysifos/landing) collapse onto the library too.
-- [ ] **T4 — Migrate the 18 charts (make them thin).** For each existing chart: replace `templates/{deployment,service}.yaml` with a `templates/main.yaml` that `include`s the library templates; add the `dependencies: [kantheon-service]` `file://` ref (contracts §1.2); keep its `values.yaml` defaults. **Run `just validate-charts`** — render must be **byte-equivalent** to the T1 goldens (the gate). Fix the library, not the goldens, on any diff.
-- [ ] **T5 — `helm dependency build` wiring.** Ensure the `file://` dependency resolves for all render paths: add `helm dependency build` to `just validate-charts` + document it for ArgoCD multi-source (the chart is in-repo, so the relative path resolves at render). Verify `helm template` works from a clean checkout.
-- [ ] **T6 — CI gate.** Add `validate-charts` to `.github/workflows/ci.yml` (render + golden-diff for every chart on every PR). A drifted render turns CI red.
+- [x] **T1 — Golden render snapshot (tests first).** `shared/charts/validate.sh {capture|check}` renders every `<module>/k8s` chart (default values) and diffs against `shared/charts/.golden/<module>.yaml`; goldens captured from the **pre-migration** charts. `just validate-charts` wraps it.
+- [x] **T2 — Extract `shared/charts/kantheon-service` (library).** `Chart.yaml` (`type: library`) + `kantheon-service.{deployment,service,helpers}`. `grpc` port + service port gated on `.Values.ports.grpc` (HTTP-only modules omit). **Deviation from the idealized §1.3 env schema:** the container `env:` block diverges genuinely per module (var names, OTel shape, DB/secret env) — far beyond `extraEnv`, so it is delegated to a per-module `define "<Chart.Name>.env"` hook (`templates/_env.tpl`) the library includes at `nindent 12`. Optional `kantheon-service.{volumeMounts,volumes}` hooks (empty default, module-overridable) cover golem's Shem mount.
+- [x] **T3 — FE + HTTPRoute named templates.** `kantheon-service.{fe-deployment,fe-service,fe-configmap,httproute}` from `frontends/iris/k8s`. The `checksum/config` is computed as `sha256sum` of `fe-configmap` + a trailing `\n` (a library template can't use `$.Template.BasePath`), reproducing the pre-library hash exactly.
+- [x] **T4 — Migrate the 18 charts (make them thin).** Each keeps its `templates/{deployment,service}.yaml` **filenames** (one-line `include`s) rather than a single `main.yaml` — this preserves the `# Source:` provenance lines, so the render stays **byte-equivalent** (a `main.yaml` would have renamed both Sources and failed the gate). Added the `dependencies: [kantheon-service]` `file://` ref; dropped each `_helpers.tpl`. `just validate-charts` green for all 18. Conditional branches (db/telemetry/secretEnv/auth/otlpHost/shem) verified byte-equivalent old-vs-new with flags set, beyond the default-values golden.
+- [x] **T5 — `helm dependency build` wiring.** `validate.sh` runs `helm dependency build` before render; verified from a clean checkout (vendored `charts/` + `Chart.lock` removed → rebuilt + green). Vendored artifacts gitignored (`**/k8s/charts/`, `**/k8s/Chart.lock`). ArgoCD multi-source documented in `shared/charts/kantheon-service/README.md`.
+- [x] **T6 — CI gate.** `helm-charts` job in `.github/workflows/ci.yml` (Helm + just, no JVM) runs `just validate-charts` on every PR/merge.
 
 ## DONE
 
-- [ ] `shared/charts/kantheon-service` exists; 18 charts depend on it.
-- [ ] `just validate-charts` green — all 18 render byte-equivalent to the pre-migration goldens (local + CI).
-- [ ] Clean-checkout `helm template <any module>/k8s` works (dependency resolves).
+- [x] `shared/charts/kantheon-service` exists; 18 charts depend on it.
+- [x] `just validate-charts` green — all 18 render byte-equivalent to the pre-migration goldens (local + CI).
+- [x] Clean-checkout `helm template <any module>/k8s` works (dependency resolves via `helm dependency build`).
 
 ## Follow-ups → next stage
 

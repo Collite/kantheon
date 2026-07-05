@@ -1,0 +1,104 @@
+---
+# Source: iris/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iris-config
+  labels:
+    app.kubernetes.io/name: iris
+    app.kubernetes.io/instance: iris
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: iris-0.1.0
+data:
+  # Consumed at container start by scripts/generate-env.sh (→ /env.js,
+  # window.APP_CONFIG) and scripts/nginx-entrypoint.sh (→ /bff proxy).
+  VITE_BFF_BASE_URL: "/bff"
+  BFF_UPSTREAM_PROTOCOL: "http"
+  BFF_UPSTREAM_HOST: "iris-bff"
+  BFF_UPSTREAM_PORT: "7410"
+  VITE_AUTH_ENABLED: "false"
+  VITE_KEYCLOAK_URL: ""
+  VITE_KEYCLOAK_REALM: ""
+  VITE_KEYCLOAK_CLIENT_ID: ""
+  VITE_TELEMETRY_ENABLED: "false"
+
+---
+# Source: iris/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: iris
+  labels:
+    app.kubernetes.io/name: iris
+    app.kubernetes.io/instance: iris
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: iris-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: iris
+    app.kubernetes.io/instance: iris
+  ports:
+    - name: http
+      port: 7012
+      targetPort: 7012
+
+---
+# Source: iris/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iris
+  labels:
+    app.kubernetes.io/name: iris
+    app.kubernetes.io/instance: iris
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: iris-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: iris
+      app.kubernetes.io/instance: iris
+  template:
+    metadata:
+      annotations:
+        # Roll the pods when the runtime config changes (env.js / proxy upstream).
+        checksum/config: 3414e9a49f5dc5d7e49727870edcd5983e9c8efd9cd25e9495f715ced99cb2f1
+      labels:
+        app.kubernetes.io/name: iris
+        app.kubernetes.io/instance: iris
+    spec:
+      containers:
+        - name: iris
+          image: "iris:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7012
+          envFrom:
+            - configMapRef:
+                name: iris-config
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 7012
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 7012
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 250m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi

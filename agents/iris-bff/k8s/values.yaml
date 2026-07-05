@@ -10,9 +10,10 @@ imagePullSecrets: []
 
 service:
   type: ClusterIP
-  port: 7410
 
-containerPort: 7410
+# Container/service/probe port (library reads ports.http; iris-bff is HTTP-only).
+ports:
+  http: 7410
 
 resources:
   requests:
