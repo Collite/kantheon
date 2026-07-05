@@ -1,0 +1,114 @@
+---
+# Source: landing/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: landing-config
+  labels:
+    app.kubernetes.io/name: landing
+    app.kubernetes.io/instance: landing
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: landing-0.1.0
+data:
+  # Consumed at container start by scripts/generate-env.sh (→ /env.js,
+  # window.APP_CONFIG) and scripts/nginx-entrypoint.sh (→ /bff proxy).
+  VITE_BFF_BASE_URL: ""
+  BFF_UPSTREAM_PROTOCOL: "http"
+  BFF_UPSTREAM_HOST: ""
+  BFF_UPSTREAM_PORT: "0"
+  VITE_AUTH_ENABLED: "false"
+  VITE_KEYCLOAK_URL: ""
+  VITE_KEYCLOAK_REALM: ""
+  VITE_KEYCLOAK_CLIENT_ID: ""
+  VITE_TELEMETRY_ENABLED: "false"
+  VITE_GRAFANA_DASHBOARD_URL: ""
+  VITE_HEALTH_URL: ""
+  VITE_KEYCLOAK_LANDING_CLIENT_ID: "landing"
+  VITE_LINK_AGENT: ""
+  VITE_LINK_ARGOCD: ""
+  VITE_LINK_DEV_PORTAL: ""
+  VITE_LINK_GRAFANA: ""
+  VITE_LINK_KEYCLOAK: ""
+  VITE_LINK_SERVICES: ""
+  VITE_LINK_TRAEFIK: ""
+
+---
+# Source: landing/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: landing
+  labels:
+    app.kubernetes.io/name: landing
+    app.kubernetes.io/instance: landing
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: landing-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: landing
+    app.kubernetes.io/instance: landing
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+
+---
+# Source: landing/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: landing
+  labels:
+    app.kubernetes.io/name: landing
+    app.kubernetes.io/instance: landing
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: landing-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: landing
+      app.kubernetes.io/instance: landing
+  template:
+    metadata:
+      annotations:
+        # Roll the pods when the runtime config changes (env.js / proxy upstream).
+        checksum/config: ba722d6f2b736305aa9988870076be65458f34743f76da2bd6981a4de12230c9
+      labels:
+        app.kubernetes.io/name: landing
+        app.kubernetes.io/instance: landing
+    spec:
+      containers:
+        - name: landing
+          image: "landing:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: landing-config
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 250m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi

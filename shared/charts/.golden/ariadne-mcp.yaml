@@ -1,0 +1,86 @@
+---
+# Source: ariadne-mcp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ariadne-mcp
+  labels:
+    app.kubernetes.io/name: ariadne-mcp
+    app.kubernetes.io/instance: ariadne-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: ariadne-mcp-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ariadne-mcp
+    app.kubernetes.io/instance: ariadne-mcp
+  ports:
+    - name: http
+      port: 7262
+      targetPort: 7262
+
+---
+# Source: ariadne-mcp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ariadne-mcp
+  labels:
+    app.kubernetes.io/name: ariadne-mcp
+    app.kubernetes.io/instance: ariadne-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: ariadne-mcp-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ariadne-mcp
+      app.kubernetes.io/instance: ariadne-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ariadne-mcp
+        app.kubernetes.io/instance: ariadne-mcp
+    spec:
+      containers:
+        - name: ariadne-mcp
+          image: "ariadne-mcp:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7262
+          env:
+            - name: ARIADNE_MCP_SERVER_PORT
+              value: "7262"
+            - name: OTEL_SERVICE_NAME
+              value: "ariadne-mcp"
+            - name: OTEL_ENABLED_ARIADNE_MCP
+              value: "false"
+            - name: ARIADNE_PROTOCOL
+              value: grpc
+            - name: ARIADNE_GRPC_HOST
+              value: ariadne
+            - name: ARIADNE_GRPC_PORT
+              value: "7261"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7262
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7262
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi

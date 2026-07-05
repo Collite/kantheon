@@ -24,10 +24,13 @@ mkdir -p "$GOLDEN_DIR"
 mapfile -t CHARTS < <(find agents services workers tools infra frontends -type f -name Chart.yaml \
   -path '*/k8s/Chart.yaml' | sort)
 
+chart_name() { awk '/^name:/{print $2; exit}' "$1/Chart.yaml"; }
+
 render() {
-  # $1 = chart dir. Deterministic: release name = chart name, fixed namespace.
+  # $1 = chart dir. Deterministic: release name = the chart's `name:` (unique;
+  # avoids dir-basename collisions like midas/core -> core), fixed namespace.
   local dir="$1" name
-  name="$(basename "$(dirname "$dir")")"   # <module>/k8s -> <module>
+  name="$(chart_name "$dir")"
   # Resolve the file:// library dependency if the chart declares one (no-op otherwise).
   if grep -q '^dependencies:' "$dir/Chart.yaml" 2>/dev/null; then
     helm dependency build "$dir" >/dev/null 2>&1 || {
@@ -39,7 +42,7 @@ render() {
 fail=0
 for chart in "${CHARTS[@]}"; do
   dir="$(dirname "$chart")"
-  name="$(basename "$(dirname "$dir")")"
+  name="$(chart_name "$dir")"
   golden="$GOLDEN_DIR/$name.yaml"
   out="$(render "$dir")" || { echo "RENDER FAIL: $name"; fail=1; continue; }
   if [[ "$MODE" == "capture" ]]; then

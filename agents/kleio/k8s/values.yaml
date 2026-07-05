@@ -1,0 +1,59 @@
+# Default values for kleio. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments override image, telemetry, and the downstream wiring in extraEnv.
+
+replicaCount: 1
+
+image:
+  repository: kleio
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# HTTP-only agent (library omits grpc when ports.grpc is unset).
+ports:
+  http: 7270
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 384Mi
+    cpu: 150m
+  limits:
+    memory: 768Mi
+    cpu: 750m
+
+# OpenTelemetry. Off by default; a deploying env with a collector sets enabled + endpoint.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: kleio
+
+# Downstream wiring + DB URL. Defaults match the constellation's stable in-cluster names
+# (env-agnostic). A deploying env REPLACES this list to retarget.
+extraEnv:
+  - { name: KLEIO_DB_URL, value: "jdbc:postgresql://kantheon-pg:5432/kleio" }
+  - { name: KLEIO_KALLIMACHOS_MCP_HOST, value: "kallimachos-mcp" }
+  - { name: KLEIO_KALLIMACHOS_MCP_PORT, value: "7262" }
+  - { name: KLEIO_PROMETHEUS_HOST, value: "prometheus" }
+
+# Probes. The base ships only a readiness probe; a liveness probe is added here on the same
+# /ready endpoint (the only endpoint the base declares) since the library always renders one.
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /ready
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

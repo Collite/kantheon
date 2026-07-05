@@ -1,0 +1,62 @@
+# Default values for kallimachos-mcp. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments (Olymp cluster values, or test-context values) override image, telemetry, and the
+# downstream wiring in extraEnv.
+
+replicaCount: 1
+
+image:
+  repository: kallimachos-mcp
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# kallimachos-mcp serves its MCP tools over a single HTTP port — the container port AND the service
+# port AND the probe target. (The base named this port `mcp`; the library standardizes on `http`.)
+ports:
+  http: 7262
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+
+# OpenTelemetry. Reads OTEL_EXPORTER_OTLP_ENDPOINT + the per-service OTEL_ENABLED_KALLIMACHOS_MCP
+# flag. The kustomize base had no OTel; normalized to the theseus idiom, default OFF. Point
+# `endpoint` at a collector and set enabled to turn it on.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: kallimachos-mcp
+
+# Downstream wiring. Defaults match Kallimachos's stable in-cluster service name + port and the
+# capabilities-mcp registration endpoint. A deploying env REPLACES this list to retarget.
+extraEnv:
+  - { name: KALLIMACHOS_MCP_KALLIMACHOS_HOST, value: "kallimachos" }
+  - { name: KALLIMACHOS_MCP_KALLIMACHOS_PORT, value: "7261" }
+  - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7501" }
+
+# Probes (HTTP on the http port). The base defined readiness only (on /health); liveness added on
+# the same path/port, mirroring the constellation MCP-wrapper idiom.
+readinessProbe:
+  path: /health
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

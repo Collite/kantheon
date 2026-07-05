@@ -1,0 +1,19 @@
+apiVersion: v2
+name: kallimachos-browse
+description: |
+  The Kantheon Kallimachos wiki-browse SPA (Vue, nginx) — an env-agnostic Helm chart.
+  Holds no cluster knowledge: image, replicas, resources, the runtime config, and the
+  Gateway API HTTPRoute exposure are all values. Per-environment values live in the
+  deploying GitOps repo (Olymp). The SPA calls the kallimachos-mcp `library.*` surface;
+  in a full deploy the /library path proxies to kallimachos-mcp same-origin (the caller's
+  OBO bearer rides along). NOTE (best-effort): the module ships no Dockerfile/nginx.conf,
+  so the image build + the exact proxy path are not yet pinned here — see README.md.
+type: application
+version: 0.1.0
+appVersion: "dev"
+# Common FE (nginx) Deployment/Service/ConfigMap/HTTPRoute shape from the
+# kantheon-service library chart (D1).
+dependencies:
+  - name: kantheon-service
+    version: 0.1.0
+    repository: "file://../../../shared/charts/kantheon-service"

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: hebe
+description: |
+  The Kantheon hebe agent — an env-agnostic Helm chart. Holds no cluster knowledge: image,
+  replicas, resources, the per-instance profile/id, the instance Secret mount and telemetry
+  are all values. Per-environment values live in the deploying GitOps repo (Olymp), wired via
+  ArgoCD multi-source (D3'). Converted from the kustomize base/overlays (D2).
+type: application
+version: 0.1.0
+appVersion: "dev"
+# Common Deployment/Service shape from the kantheon-service library chart (D1).
+dependencies:
+  - name: kantheon-service
+    version: 0.1.0
+    repository: "file://../../../shared/charts/kantheon-service"

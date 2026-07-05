@@ -43,6 +43,10 @@ spec:
             {{- end }}
           env:
             {{- include (printf "%s.env" .Chart.Name) . | nindent 12 }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           readinessProbe:
             httpGet:
               path: {{ .Values.readinessProbe.path }}

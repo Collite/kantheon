@@ -1,0 +1,68 @@
+# Default values for hebe. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments (Olymp cluster values, or test-context values) override image, telemetry,
+# the instance identity, and the instance Secret.
+
+replicaCount: 1
+
+image:
+  repository: hebe
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# HTTP-only agent (library omits grpc when ports.grpc is unset). Container = service =
+# probe target.
+ports:
+  http: 8765
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 1000m
+
+# One pod per instance (architecture §5.1). The k8s profile resolves storage/workspace/
+# receipts to the in-cluster preset (postgres + ephemeral FS → PG workspace + PG receipts).
+hebe:
+  profile: k8s
+  instanceId: dev
+
+# Per-instance Secret skeleton (PG creds, Keycloak client creds + bound user, llm-gateway
+# key, Telegram bot token, receipts signing key), mounted read-only at HEBE_SECRETS_DIR.
+# The Secret is provisioned by the deploying context (provision.sh), not templated here.
+# Empty secretName = no mount (skeleton boot); HEBE_SECRETS_DIR still points at mountPath.
+instanceSecrets:
+  secretName: ""
+  mountPath: /var/run/secrets/hebe
+
+# OpenTelemetry. Off by default; a deploying env with a collector sets enabled + endpoint.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: hebe
+
+# Probes. Ready = config resolved + PG reachable + migrations at head + channels up;
+# liveness is the bare process check.
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 3
+  periodSeconds: 3
+  failureThreshold: 30
+livenessProbe:
+  path: /healthz
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+extraEnv: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

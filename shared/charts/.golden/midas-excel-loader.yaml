@@ -1,0 +1,90 @@
+---
+# Source: midas-excel-loader/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: midas-excel-loader
+  labels:
+    app.kubernetes.io/name: midas-excel-loader
+    app.kubernetes.io/instance: midas-excel-loader
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: midas-excel-loader-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: midas-excel-loader
+    app.kubernetes.io/instance: midas-excel-loader
+  ports:
+    - name: http
+      port: 7315
+      targetPort: 7315
+
+---
+# Source: midas-excel-loader/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midas-excel-loader
+  labels:
+    app.kubernetes.io/name: midas-excel-loader
+    app.kubernetes.io/instance: midas-excel-loader
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: midas-excel-loader-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: midas-excel-loader
+      app.kubernetes.io/instance: midas-excel-loader
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: midas-excel-loader
+        app.kubernetes.io/instance: midas-excel-loader
+    spec:
+      containers:
+        - name: midas-excel-loader
+          image: "midas-excel-loader:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7315
+          env:
+            - name: EXCEL_LOADER_HTTP_PORT
+              value: "7315"
+            - name: EXCEL_LOADER_BLOB_DIR
+              value: "/var/lib/midas-loader/blobs"
+            - name: OTEL_SERVICE_NAME
+              value: "midas-excel-loader"
+            - name: OTEL_ENABLED_MIDAS_EXCEL_LOADER
+              value: "false"
+            - name: MIDAS_CORE_BASE_URL
+              value: http://midas-core:7310
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7315
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7315
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          volumeMounts:
+            - name: blobs
+              mountPath: /var/lib/midas-loader/blobs
+      volumes:
+        - name: blobs
+          emptyDir: {}

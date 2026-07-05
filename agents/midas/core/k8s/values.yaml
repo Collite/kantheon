@@ -1,0 +1,65 @@
+# Default values for midas-core. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments override image, telemetry, the Postgres connection and the downstream wiring.
+
+replicaCount: 1
+
+image:
+  repository: midas-core
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# The agent listens on an HTTP port and an MCP port. Both are container ports AND service
+# ports AND the probe target (probes hit http). The MCP port maps to the library's grpc slot.
+ports:
+  http: 7310
+  grpc: 7311
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: "2"
+
+# Operational Postgres — the shared Kantheon PG, `midas` database. The password is read from
+# an existing secret (never inlined). host/name/user are env-agnostic in-cluster defaults.
+db:
+  host: postgres
+  name: midas
+  user: midas_app
+  existingSecret: midas-db-secret
+  passwordKey: password
+
+# OpenTelemetry. Off by default; a deploying env with a collector sets enabled + endpoint.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: midas-core
+
+# Downstream constellation wiring. Defaults match stable in-cluster service names.
+extraEnv:
+  - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7099" }
+
+# Probes (HTTP on the http port).
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

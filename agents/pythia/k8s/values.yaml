@@ -1,0 +1,67 @@
+# Default values for pythia. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments override image, telemetry, the DB/NATS wiring (extraEnv) and the credentials
+# secret (envFrom).
+
+replicaCount: 1
+
+image:
+  repository: pythia
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# HTTP-only agent (library omits grpc when ports.grpc is unset).
+ports:
+  http: 7090
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 1000m
+
+# Postgres credentials injected wholesale from a secret (per-pod DB, architecture §7.1).
+# optional: true → pod boots without it (empty defaults select the in-cluster PG). A deploying
+# env sets the sealed pythia-db-credentials secret (fabric-infra).
+envFrom:
+  - secretRef:
+      name: pythia-db-credentials
+      optional: true
+
+# OpenTelemetry. Off by default; a deploying env with a collector sets enabled + endpoint.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: pythia
+
+# DB + NATS wiring. Defaults match stable in-cluster service names (env-agnostic). NATS
+# unreachable → degrade-to-PG-log-only; a deploying env REPLACES this list to retarget.
+extraEnv:
+  - { name: PYTHIA_DB_ENABLED, value: "true" }
+  - { name: PYTHIA_DB_HOST, value: "kantheon-postgres" }
+  - { name: PYTHIA_DB_NAME, value: "pythia" }
+  - { name: PYTHIA_NATS_URL, value: "nats://nats:4222" }
+
+# Probes (HTTP on the http port).
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

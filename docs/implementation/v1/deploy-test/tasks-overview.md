@@ -25,7 +25,7 @@ A task is DONE only when its specs are green **both locally and on bp-dsk** (whe
 | WS | Stage | Task list | Repos | Status |
 |---|---|---|---|---|
 | **D — Deployment** | D1 — Helm library chart + chart migration | [`tasks-d1-chart-library.md`](./tasks-d1-chart-library.md) | K | **done** (2026-07-05) |
-| | D2 — Author the 22 missing charts + publish images | [`tasks-d2-charts-images.md`](./tasks-d2-charts-images.md) | K | written |
+| | D2 — Author the 22 missing charts + publish images | [`tasks-d2-charts-images.md`](./tasks-d2-charts-images.md) | K | **done** (2026-07-05; T6 image-push handed off) |
 | | D3 — bp-dsk ArgoCD apps + platform deps (waves 1–7) | [`tasks-d3-bp-dsk-apps.md`](./tasks-d3-bp-dsk-apps.md) | O (+K descriptors) | written |
 | **T — TPC-DS** | T1 — `test-pg` server + `tpc-ds-1g` + load Job | [`tasks-t1-test-pg-load.md`](./tasks-t1-test-pg-load.md) | O (+K DDL) | written |
 | | T2 — Ariadne TPC-DS model + curated queries + `pg-tpcds` profile | [`tasks-t2-model-connection.md`](./tasks-t2-model-connection.md) | K | written |

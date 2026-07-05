@@ -1,0 +1,106 @@
+---
+# Source: sysifos/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sysifos-config
+  labels:
+    app.kubernetes.io/name: sysifos
+    app.kubernetes.io/instance: sysifos
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: sysifos-0.1.0
+data:
+  # Consumed at container start by scripts/generate-env.sh (→ /env.js,
+  # window.APP_CONFIG) and scripts/nginx-entrypoint.sh (→ /bff proxy).
+  VITE_BFF_BASE_URL: "/bff"
+  BFF_UPSTREAM_PROTOCOL: "http"
+  BFF_UPSTREAM_HOST: "sysifos-bff"
+  BFF_UPSTREAM_PORT: "7601"
+  VITE_AUTH_ENABLED: "false"
+  VITE_KEYCLOAK_URL: ""
+  VITE_KEYCLOAK_REALM: ""
+  VITE_KEYCLOAK_CLIENT_ID: "sysifos"
+  VITE_TELEMETRY_ENABLED: "false"
+  VITE_BFF_BASE: "/bff"
+  VITE_TENANT_CLAIM: ""
+
+---
+# Source: sysifos/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sysifos
+  labels:
+    app.kubernetes.io/name: sysifos
+    app.kubernetes.io/instance: sysifos
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: sysifos-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sysifos
+    app.kubernetes.io/instance: sysifos
+  ports:
+    - name: http
+      port: 7602
+      targetPort: 7602
+
+---
+# Source: sysifos/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sysifos
+  labels:
+    app.kubernetes.io/name: sysifos
+    app.kubernetes.io/instance: sysifos
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: sysifos-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sysifos
+      app.kubernetes.io/instance: sysifos
+  template:
+    metadata:
+      annotations:
+        # Roll the pods when the runtime config changes (env.js / proxy upstream).
+        checksum/config: 3d46b7ba3e322e9a418a174060f2c236a8fdb78bef43ed2800c97ccb43ffd995
+      labels:
+        app.kubernetes.io/name: sysifos
+        app.kubernetes.io/instance: sysifos
+    spec:
+      containers:
+        - name: sysifos
+          image: "sysifos:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7602
+          envFrom:
+            - configMapRef:
+                name: sysifos-config
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 7602
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 7602
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 250m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi

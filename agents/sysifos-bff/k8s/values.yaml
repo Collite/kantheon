@@ -1,0 +1,59 @@
+# Default values for sysifos-bff. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments override image, telemetry, the auth toggle and the midas-core upstream.
+
+replicaCount: 1
+
+image:
+  repository: sysifos-bff
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# HTTP-only BFF (library omits grpc when ports.grpc is unset).
+ports:
+  http: 7601
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: "1"
+
+# Keycloak / JWKS verification toggle (issuer + audience are realm-dependent, set per env).
+auth:
+  verifySignature: true
+
+# OpenTelemetry. Off by default; a deploying env with a collector sets enabled + endpoint.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: sysifos-bff
+
+# Upstream wiring (every write proxies to midas-core; Sysifos has no DB). Default matches the
+# stable in-cluster service name.
+extraEnv:
+  - { name: SYSIFOS_MIDAS_BASE_URL, value: "http://midas-core:7310" }
+
+# Probes (HTTP on the http port).
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

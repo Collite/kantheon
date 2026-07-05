@@ -1,0 +1,19 @@
+apiVersion: v2
+name: landing
+description: |
+  The Kantheon landing page / service dispatcher (Vue, nginx) — an env-agnostic Helm
+  chart. Holds no cluster knowledge: image, replicas, resources, the runtime config
+  (VITE_* → window.APP_CONFIG: Keycloak + the deep-links into the estate), and the
+  Gateway API HTTPRoute exposure are all values. Per-environment values live in the
+  deploying GitOps repo (Olymp). Landing serves static assets and dispatches to the
+  estate by hostname/link — it has NO BFF upstream (the fe-configmap's BFF_UPSTREAM_*
+  keys are inert here; the app never consumes them).
+type: application
+version: 0.1.0
+appVersion: "dev"
+# Common FE (nginx) Deployment/Service/ConfigMap/HTTPRoute shape from the
+# kantheon-service library chart (D1).
+dependencies:
+  - name: kantheon-service
+    version: 0.1.0
+    repository: "file://../../../shared/charts/kantheon-service"

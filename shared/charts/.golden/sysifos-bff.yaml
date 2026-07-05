@@ -1,0 +1,84 @@
+---
+# Source: sysifos-bff/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sysifos-bff
+  labels:
+    app.kubernetes.io/name: sysifos-bff
+    app.kubernetes.io/instance: sysifos-bff
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: sysifos-bff-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sysifos-bff
+    app.kubernetes.io/instance: sysifos-bff
+  ports:
+    - name: http
+      port: 7601
+      targetPort: 7601
+
+---
+# Source: sysifos-bff/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sysifos-bff
+  labels:
+    app.kubernetes.io/name: sysifos-bff
+    app.kubernetes.io/instance: sysifos-bff
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: sysifos-bff-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sysifos-bff
+      app.kubernetes.io/instance: sysifos-bff
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sysifos-bff
+        app.kubernetes.io/instance: sysifos-bff
+    spec:
+      containers:
+        - name: sysifos-bff
+          image: "sysifos-bff:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7601
+          env:
+            - name: SYSIFOS_BFF_HTTP_PORT
+              value: "7601"
+            - name: SYSIFOS_AUTH_VERIFY_SIGNATURE
+              value: "true"
+            - name: OTEL_SERVICE_NAME
+              value: "sysifos-bff"
+            - name: OTEL_ENABLED_SYSIFOS_BFF
+              value: "false"
+            - name: SYSIFOS_MIDAS_BASE_URL
+              value: http://midas-core:7310
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7601
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7601
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi

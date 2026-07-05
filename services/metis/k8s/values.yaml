@@ -1,0 +1,59 @@
+# Default values for metis (Python + statsmodels/prophet, gRPC + HTTP). Env-agnostic: sane
+# defaults, NO cluster knowledge. Deploying environments override image, telemetry, and any
+# extra wiring.
+
+replicaCount: 1
+
+image:
+  repository: metis
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# metis listens on an HTTP port (health/ready + REST) and a gRPC port (constellation callers).
+# These are the container ports AND the service ports; probes target the http port.
+ports:
+  http: 7260
+  grpc: 7261
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 4Gi
+    cpu: "2"
+
+# OpenTelemetry — metis uses a host + gRPC-port pair (not a single endpoint URL).
+# Rendered only when enabled + otlpHost set; leave disabled for test runs.
+telemetry:
+  enabled: false
+  otlpHost: ""
+  otlpGrpcPort: 4317
+
+# Secret-backed env (valueFrom.secretKeyRef) — none by default.
+secretEnv: []
+
+# Any other env (a deploying env REPLACES this list).
+extraEnv: []
+
+# Probes — FastAPI exposes /readyz + /healthz.
+readinessProbe:
+  path: /readyz
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 30
+livenessProbe:
+  path: /healthz
+  initialDelaySeconds: 60
+  periodSeconds: 15
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

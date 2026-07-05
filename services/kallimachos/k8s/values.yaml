@@ -1,0 +1,65 @@
+# Default values for kallimachos. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments (Olymp cluster values, or test-context values) override image, telemetry, and the
+# DB wiring in extraEnv.
+
+replicaCount: 1
+
+image:
+  repository: kallimachos
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# kallimachos listens on a probe/management port and an HTTP API port. The library targets the
+# readiness/liveness probes at ports.http, so ports.http is the PROBE port (7260, the base's probe
+# target) and ports.grpc is the HTTP API port (7261). Numbers match the base; the container/service
+# port names render as http(7260)/grpc(7261) — a cosmetic rename of the base's probe/http names.
+ports:
+  http: 7260
+  grpc: 7261
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 1000m
+
+# OpenTelemetry. kallimachos reads a single OTLP endpoint URL (OTEL_EXPORTER_OTLP_ENDPOINT) plus
+# the OTEL_ENABLED_KALLIMACHOS flag. Point `endpoint` at a collector (e.g. the cluster's Alloy)
+# and set enabled; leave disabled where no collector exists (e.g. test runs).
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: kallimachos
+
+# DB wiring. Defaults match the platform's stable in-cluster Postgres name — env-agnostic. A
+# deploying env REPLACES this list to retarget (e.g. a test context points at its own PG). The DB
+# password is supplied out of band (secret/env), not in values.
+extraEnv:
+  - { name: KALLIMACHOS_STORAGE_PROFILE, value: "postgres" }
+  - { name: KALLIMACHOS_DB_URL, value: "jdbc:postgresql://kantheon-pg:5432/kallimachos" }
+  - { name: KALLIMACHOS_DB_USER, value: "kallimachos" }
+
+# Probes (HTTP on the http/probe port, 7260).
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

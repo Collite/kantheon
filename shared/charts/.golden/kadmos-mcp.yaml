@@ -1,0 +1,84 @@
+---
+# Source: kadmos-mcp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kadmos-mcp
+  labels:
+    app.kubernetes.io/name: kadmos-mcp
+    app.kubernetes.io/instance: kadmos-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kadmos-mcp-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kadmos-mcp
+    app.kubernetes.io/instance: kadmos-mcp
+  ports:
+    - name: http
+      port: 7272
+      targetPort: 7272
+
+---
+# Source: kadmos-mcp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kadmos-mcp
+  labels:
+    app.kubernetes.io/name: kadmos-mcp
+    app.kubernetes.io/instance: kadmos-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kadmos-mcp-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kadmos-mcp
+      app.kubernetes.io/instance: kadmos-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kadmos-mcp
+        app.kubernetes.io/instance: kadmos-mcp
+    spec:
+      containers:
+        - name: kadmos-mcp
+          image: "kadmos-mcp:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7272
+          env:
+            - name: MCP_KADMOS_SERVER_PORT
+              value: "7272"
+            - name: OTEL_SERVICE_NAME
+              value: "kadmos-mcp"
+            - name: OTEL_ENABLED_KADMOS_MCP
+              value: "false"
+            - name: KADMOS_HTTP_HOST
+              value: kadmos
+            - name: KADMOS_HTTP_PORT
+              value: "7270"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7272
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7272
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi

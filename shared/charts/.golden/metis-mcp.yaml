@@ -1,0 +1,84 @@
+---
+# Source: metis-mcp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: metis-mcp
+  labels:
+    app.kubernetes.io/name: metis-mcp
+    app.kubernetes.io/instance: metis-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: metis-mcp-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: metis-mcp
+    app.kubernetes.io/instance: metis-mcp
+  ports:
+    - name: http
+      port: 7262
+      targetPort: 7262
+
+---
+# Source: metis-mcp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metis-mcp
+  labels:
+    app.kubernetes.io/name: metis-mcp
+    app.kubernetes.io/instance: metis-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: metis-mcp-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: metis-mcp
+      app.kubernetes.io/instance: metis-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: metis-mcp
+        app.kubernetes.io/instance: metis-mcp
+    spec:
+      containers:
+        - name: metis-mcp
+          image: "metis-mcp:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7262
+          env:
+            - name: METIS_MCP_SERVER_PORT
+              value: "7262"
+            - name: OTEL_SERVICE_NAME
+              value: "metis-mcp"
+            - name: OTEL_ENABLED_METIS_MCP
+              value: "false"
+            - name: METIS_GRPC_HOST
+              value: metis
+            - name: METIS_GRPC_PORT
+              value: "7261"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 7262
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 7262
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi

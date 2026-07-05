@@ -1,0 +1,109 @@
+---
+# Source: backstage/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage
+  labels:
+    app.kubernetes.io/name: backstage
+    app.kubernetes.io/instance: backstage
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: backstage-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: backstage
+    app.kubernetes.io/instance: backstage
+  ports:
+    - name: http
+      port: 7007
+      targetPort: 7007
+
+---
+# Source: backstage/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage
+  labels:
+    app.kubernetes.io/name: backstage
+    app.kubernetes.io/instance: backstage
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: backstage-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backstage
+      app.kubernetes.io/instance: backstage
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backstage
+        app.kubernetes.io/instance: backstage
+    spec:
+      containers:
+        - name: backstage
+          image: "backstage:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7007
+          env:
+            
+            - name: BACKSTAGE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "backstage-db-credentials"
+                  key: "password"
+                  optional: true
+            - name: BACKSTAGE_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "backstage-secrets"
+                  key: "session-secret"
+                  optional: true
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "backstage-secrets"
+                  key: "keycloak-client-secret"
+                  optional: true
+            - name: BACKSTAGE_APP_BASE_URL
+              value: http://localhost:7007
+            - name: BACKSTAGE_BACKEND_BASE_URL
+              value: http://localhost:7007
+            - name: BACKSTAGE_DB_HOST
+              value: backstage-db
+            - name: BACKSTAGE_DB_PORT
+              value: "5432"
+            - name: BACKSTAGE_DB_USER
+              value: backstage
+            - name: BACKSTAGE_DB
+              value: backstage
+            - name: VITE_KEYCLOAK_BACKSTAGE_CLIENT_ID
+              value: backstage
+            - name: VITE_KEYCLOAK_URL_METADATA
+              value: ""
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 7007
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 7007
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi

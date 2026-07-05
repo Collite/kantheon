@@ -1,0 +1,57 @@
+# Default values for report-renderer. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments (Olymp cluster values, or test-context values) override image and telemetry.
+
+replicaCount: 1
+
+image:
+  repository: report-renderer
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# report-renderer is HTTP-only (POI/Playwright renderer). ports.http is the container/service port
+# AND the probe target; no gRPC port (the library omits grpc when ports.grpc is unset).
+ports:
+  http: 7320
+
+service:
+  type: ClusterIP
+
+# Renderer workload — heavier request/limit than the standard backend (Playwright/Chromium + POI).
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: "2"
+
+# OpenTelemetry. report-renderer reads a single OTLP endpoint URL (OTEL_EXPORTER_OTLP_ENDPOINT) plus
+# the OTEL_ENABLED_REPORT_RENDERER flag. Point `endpoint` at a collector (e.g. the cluster's Alloy)
+# and set enabled; leave disabled where no collector exists (e.g. test runs).
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: report-renderer
+
+# No downstream wiring in the base — the renderer is called, it does not call constellation services.
+extraEnv: []
+
+# Probes (HTTP on the http port).
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

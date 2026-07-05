@@ -1,0 +1,90 @@
+# Default values for landing (the Vue landing page / dispatcher, nginx). Env-agnostic:
+# sane defaults, NO cluster knowledge. Per-environment overrides live in Olymp.
+replicaCount: 1
+
+image:
+  repository: landing
+  tag: ""           # defaults to .Chart.appVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 80
+
+# nginx.conf `listen 80;` (EXPOSE 80). Landing does not follow the FE-family high
+# ports — its nginx binds the default port. Keep it here so probe/service targetPort
+# match the actual listen port.
+containerPort: 80
+
+# An nginx static-file server is cheap.
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 250m
+
+# Runtime config → a ConfigMap, envFrom'd into the pod. At container start
+# scripts/generate-env.sh writes the VITE_* values into /env.js (window.APP_CONFIG,
+# read by the SPA). Landing has NO BFF: bffBaseUrl / bffUpstream.* below are inert
+# (the library fe-configmap always emits them, but landing's entrypoint never reads
+# BFF_UPSTREAM_* and there is no /bff proxy in its nginx.conf). The real landing
+# config — the estate deep-links + Keycloak client — rides in `config.extra`.
+config:
+  bffBaseUrl: ""            # inert for landing (no BFF)
+  bffUpstream:              # inert for landing (no BFF proxy in nginx.conf)
+    protocol: http
+    host: ""
+    port: 0
+  auth:
+    # NB: landing's generate-env.sh reads VITE_KEYCLOAK_URL / VITE_KEYCLOAK_REALM
+    # (these two keys map through), but its client-id key is
+    # VITE_KEYCLOAK_LANDING_CLIENT_ID — supplied via config.extra below.
+    enabled: false
+    keycloakUrl: ""
+    realm: ""
+    clientId: ""            # inert for landing (uses the LANDING-specific key in extra)
+  telemetry:
+    enabled: false
+  # Landing-specific runtime keys (window.APP_CONFIG). Olymp fills these with the
+  # cluster's real URLs.
+  extra:
+    VITE_KEYCLOAK_LANDING_CLIENT_ID: landing
+    VITE_GRAFANA_DASHBOARD_URL: ""
+    VITE_HEALTH_URL: ""
+    VITE_LINK_AGENT: ""
+    VITE_LINK_SERVICES: ""
+    VITE_LINK_DEV_PORTAL: ""
+    VITE_LINK_GRAFANA: ""
+    VITE_LINK_ARGOCD: ""
+    VITE_LINK_TRAEFIK: ""
+    VITE_LINK_KEYCLOAK: ""
+
+# Gateway API exposure. Default off — Olymp enables it and sets the hostname.
+httpRoute:
+  enabled: false
+  gateway:
+    name: eg
+    namespace: gateway
+  hostname: ""               # e.g. landing.192-168-1-38.nip.io
+
+# landing's nginx.conf has no explicit /healthz; the SPA try_files catch-all returns
+# index.html (200) for any path, so /healthz probes pass.
+readinessProbe:
+  path: /healthz
+  initialDelaySeconds: 2
+  periodSeconds: 5
+  failureThreshold: 6
+livenessProbe:
+  path: /healthz
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+extraEnv: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

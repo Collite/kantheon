@@ -1,0 +1,104 @@
+---
+# Source: kallimachos-browse/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kallimachos-browse-config
+  labels:
+    app.kubernetes.io/name: kallimachos-browse
+    app.kubernetes.io/instance: kallimachos-browse
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kallimachos-browse-0.1.0
+data:
+  # Consumed at container start by scripts/generate-env.sh (→ /env.js,
+  # window.APP_CONFIG) and scripts/nginx-entrypoint.sh (→ /bff proxy).
+  VITE_BFF_BASE_URL: "/library"
+  BFF_UPSTREAM_PROTOCOL: "http"
+  BFF_UPSTREAM_HOST: "kallimachos-mcp"
+  BFF_UPSTREAM_PORT: "7262"
+  VITE_AUTH_ENABLED: "false"
+  VITE_KEYCLOAK_URL: ""
+  VITE_KEYCLOAK_REALM: ""
+  VITE_KEYCLOAK_CLIENT_ID: ""
+  VITE_TELEMETRY_ENABLED: "false"
+
+---
+# Source: kallimachos-browse/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kallimachos-browse
+  labels:
+    app.kubernetes.io/name: kallimachos-browse
+    app.kubernetes.io/instance: kallimachos-browse
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kallimachos-browse-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kallimachos-browse
+    app.kubernetes.io/instance: kallimachos-browse
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+
+---
+# Source: kallimachos-browse/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kallimachos-browse
+  labels:
+    app.kubernetes.io/name: kallimachos-browse
+    app.kubernetes.io/instance: kallimachos-browse
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kallimachos-browse-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kallimachos-browse
+      app.kubernetes.io/instance: kallimachos-browse
+  template:
+    metadata:
+      annotations:
+        # Roll the pods when the runtime config changes (env.js / proxy upstream).
+        checksum/config: afbbdc34caac5f5dedeb89ee9fff815e2a2fa6fc36fc50a16411b010d2961921
+      labels:
+        app.kubernetes.io/name: kallimachos-browse
+        app.kubernetes.io/instance: kallimachos-browse
+    spec:
+      containers:
+        - name: kallimachos-browse
+          image: "kallimachos-browse:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: kallimachos-browse-config
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 250m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi

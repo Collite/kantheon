@@ -1,0 +1,88 @@
+---
+# Source: kleio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: kleio
+  labels:
+    app.kubernetes.io/name: kleio
+    app.kubernetes.io/instance: kleio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kleio-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kleio
+    app.kubernetes.io/instance: kleio
+  ports:
+    - name: http
+      port: 7270
+      targetPort: 7270
+
+---
+# Source: kleio/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kleio
+  labels:
+    app.kubernetes.io/name: kleio
+    app.kubernetes.io/instance: kleio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: kleio-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kleio
+      app.kubernetes.io/instance: kleio
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kleio
+        app.kubernetes.io/instance: kleio
+    spec:
+      containers:
+        - name: kleio
+          image: "kleio:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7270
+          env:
+            - name: KLEIO_PORT
+              value: "7270"
+            - name: OTEL_SERVICE_NAME
+              value: "kleio"
+            - name: OTEL_ENABLED_KLEIO
+              value: "false"
+            - name: KLEIO_DB_URL
+              value: jdbc:postgresql://kantheon-pg:5432/kleio
+            - name: KLEIO_KALLIMACHOS_MCP_HOST
+              value: kallimachos-mcp
+            - name: KLEIO_KALLIMACHOS_MCP_PORT
+              value: "7262"
+            - name: KLEIO_PROMETHEUS_HOST
+              value: prometheus
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7270
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 7270
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: 750m
+              memory: 768Mi
+            requests:
+              cpu: 150m
+              memory: 384Mi

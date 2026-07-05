@@ -12,25 +12,25 @@ All 22 modules have a `<module>/k8s` chart depending on `kantheon-service`, each
 
 ## Pre-flight
 
-- [ ] D1 DONE (library chart + 18 charts migrated + `just validate-charts` green).
-- [ ] Each module builds + has a working image recipe (`publish-image` / `publish-fe-image` / `build-py`).
-- [ ] Branch `feat/d2-charts-images` (or per-group branches).
+- [x] D1 DONE (library chart + 18 charts migrated + `just validate-charts` green).
+- [x] Each module builds + has a working image recipe (`publish-image` / `publish-fe-image` / `build-py`). *(build-py caveat: host-arch only, no GHCR tag — see the T6 runbook.)*
+- [x] Branch `feat/d2-charts-images` (stacked on `feat/d1-chart-library`).
 
 ## Tasks (per group: write a render-golden test first, then the chart, then publish)
 
-- [ ] **T1 — Kotlin services + agents (10 charts).** `services/{charon,kallimachos,pinakes,report-renderer}` + `agents/{hebe,kleio,midas/core,midas/loaders/excel,pythia,sysifos-bff}`. Each: thin `k8s/{Chart.yaml(dep kantheon-service),values.yaml,templates/main.yaml}` with its `ports.{http,grpc}`, resources (architecture §13), `extraEnv` downstream defaults, and a **deploy descriptor** (contracts §2.5: pg-database/seaweed/keycloak/wave). **Tests first:** a `helm template` golden per chart in `just validate-charts`.
-- [ ] **T2 — MCP wrapper charts (6).** `tools/{ariadne-mcp,charon-mcp,echo-mcp,kadmos-mcp,kallimachos-mcp,metis-mcp}` — HTTP-only (StreamableHTTP `/mcp`), mirror `tools/theseus-mcp/k8s` (which exists). `ports.http` only; `extraEnv` → the backing service. Golden tests first.
-- [ ] **T3 — Python charts (2).** `services/metis`, `workers/steropes` — same chart shape (the Deployment/Service are language-agnostic); image via `build-py` (not Jib). Note the `image.repository` + pull policy. Golden tests first.
-- [ ] **T4 — FE nginx charts (3).** `frontends/{landing,sysifos,kallimachos-browse}` — mirror `frontends/iris/k8s`: `config.*` (BFF upstream / Keycloak where applicable), `httpRoute.enabled: true` + `hostname`. `landing` is in scope (must work); `sysifos` pairs with testing S3.4; `kallimachos-browse` best-effort. Golden tests first.
-- [ ] **T5 — `infra/backstage` chart (best-effort).** Backstage/Node image; HTTP + HTTPRoute. Best-effort per §7-D3 — author the chart but don't gate the estate on it.
-- [ ] **T6 — Publish images to GHCR.** Run the right recipe per module (`publish-image` Jib multi-arch / `publish-fe-image` amd64 / `build-py`+push), tag `:testing` for integration + a release tag for bp-dsk live (contracts §8). Verify each pulls.
-- [ ] **T7 — Estate-wide `validate-charts` + descriptor index.** `just validate-charts` green for **all 40 charts**; compile the per-module deploy descriptors into a single index (`docs/architecture/deploy-test/deploy-descriptors.md`) that D3 consumes for the olymp app PRs.
+- [x] **T1 — Kotlin services + agents (10 charts).** Authored on the library. **Deviation from wording:** thin charts keep `templates/{deployment,service}.yaml` (one-line includes) + a per-module `templates/_env.tpl` hook, **not** `main.yaml` (same rationale as D1 — provenance + the per-module env surface). charon = `envFrom` + `_volumes.tpl` (connections mount) + `extraEnv` storage wiring; midas-core = `db.*` + `MIDAS_DB_PASSWORD` secretKeyRef; pythia = `envFrom`; hebe/excel = `_volumes.tpl`. Deploy descriptors in each `<module>/k8s/README.md`. Golden per chart via `just validate-charts`.
+- [x] **T2 — MCP wrapper charts (6).** HTTP-only, mirrored `tools/theseus-mcp/k8s`; port env → `ports.http`, OTel normalized (theseus idiom), downstream → `extraEnv`.
+- [x] **T3 — Python charts (2).** `metis` (kadmos OTLP-host idiom), `steropes` (theseus idiom) — chart identical to backend; image via `build-py` (noted in descriptor).
+- [x] **T4 — FE nginx charts (3).** `landing` (port 80, no BFF — dispatch by hostname; config via `config.extra`), `sysifos` (port 7602 → `sysifos-bff:7601`), `kallimachos-browse` (**best-effort** — port/`/healthz` placeholders, proxies `/library` not `/bff`). httpRoute renders both enabled/disabled.
+- [x] **T5 — `infra/backstage` chart (best-effort).** Chose the **backend** templates (Backstage reads env, not a generated `env.js`) + `httproute.yaml`; port 7007, `/healthcheck`, DB/session/Keycloak secrets via `secretKeyRef optional`.
+- [~] **T6 — Publish images to GHCR — HANDED OFF (needs Bora's `write:packages` PAT).** Exact per-module commands + caveats (Python amd64, `midas-excel-loader` basename, backstage custom build) in [`d2-image-publish.md`](./d2-image-publish.md). Not run by the agent (no creds; outward push).
+- [x] **T7 — Estate-wide `validate-charts` + descriptor index.** `just validate-charts` green for **all 40 charts**; goldens re-keyed by chart `name:` (fixes the `core`/`excel` dir-basename collision). Index at [`../../../architecture/deploy-test/deploy-descriptors.md`](../../../architecture/deploy-test/deploy-descriptors.md).
 
 ## DONE
 
-- [ ] All 22 new charts render valid manifests; `just validate-charts` green across the estate (local + CI).
-- [ ] Every module has a pulled-verified GHCR image (`:testing` + release tag).
-- [ ] Deploy-descriptor index complete (feeds D3).
+- [x] All 22 new charts render valid manifests; `just validate-charts` green across the estate (40 charts, local + CI); `helm lint` clean (0 warnings) for all 40.
+- [~] Every module has a pulled-verified GHCR image — **pending Bora** (T6 runbook; credential-gated).
+- [x] Deploy-descriptor index complete (feeds D3).
 
 ## Follow-ups → next stage
 

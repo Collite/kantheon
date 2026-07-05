@@ -1,0 +1,61 @@
+# Default values for metis-mcp. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
+# environments (Olymp cluster values, or test-context values) override image, telemetry, and the
+# downstream wiring in extraEnv.
+
+replicaCount: 1
+
+image:
+  repository: metis-mcp
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# metis-mcp serves its MCP tools over a single HTTP port — the container port AND the service
+# port AND the probe target.
+ports:
+  http: 7262
+
+service:
+  type: ClusterIP
+
+# The kustomize base carried no resources; these mirror the constellation's MCP-wrapper defaults.
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+
+# OpenTelemetry. Reads OTEL_EXPORTER_OTLP_ENDPOINT + the per-service OTEL_ENABLED_METIS_MCP flag.
+# The kustomize base had no OTel; normalized to the theseus idiom, default OFF. Point `endpoint`
+# at a collector and set enabled to turn it on.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: metis-mcp
+
+# Downstream wiring. Defaults match Metis's stable in-cluster service name + gRPC port
+# (env-agnostic — every cluster names them the same). A deploying env REPLACES this list to retarget.
+extraEnv:
+  - { name: METIS_GRPC_HOST, value: "metis" }
+  - { name: METIS_GRPC_PORT, value: "7261" }
+
+# Probes (HTTP on the http port). failureThreshold added (base readiness had none).
+readinessProbe:
+  path: /health/ready
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 30
+livenessProbe:
+  path: /health/live
+  initialDelaySeconds: 15
+  periodSeconds: 20
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

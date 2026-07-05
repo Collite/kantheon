@@ -1,0 +1,86 @@
+---
+# Source: charon-mcp/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: charon-mcp
+  labels:
+    app.kubernetes.io/name: charon-mcp
+    app.kubernetes.io/instance: charon-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: charon-mcp-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: charon-mcp
+    app.kubernetes.io/instance: charon-mcp
+  ports:
+    - name: http
+      port: 7252
+      targetPort: 7252
+
+---
+# Source: charon-mcp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charon-mcp
+  labels:
+    app.kubernetes.io/name: charon-mcp
+    app.kubernetes.io/instance: charon-mcp
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: charon-mcp-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: charon-mcp
+      app.kubernetes.io/instance: charon-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: charon-mcp
+        app.kubernetes.io/instance: charon-mcp
+    spec:
+      containers:
+        - name: charon-mcp
+          image: "charon-mcp:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7252
+          env:
+            - name: CHARON_MCP_SERVER_PORT
+              value: "7252"
+            - name: OTEL_SERVICE_NAME
+              value: "charon-mcp"
+            - name: OTEL_ENABLED_CHARON_MCP
+              value: "false"
+            - name: CHARON_GRPC_HOST
+              value: charon
+            - name: CHARON_GRPC_PORT
+              value: "7251"
+            - name: CAPABILITIES_MCP_URL
+              value: http://capabilities-mcp.kantheon.svc.cluster.local:7080
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7252
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7252
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi

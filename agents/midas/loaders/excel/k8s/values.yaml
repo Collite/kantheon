@@ -1,0 +1,61 @@
+# Default values for midas-excel-loader. Env-agnostic: sane defaults, NO cluster knowledge.
+# Deploying environments override image, telemetry, and the midas-core upstream in extraEnv.
+
+replicaCount: 1
+
+image:
+  repository: midas-excel-loader
+  # Defaults to .Chart.appVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# HTTP-only loader (library omits grpc when ports.grpc is unset).
+ports:
+  http: 7315
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: "1"
+
+# Uploaded statement blobs (re-parsed for preview/commit). emptyDir scratch: a re-upload
+# regenerates the blob and the janitor prunes after 24h, so a pod restart only costs replay
+# of in-flight runs. EXCEL_LOADER_BLOB_DIR is set to mountPath. Disable to run without it.
+blobs:
+  enabled: true
+  mountPath: /var/lib/midas-loader/blobs
+
+# OpenTelemetry. Off by default; a deploying env with a collector sets enabled + endpoint.
+telemetry:
+  enabled: false
+  # e.g. http://alloy.observability.svc.cluster.local:4317
+  endpoint: ""
+  serviceName: midas-excel-loader
+
+# Upstream wiring. Defaults match stable in-cluster service names.
+extraEnv:
+  - { name: MIDAS_CORE_BASE_URL, value: "http://midas-core:7310" }
+
+# Probes (HTTP on the http port).
+readinessProbe:
+  path: /ready
+  initialDelaySeconds: 2
+  periodSeconds: 3
+  failureThreshold: 20
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

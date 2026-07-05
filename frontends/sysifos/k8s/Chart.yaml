@@ -1,0 +1,18 @@
+apiVersion: v2
+name: sysifos
+description: |
+  The Kantheon Sysifos back-office workbench SPA (Vue, nginx) — an env-agnostic Helm
+  chart. Holds no cluster knowledge: image, replicas, resources, the runtime config
+  (VITE_* → window.APP_CONFIG), the same-origin /bff upstream (in-cluster sysifos-bff),
+  Keycloak, and the Gateway API HTTPRoute exposure are all values. Per-environment
+  values live in the deploying GitOps repo (Olymp). sysifos-bff stays ClusterIP and is
+  reached same-origin through the nginx /bff proxy.
+type: application
+version: 0.1.0
+appVersion: "dev"
+# Common FE (nginx) Deployment/Service/ConfigMap/HTTPRoute shape from the
+# kantheon-service library chart (D1).
+dependencies:
+  - name: kantheon-service
+    version: 0.1.0
+    repository: "file://../../../shared/charts/kantheon-service"

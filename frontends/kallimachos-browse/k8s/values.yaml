@@ -1,0 +1,73 @@
+# Default values for kallimachos-browse (the wiki-browse SPA, nginx). Env-agnostic:
+# sane defaults, NO cluster knowledge. Per-environment overrides live in Olymp.
+#
+# BEST-EFFORT chart: the module has no Dockerfile/nginx.conf yet, so the container
+# port (8080, the nginx-family default) and the backend proxy path are placeholders —
+# see README.md. Its backend is kallimachos-mcp (contracts §4, `library.*`).
+replicaCount: 1
+
+image:
+  repository: kallimachos-browse
+  tag: ""           # defaults to .Chart.appVersion
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# No nginx.conf in the module — 8080 is the nginx-family placeholder. Pin this to the
+# real `listen` port once the module gains a Dockerfile/nginx.conf.
+containerPort: 8080
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 250m
+
+# Runtime config → a ConfigMap, envFrom'd into the pod. The SPA's api.ts POSTs to
+# /library/mcp; in a full deploy nginx would proxy /library → kallimachos-mcp. The
+# library fe-configmap models a single /bff upstream, so bffUpstream points at
+# kallimachos-mcp here (proxy-path caveat noted in README.md).
+config:
+  bffBaseUrl: "/library"
+  bffUpstream:
+    protocol: http
+    host: kallimachos-mcp    # in-cluster kallimachos-mcp Service — override per env
+    port: 7262
+  auth:
+    enabled: false
+    keycloakUrl: ""
+    realm: ""
+    clientId: ""
+  telemetry:
+    enabled: false
+  extra: {}
+
+# Gateway API exposure. Default off — Olymp enables it and sets the hostname.
+httpRoute:
+  enabled: false
+  gateway:
+    name: eg
+    namespace: gateway
+  hostname: ""               # e.g. kallimachos.192-168-1-38.nip.io
+
+readinessProbe:
+  path: /healthz
+  initialDelaySeconds: 2
+  periodSeconds: 5
+  failureThreshold: 6
+livenessProbe:
+  path: /healthz
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+extraEnv: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

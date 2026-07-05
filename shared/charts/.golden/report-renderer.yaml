@@ -1,0 +1,80 @@
+---
+# Source: report-renderer/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: report-renderer
+  labels:
+    app.kubernetes.io/name: report-renderer
+    app.kubernetes.io/instance: report-renderer
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: report-renderer-0.1.0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: report-renderer
+    app.kubernetes.io/instance: report-renderer
+  ports:
+    - name: http
+      port: 7320
+      targetPort: 7320
+
+---
+# Source: report-renderer/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-renderer
+  labels:
+    app.kubernetes.io/name: report-renderer
+    app.kubernetes.io/instance: report-renderer
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: report-renderer-0.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: report-renderer
+      app.kubernetes.io/instance: report-renderer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: report-renderer
+        app.kubernetes.io/instance: report-renderer
+    spec:
+      containers:
+        - name: report-renderer
+          image: "report-renderer:dev"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 7320
+          env:
+            - name: REPORT_RENDERER_HTTP_PORT
+              value: "7320"
+            - name: OTEL_SERVICE_NAME
+              value: "report-renderer"
+            - name: OTEL_ENABLED_REPORT_RENDERER
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 7320
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 20
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 7320
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
