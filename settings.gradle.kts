@@ -11,6 +11,12 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        // TEMPORARY (ttr-metadata adoption, Stage M4.1): consume the tatrman
+        // `org.tatrman:ttr-metadata(+-git)` artifacts from Maven Local while the
+        // swap is validated locally (publishToMavenLocal, 0.0.1-LOCAL). Flip the
+        // `tatrman-ttr-metadata` pin to the released 0.1.x and remove this line
+        // once `kotlin-metadata/v0.1.0` is on GitHub Packages (arc-checklist item 1).
+        mavenLocal()
         // The ai-platform GitHub Packages repo (DFPartner/ai-platform, group
         // cz.dfpartner) was removed in fork Stage 2.6 — Themis retargeted off
         // cz.dfpartner:shared-proto (nlp.v1 → in-repo kadmos.v1). No ai-platform
