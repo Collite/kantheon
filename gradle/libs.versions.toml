@@ -3,8 +3,8 @@
 # https://docs.gradle.org/current/userguide/version_catalogs.html
 
 [versions]
-tatrman-modeler           = "0.8.4"
-tatrman-ttr-metadata      = "0.8.4"
+tatrman-modeler           = "0.8.6"
+tatrman-ttr-metadata      = "0.8.6"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
