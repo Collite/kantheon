@@ -5,6 +5,8 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.tatrman.kallimachos.service.EmbeddingService
 
 /**
@@ -16,7 +18,7 @@ import org.tatrman.kallimachos.service.EmbeddingService
 fun Route.adminRoutes(embeddingService: EmbeddingService) {
     post("/admin/backfillEmbeddings") {
         val embedded = embeddingService.backfillEmbeddings()
-        call.respond(mapOf("embedded" to embedded))
+        call.respond(buildJsonObject { put("embedded", embedded) })
     }
     post("/admin/embedSource/{id}") {
         val id = call.parameters["id"]?.toLongOrNull()
@@ -25,6 +27,6 @@ fun Route.adminRoutes(embeddingService: EmbeddingService) {
             return@post
         }
         val ok = embeddingService.embedSource(id)
-        call.respond(mapOf("sourceId" to id, "embedded" to ok))
+        call.respond(buildJsonObject { put("sourceId", id); put("embedded", ok) })
     }
 }

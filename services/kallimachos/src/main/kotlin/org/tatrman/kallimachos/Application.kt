@@ -16,6 +16,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.slf4j.LoggerFactory
 import org.tatrman.kallimachos.http.adminRoutes
 import org.tatrman.kallimachos.http.browseRoutes
@@ -125,18 +127,20 @@ fun Application.probeModule(
 ) {
     install(ContentNegotiation) { json() }
     routing {
-        get("/health") { call.respond(mapOf("status" to "UP")) }
+        get("/health") { call.respond(buildJsonObject { put("status", "UP") }) }
         // Ready once the corpus planes are wired (Stage 1.2). P2 adds the
         // vector/AGE extension checks to this gate.
-        get("/ready") { call.respond(mapOf("status" to "UP", "stage" to "1.2", "profile" to storageProfile)) }
+        get("/ready") {
+            call.respond(buildJsonObject { put("status", "UP"); put("stage", "1.2"); put("profile", storageProfile) })
+        }
         get("/status") {
             call.respond(
-                mapOf(
-                    "service" to "kallimachos",
-                    "stage" to "1.2",
-                    "profile" to storageProfile,
-                    "planes" to "relational + fulltext (vector/graph → P2)",
-                ),
+                buildJsonObject {
+                    put("service", "kallimachos")
+                    put("stage", "1.2")
+                    put("profile", storageProfile)
+                    put("planes", "relational + fulltext (vector/graph → P2)")
+                },
             )
         }
         get("/metrics") { call.respondText(meterRegistry.scrape(), ContentType.Text.Plain) }

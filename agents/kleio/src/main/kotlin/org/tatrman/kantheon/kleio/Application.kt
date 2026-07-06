@@ -22,6 +22,8 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.slf4j.LoggerFactory
 import org.tatrman.kantheon.kleio.clients.HttpKallimachosMcpClient
 import org.tatrman.kantheon.kleio.clients.HttpKleioLlmClient
@@ -87,8 +89,8 @@ fun Application.module(
     val printer = JsonFormat.printer().omittingInsignificantWhitespace()
     install(ContentNegotiation) { json() }
     routing {
-        get("/health") { call.respond(mapOf("status" to "UP")) }
-        get("/ready") { call.respond(mapOf("status" to "UP", "agent" to "kleio")) }
+        get("/health") { call.respond(buildJsonObject { put("status", "UP") }) }
+        get("/ready") { call.respond(buildJsonObject { put("status", "UP"); put("agent", "kleio") }) }
         get("/metrics") { call.respondText(meterRegistry.scrape(), ContentType.Text.Plain) }
 
         // The grounded mart turn (KleioRequest → GroundedResponse, proto-JSON).

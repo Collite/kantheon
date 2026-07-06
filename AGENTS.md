@@ -184,6 +184,7 @@ Every Kotlin service follows the same skeleton. Reference: [`EXAMPLES.md`](./EXA
 - Package root: `org.tatrman.kantheon.<module>` for Kotlin. Proto root: `org.tatrman.kantheon.<package>.v1` for constellation/agent contracts — **but platform services use `org.tatrman.<service>.v1` and cross-service pipeline packages keep functional names `org.tatrman.{plan,worker,transdsl,dfdsl}.v1`** (see [`CLAUDE.md`](./CLAUDE.md) §4).
 - `App.kt` does only bootstrap. Business logic lives below.
 - Externalise prompts to `prompts/` (one file per prompt, with the prompt's input/output schema documented in a sibling comment).
+- **Ktor routes: never `call.respond(mapOf(...))`** — a raw `Map` has no serializer, so with `ContentNegotiation` it returns HTTP 406 (a silently-failing `/health`/`/ready` probe → CrashLoopBackOff). Always `call.respond(buildJsonObject { put(...) })` or a `@Serializable` type. See [`EXAMPLES.md`](./EXAMPLES.md) §2a.
 
 ### 4.1 Python modules
 

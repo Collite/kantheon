@@ -182,6 +182,42 @@ private fun structured(content: JsonObject): CallToolResult =
 - Return via `structured(content)` — sets both `structuredContent` and a `TextContent` mirror.
 - Wrap every callback in `guarded(toolName)` — it surfaces timeouts/exceptions as `isError = true` results (a `ResponseMessage` payload) instead of bubbling out of the transport. See §3.
 
+### 2a. Ktor responses — `buildJsonObject`, never `respond(mapOf(...))`
+
+**Rule: never `call.respond(mapOf(...))` (or any raw `Map`/`List`) from a Ktor route. Always `call.respond(buildJsonObject { ... })` (or a `@Serializable` type).**
+
+A raw `Map<String, …>` has no compile-time `KSerializer`, so with `ContentNegotiation`
+installed kotlinx-serialization cannot negotiate a representation and the route returns
+**HTTP 406 Not Acceptable** — which silently turns into a failing `/health`/`/ready` probe
+and a CrashLoopBackOff on the cluster. (It *appears* to work in services that don't install
+`ContentNegotiation` because `respond` falls back to `toString()` — a latent trap: adding
+`ContentNegotiation` later breaks every such route.)
+
+```kotlin
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray   // list values
+import kotlinx.serialization.json.add
+
+// ✗ WRONG — 406 with ContentNegotiation
+get("/ready") { call.respond(mapOf("status" to "UP", "connections" to ids)) }
+
+// ✓ RIGHT
+get("/health") { call.respond(buildJsonObject { put("status", "UP") }) }
+get("/ready") {
+    call.respond(
+        buildJsonObject {
+            put("status", "UP")                                       // String/Number/Boolean overloads
+            putJsonArray("connections") { ids.forEach { add(it) } }   // list values
+        },
+    )
+}
+```
+
+Health/readiness/status/JSON routes across every Kotlin+Ktor service and worker follow this
+(`services/charon/…/Application.kt` is the reference). Plain-text endpoints (`/metrics`) use
+`respondText(...)` and are unaffected.
+
 ---
 
 ## 3. Proto wiring — `argsJson` + `messages = 99;`

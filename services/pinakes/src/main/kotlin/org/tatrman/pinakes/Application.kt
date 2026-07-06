@@ -20,6 +20,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import org.slf4j.LoggerFactory
 import org.tatrman.pinakes.catalog.InMemoryAssetCatalog
 import org.tatrman.pinakes.catalog.LineageStore
@@ -218,10 +220,16 @@ private fun loadPipelineDefs(
 fun Application.module(meterRegistry: PrometheusMeterRegistry) {
     install(ContentNegotiation) { json() }
     routing {
-        get("/health") { call.respond(mapOf("status" to "UP")) }
-        get("/ready") { call.respond(mapOf("status" to "UP", "stage" to "1.3")) }
+        get("/health") { call.respond(buildJsonObject { put("status", "UP") }) }
+        get("/ready") { call.respond(buildJsonObject { put("status", "UP"); put("stage", "1.3") }) }
         get("/status") {
-            call.respond(mapOf("service" to "pinakes", "stage" to "1.3", "path" to "stage + mechanical pipeline"))
+            call.respond(
+                buildJsonObject {
+                    put("service", "pinakes")
+                    put("stage", "1.3")
+                    put("path", "stage + mechanical pipeline")
+                },
+            )
         }
         get("/metrics") { call.respondText(meterRegistry.scrape(), ContentType.Text.Plain) }
     }
