@@ -63,6 +63,8 @@ spec:
               value: ariadne
             - name: ARIADNE_GRPC_PORT
               value: "7261"
+            - name: CAPABILITIES_MCP_URL
+              value: http://capabilities-mcp:7501
           readinessProbe:
             httpGet:
               path: /ready

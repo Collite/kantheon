@@ -61,6 +61,8 @@ spec:
               value: echo
             - name: ECHO_GRPC_PORT
               value: "7266"
+            - name: CAPABILITIES_MCP_URL
+              value: http://capabilities-mcp:7501
           readinessProbe:
             httpGet:
               path: /ready

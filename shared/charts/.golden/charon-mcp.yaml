@@ -62,7 +62,7 @@ spec:
             - name: CHARON_GRPC_PORT
               value: "7251"
             - name: CAPABILITIES_MCP_URL
-              value: http://capabilities-mcp.kantheon.svc.cluster.local:7080
+              value: http://capabilities-mcp:7501
           readinessProbe:
             httpGet:
               path: /ready

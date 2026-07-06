@@ -61,6 +61,8 @@ spec:
               value: kadmos
             - name: KADMOS_HTTP_PORT
               value: "7270"
+            - name: CAPABILITIES_MCP_URL
+              value: http://capabilities-mcp:7501
           readinessProbe:
             httpGet:
               path: /ready
