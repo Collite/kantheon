@@ -68,6 +68,8 @@ spec:
               value: brontes:7296
             - name: KYKLOP_WORKER_STEROPES_ENDPOINT
               value: steropes:7301
+            - name: KYKLOP_WORKER_ARGES_ENDPOINT
+              value: arges:7303
           readinessProbe:
             httpGet:
               path: /ready
