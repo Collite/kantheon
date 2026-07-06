@@ -22,7 +22,6 @@ spec:
     - name: grpc
       port: 7296
       targetPort: 7296
-
 ---
 # Source: brontes/templates/deployment.yaml
 apiVersion: apps/v1

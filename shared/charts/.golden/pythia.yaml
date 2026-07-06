@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7090
       targetPort: 7090
-
 ---
 # Source: pythia/templates/deployment.yaml
 apiVersion: apps/v1

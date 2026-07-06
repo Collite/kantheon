@@ -26,6 +26,24 @@ mapfile -t CHARTS < <(find agents services workers tools infra frontends -type f
 
 chart_name() { awk '/^name:/{print $2; exit}' "$1/Chart.yaml"; }
 
+# Normalize inter-document whitespace so the goldens are HELM-VERSION-AGNOSTIC:
+# helm v4 emits a blank line before each `---` doc separator that helm v3 does not,
+# which would otherwise drift every chart depending on the runner's helm version.
+# Drop a blank line immediately before a `---` separator, and trim trailing blanks;
+# intra-resource blank lines (if any) are preserved.
+normalize() {
+  awk '
+    { L[NR] = $0 }
+    END {
+      n = NR
+      while (n > 0 && L[n] ~ /^[[:space:]]*$/) n--          # trim trailing blanks
+      for (i = 1; i <= n; i++) {
+        if (L[i] ~ /^[[:space:]]*$/ && L[i+1] == "---") continue   # drop blank-before-separator
+        print L[i]
+      }
+    }'
+}
+
 render() {
   # $1 = chart dir. Deterministic: release name = the chart's `name:` (unique;
   # avoids dir-basename collisions like midas/core -> core), fixed namespace.
@@ -36,7 +54,7 @@ render() {
     helm dependency build "$dir" >/dev/null 2>&1 || {
       echo "helm dependency build failed for $dir" >&2; return 1; }
   fi
-  helm template "$name" "$dir" --namespace "$name"
+  helm template "$name" "$dir" --namespace "$name" | normalize
 }
 
 fail=0

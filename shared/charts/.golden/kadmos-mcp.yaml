@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7272
       targetPort: 7272
-
 ---
 # Source: kadmos-mcp/templates/deployment.yaml
 apiVersion: apps/v1

@@ -22,7 +22,6 @@ spec:
     - name: grpc
       port: 7281
       targetPort: 7281
-
 ---
 # Source: pinakes/templates/deployment.yaml
 apiVersion: apps/v1

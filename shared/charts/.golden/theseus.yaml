@@ -22,7 +22,6 @@ spec:
     - name: grpc
       port: 7306
       targetPort: 7306
-
 ---
 # Source: theseus/templates/deployment.yaml
 apiVersion: apps/v1

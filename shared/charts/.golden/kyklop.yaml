@@ -22,7 +22,6 @@ spec:
     - name: grpc
       port: 7291
       targetPort: 7291
-
 ---
 # Source: kyklop/templates/deployment.yaml
 apiVersion: apps/v1

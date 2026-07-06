@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7000
       targetPort: 7000
-
 ---
 # Source: health/templates/deployment.yaml
 apiVersion: apps/v1

@@ -22,7 +22,6 @@ data:
   VITE_KEYCLOAK_REALM: ""
   VITE_KEYCLOAK_CLIENT_ID: ""
   VITE_TELEMETRY_ENABLED: "false"
-
 ---
 # Source: kallimachos-browse/templates/service.yaml
 apiVersion: v1
@@ -44,7 +43,6 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
-
 ---
 # Source: kallimachos-browse/templates/deployment.yaml
 apiVersion: apps/v1

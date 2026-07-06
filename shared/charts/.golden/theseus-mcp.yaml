@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7307
       targetPort: 7307
-
 ---
 # Source: theseus-mcp/templates/deployment.yaml
 apiVersion: apps/v1

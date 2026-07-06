@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7601
       targetPort: 7601
-
 ---
 # Source: sysifos-bff/templates/deployment.yaml
 apiVersion: apps/v1

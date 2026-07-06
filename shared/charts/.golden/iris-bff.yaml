@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7410
       targetPort: 7410
-
 ---
 # Source: iris-bff/templates/deployment.yaml
 apiVersion: apps/v1

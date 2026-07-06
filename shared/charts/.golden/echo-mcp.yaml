@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7267
       targetPort: 7267
-
 ---
 # Source: echo-mcp/templates/deployment.yaml
 apiVersion: apps/v1

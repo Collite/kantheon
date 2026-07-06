@@ -22,7 +22,6 @@ spec:
     - name: grpc
       port: 7286
       targetPort: 7286
-
 ---
 # Source: argos/templates/deployment.yaml
 apiVersion: apps/v1

@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7007
       targetPort: 7007
-
 ---
 # Source: backstage/templates/deployment.yaml
 apiVersion: apps/v1

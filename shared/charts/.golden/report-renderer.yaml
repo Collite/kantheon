@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7320
       targetPort: 7320
-
 ---
 # Source: report-renderer/templates/deployment.yaml
 apiVersion: apps/v1

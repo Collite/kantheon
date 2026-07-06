@@ -19,7 +19,6 @@ spec:
     - name: http
       port: 7110
       targetPort: 7110
-
 ---
 # Source: whois/templates/deployment.yaml
 apiVersion: apps/v1

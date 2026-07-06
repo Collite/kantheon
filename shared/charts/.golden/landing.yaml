@@ -32,7 +32,6 @@ data:
   VITE_LINK_KEYCLOAK: ""
   VITE_LINK_SERVICES: ""
   VITE_LINK_TRAEFIK: ""
-
 ---
 # Source: landing/templates/service.yaml
 apiVersion: v1
@@ -54,7 +53,6 @@ spec:
     - name: http
       port: 80
       targetPort: 80
-
 ---
 # Source: landing/templates/deployment.yaml
 apiVersion: apps/v1

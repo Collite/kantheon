@@ -24,7 +24,6 @@ data:
   VITE_TELEMETRY_ENABLED: "false"
   VITE_BFF_BASE: "/bff"
   VITE_TENANT_CLAIM: ""
-
 ---
 # Source: sysifos/templates/service.yaml
 apiVersion: v1
@@ -46,7 +45,6 @@ spec:
     - name: http
       port: 7602
       targetPort: 7602
-
 ---
 # Source: sysifos/templates/deployment.yaml
 apiVersion: apps/v1

@@ -22,7 +22,6 @@ spec:
     - name: grpc
       port: 7301
       targetPort: 7301
-
 ---
 # Source: steropes/templates/deployment.yaml
 apiVersion: apps/v1

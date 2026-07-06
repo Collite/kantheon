@@ -22,7 +22,6 @@ spec:
     - name: grpc
       port: 7251
       targetPort: 7251
-
 ---
 # Source: charon/templates/deployment.yaml
 apiVersion: apps/v1
