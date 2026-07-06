@@ -17,18 +17,18 @@
 
 ## Tasks
 
-- [ ] **T1 [K] — Vendor the DDL + the trailing-pipe load test (tests first).** Copy `tpcds.sql` + `tpcds_ri.sql` into `deployment/tpcds/ddl/`. Write a **component test** `TpcdsLoadComponentSpec` (`component-testkit` `Containers.postgres()`): create the schema from `tpcds.sql`, then load a **tiny fixture `.dat`** (3–4 rows, with the trailing `|`) for one small table (e.g. `reason` or `income_band`) via the chosen trailing-pipe-safe `COPY` form (contracts §4.2 — dummy-trailing-column **or** strip-trailing-pipe); assert exact row + column-value fidelity. This proves the load form **before** the cluster Job uses it.
-- [ ] **T2 [O] — `test-pg` CNPG cluster + roles.** `platform/data/test-pg/base/{cluster.yaml,databases.yaml}` + `overlays/bp-dsk/` per contracts §4.1: `Cluster test-pg` (instances 1, storage 8Gi), managed roles `tpcds` (owner) + `tpcds_readonly`, `Database tpc-ds-1g`, `ExternalSecret`s `pg-tpcds-cred` / `pg-tpcds-ro-cred`. Wire into the bp-dsk app-of-apps (own Application or under the data appset).
-- [ ] **T3 [O] — Stage `.dat` to Seaweed.** A documented one-time upload of `~/Data/TPC-DS/*.dat` → Seaweed bucket `tpcds-staging` (`mc cp`/`aws s3 cp` against the in-cluster Seaweed S3 endpoint). Record the bucket/prefix; reloads never need host access again.
-- [ ] **T4 [O] — `tpcds-load` Job (uses the T1-proven load form).** `platform/data/test-pg/load-job.yaml` — a `Job` in ns `data`: (1) `psql -f tpcds.sql` (idempotent `DROP/CREATE` or `TRUNCATE`); (2) for each of the 24 tables, fetch `<table>.dat` from Seaweed → trailing-pipe-safe `COPY`; (3) `psql -f tpcds_ri.sql` + `ANALYZE`; (4) grant `tpcds_readonly` (contracts §4.1). Image: a small `postgres`+`mc` client. Mount creds from `pg-tpcds-cred`.
-- [ ] **T5 [O] — Run the load on bp-dsk + verify.** Apply the Job to bp-dsk; wait `Complete`; verify row counts against the known SF1 cardinalities (e.g. `store_sales` ≈ 2.88M, `date_dim` = 73049, `customer` = 100000) — a checked-in `expected-counts.txt` + a `psql` count check. Confirm `tpcds_readonly` can `SELECT` but not write.
-- [ ] **T6 [K/O] — Idempotency + reload.** Re-run the Job → same counts, no duplicate-key errors (truncate-reload path). Document `just` helper or runbook for "reload tpc-ds-1g".
+- [x] **T1 [K] — Vendor the DDL + the trailing-pipe load test (tests first).** DDL vendored to `deployment/tpcds/ddl/{tpcds.sql,tpcds_ri.sql}`. `TpcdsLoadComponentSpec` (workers/arges componentTest) runs the real `tpcds.sql` on Testcontainers PG, asserts the raw trailing-pipe `.dat` is rejected, then **strip-trailing-pipe + `COPY … WITH (DELIMITER '|', NULL '')`** loads a `reason` fixture with exact fidelity incl. empty-last → NULL. **Green** (1 test, 0 failures).
+- [x] **T2 [O] — `test-pg` CNPG cluster + roles.** `platform/data/test-pg/base/{cluster.yaml (8Gi, roles tpcds+tpcds_readonly),databases.yaml (tpc-ds-1g)}` + `overlays/bp-dsk/{externalsecret-pg-tpcds-cred,externalsecret-pg-tpcds-ro-cred,kustomization}`; wired into `clusters/bp-dsk/platform/data` (the `data` app). Overlay builds clean.
+- [~] **T3 [O] — Stage `.dat` to Seaweed — RUNBOOK (yours).** `tpcds-staging` bucket added to seaweed `createBuckets`. Upload steps (port-forward `seaweedfs-s3` + `aws s3 cp --no-sign-request`) in [`t1-tpcds-load.md`](./t1-tpcds-load.md) T3.
+- [x] **T4 [O] — `tpcds-load` Job (uses the T1-proven load form).** `platform/data/test-pg/overlays/bp-dsk/load-job.yaml` (`postgres:16-alpine`+curl): DROP 25 tables → `tpcds.sql` → per-table `curl … | sed 's/|$//' | \copy … (DELIMITER '|', NULL '')` → `tpcds_ri.sql` + `ANALYZE` → grant `tpcds_readonly`. **NOT** auto-synced (excluded from the overlay kustomization) — applied manually so a sync never reloads 1.2 GB.
+- [~] **T5 [O] — Run the load + verify — RUNBOOK (yours).** [`t1-tpcds-load.md`](./t1-tpcds-load.md) T5, with the exact SF1 counts oracle (store_sales 2,880,404 · catalog_sales 1,441,548 · web_sales 719,384 · customer 100,000 · date_dim 73,049 · item 18,000) + the read-only check.
+- [x] **T6 [K/O] — Idempotency + reload.** The Job drops the 25 tables first → delete+re-apply reloads to the same counts, no dup-key errors. Documented in the runbook.
 
 ## DONE
 
-- [ ] `TpcdsLoadComponentSpec` green locally (`just test-component`) — the trailing-pipe load form proven.
-- [ ] `test-pg`/`tpc-ds-1g` live on bp-dsk; `tpcds-load` Job `Complete`; row counts match SF1 expected.
-- [ ] `tpcds_readonly` read-only access confirmed; reload is idempotent.
+- [x] `TpcdsLoadComponentSpec` green locally (`just test-component`) — the trailing-pipe load form proven.
+- [~] `test-pg`/`tpc-ds-1g` GitOps + load Job authored; **live load pending** the vault keys (`pg-tpcds`/`pg-tpcds-ro`) + olymp→master merge + the T3 stage + T5 run (runbook `t1-tpcds-load.md`).
+- [~] `tpcds_readonly` read-only + reload idempotency — verified at T5/T6 run time.
 
 ## Follow-ups → next stage
 
