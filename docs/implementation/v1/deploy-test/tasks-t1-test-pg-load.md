@@ -21,14 +21,14 @@
 - [x] **T2 [O] — `test-pg` CNPG cluster + roles.** `platform/data/test-pg/base/{cluster.yaml (8Gi, roles tpcds+tpcds_readonly),databases.yaml (tpc-ds-1g)}` + `overlays/bp-dsk/{externalsecret-pg-tpcds-cred,externalsecret-pg-tpcds-ro-cred,kustomization}`; wired into `clusters/bp-dsk/platform/data` (the `data` app). Overlay builds clean.
 - [~] **T3 [O] — Stage `.dat` to Seaweed — RUNBOOK (yours).** `tpcds-staging` bucket added to seaweed `createBuckets`. Upload steps (port-forward `seaweedfs-s3` + `aws s3 cp --no-sign-request`) in [`t1-tpcds-load.md`](./t1-tpcds-load.md) T3.
 - [x] **T4 [O] — `tpcds-load` Job (uses the T1-proven load form).** `platform/data/test-pg/overlays/bp-dsk/load-job.yaml` (`postgres:16-alpine`+curl): DROP 25 tables → `tpcds.sql` → per-table `curl … | sed 's/|$//' | \copy … (DELIMITER '|', NULL '')` → `tpcds_ri.sql` + `ANALYZE` → grant `tpcds_readonly`. **NOT** auto-synced (excluded from the overlay kustomization) — applied manually so a sync never reloads 1.2 GB.
-- [~] **T5 [O] — Run the load + verify — RUNBOOK (yours).** [`t1-tpcds-load.md`](./t1-tpcds-load.md) T5, with the exact SF1 counts oracle (store_sales 2,880,404 · catalog_sales 1,441,548 · web_sales 719,384 · customer 100,000 · date_dim 73,049 · item 18,000) + the read-only check.
+- [x] **T5 [O] — Run the load + verify — DONE (2026-07-06).** `tpcds-load` Job applied to bp-dsk → `Complete` (`succeeded=1`). Counts match the SF1 oracle exactly (store_sales 2,880,404 · catalog_sales 1,441,548 · web_sales 719,384 · customer 100,000 · date_dim 73,049 · item 18,000; 25 tables). `tpcds_readonly` verified read-only via `has_table_privilege` (SELECT=true, INSERT/UPDATE/DELETE=false, can-login). [`t1-tpcds-load.md`](./t1-tpcds-load.md) T5.
 - [x] **T6 [K/O] — Idempotency + reload.** The Job drops the 25 tables first → delete+re-apply reloads to the same counts, no dup-key errors. Documented in the runbook.
 
 ## DONE
 
 - [x] `TpcdsLoadComponentSpec` green locally (`just test-component`) — the trailing-pipe load form proven.
-- [~] `test-pg`/`tpc-ds-1g` GitOps + load Job authored; **live load pending** the vault keys (`pg-tpcds`/`pg-tpcds-ro`) + olymp→master merge + the T3 stage + T5 run (runbook `t1-tpcds-load.md`).
-- [~] `tpcds_readonly` read-only + reload idempotency — verified at T5/T6 run time.
+- [x] `test-pg`/`tpc-ds-1g` GitOps + load Job authored; **live load DONE (2026-07-06)** — vault keys materialized, olymp merged, data staged, T5 Job `Complete` with oracle-matching counts.
+- [x] `tpcds_readonly` read-only — verified (`has_table_privilege`: SELECT-only); reload idempotency holds (T6: Job drops 25 tables first).
 
 ## Follow-ups → next stage
 

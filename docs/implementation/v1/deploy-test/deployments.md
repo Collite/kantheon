@@ -18,13 +18,21 @@
 **Wave 1–2 (registry/core + query path) — essentially green.** 21/24 pods Healthy after the
 fixes below. The theseus→proteus→argos→kyklop→arges query path is up (arges/brontes in *fixture*
 mode until WS-T2 — §5). Remaining reds are **image**, not config:
-- `charon` — needs a **rebuild** to pick up the `mapOf`→`buildJsonObject` 406 fix (§4).
+- `charon` — **GREEN (2026-07-06).** The real fault was **not** the `mapOf`→`buildJsonObject` sweep
+  (that was a no-op for charon): charon's hand-wired Ktor module **never installed
+  `ContentNegotiation`**, so `respond(buildJsonObject{…})` on `/health`/`/ready` still returned
+  **406** → CrashLoop. Fixed by installing the plugin (kantheon `9ba3a10`), deployed as
+  `charon:testing-04` (digest `35922f4f…`). See §4. Stale `testing`/`-01`/`-02`/`-03` tags (all the
+  old broken digest `f33801…`) were pruned from GHCR.
 - `iris` — needs `iris:testing` **published** (FE, `just publish-fe-image`).
 - the 3 **Python** images (`kadmos`/`metis`/`steropes`) — publish via the GH Actions workflow (§6).
 
-**TPC-DS (WS-T1):** `test-pg` CNPG cluster + `tpc-ds-1g` DB + creds are **live**; the SF1 data is
-**staged** to the `tpcds-staging` Seaweed bucket (27 objects, byte-verified). The `tpcds-load`
-Job is authored but **not yet run** (T5) — see [`t1-tpcds-load.md`](./t1-tpcds-load.md).
+**TPC-DS (WS-T1) — LOADED (2026-07-06).** `test-pg` CNPG cluster + `tpc-ds-1g` DB + creds are **live**;
+the SF1 data was staged to the `tpcds-staging` Seaweed bucket (27 objects, byte-verified) and the
+`tpcds-load` Job (T5) **ran to `Complete`**. Row counts match the SF1 oracle exactly (store_sales
+2,880,404 · catalog_sales 1,441,548 · web_sales 719,384 · customer 100,000 · date_dim 73,049 ·
+item 18,000; 25 tables). `tpcds_readonly` verified SELECT-only (INSERT/UPDATE/DELETE denied,
+can-login). Next: **WS-T2** (Ariadne model + `pg-tpcds` connection). See [`t1-tpcds-load.md`](./t1-tpcds-load.md).
 
 ---
 
@@ -72,10 +80,15 @@ These recur on **every** DB/infra-backed service — expect them on the later wa
   connections configured") **by design** when no JDBC connection is wired — so the pod stays `0/1`
   and, transitively, **kyklop** can't find a healthy worker. `*_USE_FIXTURE=true` is the designed
   bring-up mode (Ready with a fixture connection, translator probe skipped).
-- **Ktor `respond(mapOf(...))` → HTTP 406.** A raw `Map` has no serializer; with `ContentNegotiation`
-  the route can't negotiate a representation → 406 → failing `/health` probe → CrashLoop. Services
-  without `ContentNegotiation` "work" only via a `toString()` fallback (latent trap). **Always
-  `buildJsonObject`.** Now documented: EXAMPLES.md §2a + AGENTS.md.
+- **Ktor JSON probe routes → HTTP 406 (two distinct causes).** A `respond(...)` that can't be
+  negotiated to the probe's `Accept` returns **406 → failing `/health` probe → CrashLoop**. Two ways
+  to hit it: (a) `ContentNegotiation` installed but you `respond(mapOf(...))` — a raw `Map` has no
+  serializer; fix = `buildJsonObject`. (b) **`ContentNegotiation` not installed at all** — then even
+  `respond(buildJsonObject{…})` 406s (there is **no** `toString()` fallback; the earlier note here was
+  wrong — charon proved it: it never installed the plugin and 406'd regardless of `mapOf` vs
+  `buildJsonObject`). Rule: **install `ContentNegotiation` AND use `buildJsonObject`.** Every sibling
+  gets the plugin via `installKtorServerBase`; a hand-wired module (charon) must install it explicitly.
+  Documented: EXAMPLES.md §2a + AGENTS.md.
 - **helm v4 vs v3 golden drift.** The `validate-charts` goldens were captured with local helm v4
   (blank line before each `---`); CI runs helm v3.16.2. Fixed by normalizing inter-document
   whitespace in `shared/charts/validate.sh` — keep it version-agnostic.
@@ -100,7 +113,7 @@ These recur on **every** DB/infra-backed service — expect them on the later wa
 | **charon** | `MountVolume … configmap "charon-connections" not found` | chart mounts a deploy-provided ConfigMap that doesn't exist | `connections.configMapName: ""` → blob-only | olymp `apps/charon` |
 | **charon** | `UnknownHostException: data-redis` (fatal at boot) | bare `data-redis`/`data-seaweedfs` don't resolve | override `CHARON_REDIS_URL`/`CHARON_S3_ENDPOINT` → `*.data.svc` | olymp `apps/charon` |
 | **charon** | Redis `NOAUTH` | data-ns Redis runs `--requirepass`; charon builds the client from the URL only | `charon-redis-url` ClusterExternalSecret templates `redis://:<pw>@…` from vault; app reads via `secretKeyRef` | olymp `platform/auth` + `apps/charon` |
-| **charon** | `/health` → 406 → CrashLoop | `respond(mapOf(...))` (charon installs ContentNegotiation) | `buildJsonObject` (needs image rebuild) | kantheon `services/charon` |
+| **charon** | `/health` → 406 → CrashLoop | charon's hand-wired Ktor module **never installed `ContentNegotiation`** (the only such service; siblings get it via `installKtorServerBase`) — so `respond(buildJsonObject{…})` had no negotiated representation → 406. The `mapOf`→`buildJsonObject` sweep did **not** fix it. | `install(ContentNegotiation){ json() }` + `HealthRoutesSpec` regression (kantheon `9ba3a10`); deployed `charon:testing-04` | kantheon `services/charon` |
 | **prometheus** | `UnknownHostException: postgres` (Flyway on boot) | dev-default DB host/name/user, none provisioned | run the app's **H2 `test` profile** (`SPRING_PROFILES_ACTIVE=test`) for bring-up | olymp `apps/prometheus` |
 | **arges / brontes** | `0/1`, `/ready` → 503 | no JDBC connection wired (by design) | `ARGES_USE_FIXTURE` / `BRONTES_USE_FIXTURE = true` | olymp `apps/{arges,brontes}` |
 | **iris** | `ImagePullBackOff` | pinned to unpublished `0.1.0` | flip to `:testing`/`Always` (publish `iris:testing`) | olymp `apps/iris` |
@@ -139,14 +152,15 @@ live `test-pg`) or `pg-midas`; **brontes** → an MSSQL connection. See WS-T2.
 ## 7. Deferred tasks
 
 **Images to publish (to finish wave 1–2):**
-- [ ] Rebuild **charon** (`:testing`) — the `mapOf` 406 fix is in source only.
+- [x] Rebuild **charon** — DONE (2026-07-06). Real fix was installing `ContentNegotiation` (not the
+      `mapOf` sweep); deployed `charon:testing-04`, pod green. §4.
 - [ ] Publish **iris** (`just publish-fe-image iris testing`) — after `envelope-ts` gen.
 - [ ] Publish the 3 **Python** images via the `publish-python-images` workflow (needs `GHCR_TOKEN` secret).
 - [ ] (optional) rebuild the 3 mcp wrappers so they carry the `capabilities-mcp{}` conf block (they run
       today via the chart env; the code fix is defense-in-depth).
 
 **WS-T (TPC-DS):**
-- [ ] **T5** — run `tpcds-load` (apply the Job, verify SF1 counts) — [`t1-tpcds-load.md`](./t1-tpcds-load.md). Data is staged.
+- [x] **T5** — DONE (2026-07-06). `tpcds-load` ran to `Complete`; SF1 counts match the oracle; `tpcds_readonly` verified read-only. — [`t1-tpcds-load.md`](./t1-tpcds-load.md).
 - [ ] **WS-T2** — Ariadne TPC-DS model + 4 curated queries + `pg-tpcds` connection (Arges reads
       `tpcds_readonly`, `requires-tenant-id=false`) + Kyklop routing. Then **drop arges/brontes fixture
       mode** and run the `tpcds-query` context (MP-2). `tasks-t2-model-connection.md`.
