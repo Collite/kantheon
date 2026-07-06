@@ -3,6 +3,9 @@
 # https://docs.gradle.org/current/userguide/version_catalogs.html
 
 [versions]
+tatrman-modeler           = "0.8.4"
+tatrman-ttr-metadata      = "0.8.4"
+
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
 kotlinx-coroutines        = "1.9.0"
@@ -84,30 +87,6 @@ hadoop                    = "3.3.6"
 # already on the classpath via the existing `arrow-vector` pin.
 aws-sdk-s3                = "2.32.5"
 lettuce                   = "6.8.0.RELEASE"
-# **Testcontainers MinIO removed (2026-06-14, Bora's call).** The Stage
-# 1.2 spec was rewritten as a mocked unit test against the
-# `S3Client` interface (mockk); the live Seaweed round-trip + fault
-# injection land in a separate integration-test pass against the
-# real local K3s SeaweedFS (charon/plan.md §3.2 T3 + T6 — "K3s
-# integration. Live stack smoke tests at the end of each stage that
-# ships infra"). The catalog no longer carries the testcontainers-minio
-# pin; the version is the *project*'s `testcontainers = 2.0.3` for
-# other services' container needs (e.g. Postgres).
-# Removed artifact: org.testcontainers:minio:1.21.4
-
-# Modeler — TTR parser/writer/semantics published from the `Collite/modeler` repo.
-# Third-party (not a kantheon fork target). TTR parse/write/semantics, used by
-# Ariadne only (no other module declares the ttr-* deps). ai-platform pinned
-# 0.4.0; bumped to 0.7.0 for Golem Phase 4 Stage 4.2 — `AreaDef` (parses
-# `model-ttr/areas/*.ttrm` for ResolveArea) exists only in modeler ≥ 0.7.0.
-# 0.4.0→0.7.0 renamed the mapping AST `Mapping* → Binding*`; the Ariadne
-# Source/ModelToDefinitions migration landed with the bump (full suite is the gate).
-tatrman-modeler           = "0.8.4"
-# ttr-metadata adoption (Stage M4.1): TEMPORARY Maven-Local pin while the swap is
-# validated locally; flip to the released "0.1.x" once kotlin-metadata/v0.1.0 is on
-# GitHub Packages (arc-checklist item 1). ttr-metadata re-exports parser/writer/
-# semantics as `api`, so Ariadne no longer declares those three directly.
-tatrman-ttr-metadata      = "0.1.0"
 
 # gRPC — kantheon v1 prefers MCP over gRPC for new services, but `logging-config`
 # carries gRPC interceptors for cross-service reuse. Only the kotlin-stub is exposed
