@@ -1,0 +1,76 @@
+name: publish-python-images
+
+# Build + push the constellation's Python service images (kadmos, metis, steropes)
+# to GHCR. These CANNOT be built reliably on an arm64 Mac: `docker buildx --platform
+# linux/amd64` runs the amd64 `uv`/Python under QEMU, and `uv sync` segfaults there
+# (qemu signal 11). GitHub's ubuntu runners are NATIVE amd64 — no emulation — so the
+# build just works. The Kotlin images use Jib (no emulation) and publish fine from a
+# laptop; only the Python lane needs this. Manual trigger; see
+# docs/implementation/v1/deploy-test/d2-image-publish.md.
+#
+# PREREQ (one-time): add a repo secret `GHCR_TOKEN` = a PAT with `write:packages`
+# for the `boraperusic` GHCR namespace (the same PAT you publish the Jib images with).
+# The workflow GITHUB_TOKEN can't push there — the packages live under the boraperusic
+# USER namespace, not the Collite org.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (mutable :testing for integration; a release tag for prod)"
+        default: "testing"
+        required: true
+      services:
+        description: "Space-separated module paths to build"
+        default: "services/kadmos services/metis workers/steropes"
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest        # native amd64 — no QEMU, so `uv sync` doesn't segfault
+    permissions:
+      contents: read
+      # `packages: read` authenticates gradle to the Collite/tatrman TTR toolchain
+      # (org.tatrman:*) during `proto-py`, exactly as ci.yml does.
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: install just
+        uses: extractions/setup-just@v2
+
+      # The kadmos/metis Dockerfiles COPY shared/proto/build/python-package, and
+      # steropes COPYs shared/ wholesale — all need the generated proto python package.
+      # (This is the step the manual `docker buildx` bypassed, causing the "not found".)
+      - name: generate proto python package
+        run: just proto-py
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: log in to GHCR (boraperusic namespace)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: BoraPerusic
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: build + push (native amd64)
+        run: |
+          set -euo pipefail
+          for m in ${{ github.event.inputs.services }}; do
+            n=$(basename "$m")
+            echo "::group::$n"
+            # Repo-root build context (Dockerfiles COPY shared/); native amd64 on the runner.
+            docker buildx build --platform linux/amd64 --push \
+              -t "ghcr.io/boraperusic/$n:${{ github.event.inputs.tag }}" \
+              -f "$m/Dockerfile" .
+            echo "::endgroup::"
+          done
+          echo "✅ pushed: ${{ github.event.inputs.services }} @ :${{ github.event.inputs.tag }}"
