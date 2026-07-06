@@ -107,7 +107,7 @@ tatrman-modeler           = "0.8.4"
 # validated locally; flip to the released "0.1.x" once kotlin-metadata/v0.1.0 is on
 # GitHub Packages (arc-checklist item 1). ttr-metadata re-exports parser/writer/
 # semantics as `api`, so Ariadne no longer declares those three directly.
-tatrman-ttr-metadata      = "0.0.1-LOCAL"
+tatrman-ttr-metadata      = "0.1.0"
 
 # gRPC — kantheon v1 prefers MCP over gRPC for new services, but `logging-config`
 # carries gRPC interceptors for cross-service reuse. Only the kotlin-stub is exposed
