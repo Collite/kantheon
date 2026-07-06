@@ -50,12 +50,12 @@ extraEnv:
 
 # Probes (HTTP on the http port). failureThreshold added (base readiness had none).
 readinessProbe:
-  path: /health/ready
+  path: /ready
   initialDelaySeconds: 10
   periodSeconds: 10
   failureThreshold: 30
 livenessProbe:
-  path: /health/live
+  path: /health
   initialDelaySeconds: 15
   periodSeconds: 20
 

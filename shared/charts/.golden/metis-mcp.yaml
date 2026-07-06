@@ -65,14 +65,14 @@ spec:
               value: http://capabilities-mcp:7501
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /ready
               port: 7262
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 30
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /health
               port: 7262
             initialDelaySeconds: 15
             periodSeconds: 20

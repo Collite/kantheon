@@ -65,7 +65,7 @@ spec:
               value: http://capabilities-mcp:7501
           readinessProbe:
             httpGet:
-              path: /health
+              path: /ready
               port: 7262
             initialDelaySeconds: 2
             periodSeconds: 3

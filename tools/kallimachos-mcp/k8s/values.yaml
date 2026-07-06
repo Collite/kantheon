@@ -47,7 +47,7 @@ extraEnv:
 # Probes (HTTP on the http port). The base defined readiness only (on /health); liveness added on
 # the same path/port, mirroring the constellation MCP-wrapper idiom.
 readinessProbe:
-  path: /health
+  path: /ready
   initialDelaySeconds: 2
   periodSeconds: 3
   failureThreshold: 20
