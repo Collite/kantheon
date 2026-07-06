@@ -5,6 +5,7 @@
 [versions]
 tatrman-modeler           = "0.8.6"
 tatrman-ttr-metadata      = "0.8.6"
+tatrman-translator        = "0.8.1"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
@@ -279,6 +280,8 @@ tatrman-ttr-writer                  = { module = "org.tatrman:ttr-writer",      
 tatrman-ttr-semantics               = { module = "org.tatrman:ttr-semantics",                            version.ref = "tatrman-modeler" }
 tatrman-ttr-metadata                = { module = "org.tatrman:ttr-metadata",                              version.ref = "tatrman-ttr-metadata" }
 tatrman-ttr-metadata-git            = { module = "org.tatrman:ttr-metadata-git",                          version.ref = "tatrman-ttr-metadata" }
+tatrman-ttr-plan-proto              = { module = "org.tatrman:ttr-plan-proto",                            version.ref = "tatrman-translator" }
+tatrman-ttr-translator              = { module = "org.tatrman:ttr-translator",                            version.ref = "tatrman-translator" }
 exposed-core                        = { module = "org.jetbrains.exposed:exposed-core",                    version.ref = "exposed" }
 exposed-jdbc                        = { module = "org.jetbrains.exposed:exposed-jdbc",                    version.ref = "exposed" }
 exposed-java-time                   = { module = "org.jetbrains.exposed:exposed-java-time",               version.ref = "exposed" }
