@@ -40,6 +40,12 @@ class RlsLeakageComponentSpec :
                 connect(pg.jdbcUrl, pg.username, pg.password).use { su ->
                     su.createStatement().use { st ->
                         st.execute("CREATE ROLE midas_app LOGIN PASSWORD 'midas_app' NOSUPERUSER")
+                        // In prod midas_app OWNS the `midas` database (init.sql: CREATE DATABASE
+                        // midas OWNER midas_app + GRANT ALL PRIVILEGES ON DATABASE), so it has
+                        // CREATE-on-database and can create the *trusted* pgcrypto/btree_gist
+                        // extensions in V0001. The container DB is owned by the superuser, so
+                        // grant the same database privilege here or the extension create is denied.
+                        st.execute("GRANT ALL PRIVILEGES ON DATABASE \"${pg.databaseName}\" TO midas_app")
                         st.execute("GRANT ALL ON SCHEMA public TO midas_app")
                         st.execute("GRANT CREATE ON SCHEMA public TO midas_app")
                         st.execute("CREATE ROLE midas_mv_owner BYPASSRLS NOLOGIN")
