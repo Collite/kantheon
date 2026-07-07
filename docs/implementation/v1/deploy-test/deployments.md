@@ -161,9 +161,15 @@ live `test-pg`) or `pg-midas`; **brontes** → an MSSQL connection. See WS-T2.
 
 **WS-T (TPC-DS):**
 - [x] **T5** — DONE (2026-07-06). `tpcds-load` ran to `Complete`; SF1 counts match the oracle; `tpcds_readonly` verified read-only. — [`t1-tpcds-load.md`](./t1-tpcds-load.md).
-- [ ] **WS-T2** — Ariadne TPC-DS model + 4 curated queries + `pg-tpcds` connection (Arges reads
-      `tpcds_readonly`, `requires-tenant-id=false`) + Kyklop routing. Then **drop arges/brontes fixture
-      mode** and run the `tpcds-query` context (MP-2). `tasks-t2-model-connection.md`.
+- [x] **WS-T2** — DONE (2026-07-07). Ariadne TPC-DS model + area + 4 curated queries (T1–T3);
+      Proteus PG-unparse for all four incl. window (OVER) + CTE/UNION ALL (T4, via the ttr-translator
+      Phase B swap); `pg-tpcds` Arges connection — read-only, `requires-tenant-id=false`, no RLS
+      envelope (T5, `c403aa4`); Kyklop `world.table-connections` routes the 7 TPC-DS tables → `pg-tpcds`
+      → Arges (T6, `d9208fe`). **T7 local smoke passed** — all four curated shapes returned rows against
+      `tpc-ds-1g` on bp-dsk as `tpcds_readonly` (`SET ROLE` via `test-pg-1`): **MP-2 proven pre-cluster.**
+      `tasks-t2-model-connection.md`. Remaining before the live `tpcds-query` context: **drop arges/brontes
+      fixture mode** + wire olymp `extraEnv` (`ARGES_PG_TPCDS_*` + `KYKLOP_WORKER_ARGES_ENDPOINT`), then
+      run the C2 `tpcds-query` integration context (MP-4).
 
 **Waves 3–7 (agents / domain / librarian / infra + FEs):**
 - [ ] Author `clusters/bp-dsk/apps/*` for: themis, pythia, midas-core, midas-excel-loader,
