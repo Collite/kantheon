@@ -69,7 +69,18 @@ arges (unparse+execute) → Postgres tpc-ds-1g` as `tpcds_readonly` — all four
   unauthored/unwired surfaces: Ariadne `investment` model (T4 covers tpcds + accounting instead) and
   report-renderer PPTX/PDF/HTML (T5 covers the shipped XLSX engine only). MP-3 fully closes once CI runs
   the matrix on every PR + the pre-existing deferred rows (Charon/Kleio/Hebe) land.
-- **C2** integration contexts incl. **`tpcds-query`** — 0/14 (depends on R1)
+- **C2** integration contexts incl. **`tpcds-query`** — **T1–T3 (`tpcds-query`) GREEN on bp-dsk**;
+  **T4 (`golem-erp`) authored + local-green 2026-07-08, awaiting one gated bp-dsk run.** golem-erp
+  reframed to the **agent showcase** (the fixture query leg returns `detection_failed`, not rows —
+  so it proves the **Golem agent turn** / PD-8 Shem admission, not real query data, which is
+  `tpcds-query`'s job). **No image rebuilds**: the Shem points at the existing bundled Ariadne
+  `accounting` area + is delivered via a per-run **ConfigMap** (new olymp `shems:` harness field);
+  prometheus runs the Spring `test` profile (H2, no PG); the LLM is WireMock-stubbed. Spec split into
+  two gates — `contextLive=true` (401 + 403 admission, robust) and `answerTurnLive=false` (render-only
+  `STATUS_DONE` turn, flip after the first bp-dsk run confirms the golem→prometheus→WireMock roundtrip).
+  Local de-risk done: `GolemErpBundleSpec` green, integrationTest compiles + ktlint clean, helm-template
+  + `infra-up --dry-run` clean. **Remaining C2:** run golem-erp on bp-dsk, then `themis-routing` /
+  `pythia-rca` (T5), re-enable `theseus-runquery` result asserts (T6), assemble the run-set (T7).
 
 **WS-R**:
 - **R1** `infra-up --kube dsk` run mode + ArgoCD reconcile-boundary verify — **code-complete 2026-07-07**

@@ -1,22 +1,77 @@
 {
   "_comment": [
-    "Stage 3.1 T1/T4 — golem-erp LLM-gateway upstream stub. Loaded at runtime into the",
-    "in-cluster WireMock via the §3 admin protocol (the Stage 2.1 InClusterWireMockLoader,",
-    "retargeted to this context's WireMock base URL). Golem's PlanComposer calls the LLM",
-    "gateway (Prometheus) to compose a MiniPlan; this stub stands in for the LLM upstream so",
-    "the turn is deterministic and offline.",
+    "WS-C2 T4 — golem-erp LLM-gateway upstream stub. Loaded at runtime into the in-cluster",
+    "WireMock via the admin protocol (Stage 2.1 InClusterWireMockLoader). Golem's PlanComposer",
+    "calls the LLM gateway (Prometheus) to compose a MiniPlan; Prometheus's Anthropic ChatModel",
+    "is base-url'd at this WireMock (ANTHROPIC_BASE_URL=http://wiremock:8080), so the Anthropic",
+    "Messages API POST /v1/messages lands here. The stubbed completion text is a RENDER-ONLY",
+    "MiniPlan (a single render node, NO query node): MiniPlanExecutor renders an empty TABLE",
+    "envelope and returns STATUS_DONE without touching the (fixture) query chain. That is the",
+    "agent-turn showcase — real query rows are the tpcds-query / real-data showcase, not this one.",
     "",
-    "PLACEHOLDER — the exact request match (gateway path) + the plan-shaped completion body",
-    "are finalised when the golem-erp context goes live (Ariadne + Prometheus charts land and",
-    "the real LlmGatewayClient wire shape is confirmed against the deployed gateway). Until",
-    "then GolemErpIntegrationSpec gates the answer-turn assertions OFF (liveContext = false)."
+    "GATED: GolemErpIntegrationSpec runs the answer-turn assertion only when answerTurnLive=true.",
+    "The exact Anthropic request-match + response envelope Spring AI 2.0.0-M2 parses may need one",
+    "live tweak on the first bp-dsk run (version-specific wire shape) — the 401/403 admission",
+    "assertions never reach the LLM and are green independent of this stub."
   ],
   "mappings": [
     {
+      "priority": 1,
       "request": {
-        "method": "GET",
-        "url": "/healthz"
+        "method": "POST",
+        "urlPathPattern": ".*/messages$"
       },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": {
+          "id": "msg_golem_erp_stub",
+          "type": "message",
+          "role": "assistant",
+          "model": "claude-haiku",
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"source\":\"PATTERN\",\"confidence\":0.95,\"rationale\":\"golem-erp showcase: LLM-planned render turn\",\"nodes\":[{\"node_id\":\"r1\",\"render\":{\"kind_hint\":\"TABLE\",\"input_node_ids\":[],\"caption\":\"ERP orders\"}}]}"
+            }
+          ],
+          "stop_reason": "end_turn",
+          "stop_sequence": null,
+          "usage": { "input_tokens": 24, "output_tokens": 48 }
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "_comment": "Azure OpenAI chat-completions fallback — if the gateway routes the cheap tier to Azure rather than Anthropic, the same render-only MiniPlan rides the OpenAI response shape.",
+      "request": {
+        "method": "POST",
+        "urlPathPattern": ".*/chat/completions.*"
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": {
+          "id": "chatcmpl-golem-erp-stub",
+          "object": "chat.completion",
+          "model": "gpt-4o",
+          "choices": [
+            {
+              "index": 0,
+              "finish_reason": "stop",
+              "message": {
+                "role": "assistant",
+                "content": "{\"source\":\"PATTERN\",\"confidence\":0.95,\"rationale\":\"golem-erp showcase: LLM-planned render turn\",\"nodes\":[{\"node_id\":\"r1\",\"render\":{\"kind_hint\":\"TABLE\",\"input_node_ids\":[],\"caption\":\"ERP orders\"}}]}"
+              }
+            }
+          ],
+          "usage": { "prompt_tokens": 24, "completion_tokens": 48, "total_tokens": 72 }
+        }
+      }
+    },
+    {
+      "priority": 10,
+      "request": { "method": "GET", "url": "/healthz" },
       "response": {
         "status": 200,
         "headers": { "Content-Type": "application/json" },
