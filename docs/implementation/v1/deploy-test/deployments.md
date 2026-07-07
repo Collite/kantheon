@@ -167,9 +167,18 @@ live `test-pg`) or `pg-midas`; **brontes** → an MSSQL connection. See WS-T2.
       envelope (T5, `c403aa4`); Kyklop `world.table-connections` routes the 7 TPC-DS tables → `pg-tpcds`
       → Arges (T6, `d9208fe`). **T7 local smoke passed** — all four curated shapes returned rows against
       `tpc-ds-1g` on bp-dsk as `tpcds_readonly` (`SET ROLE` via `test-pg-1`): **MP-2 proven pre-cluster.**
-      `tasks-t2-model-connection.md`. Remaining before the live `tpcds-query` context: **drop arges/brontes
-      fixture mode** + wire olymp `extraEnv` (`ARGES_PG_TPCDS_*` + `KYKLOP_WORKER_ARGES_ENDPOINT`), then
-      run the C2 `tpcds-query` integration context (MP-4).
+      `tasks-t2-model-connection.md`.
+- [x] **MP-2 LIVE (2026-07-07).** The full orchestrated path serves all four curated queries on bp-dsk:
+      `theseus.Run → proteus (parse) → argos (validate) → kyklop (dispatch) → arges (unparse+execute) →
+      Postgres tpc-ds-1g` as `tpcds_readonly`. Rows: Q1=12, Q2=30, Q3 (window)=30, Q4 (CTE/UNION)=3.
+      Wiring done: Arges dropped fixture mode + real `pg-tpcds` env (olymp `arges/values.yaml`);
+      `pg-tpcds-ro-cred` materialized into the `kantheon` ns (olymp `clusterexternalsecret-pg-tpcds-ro`);
+      kyklop chart default already wired `KYKLOP_WORKER_ARGES_ENDPOINT=arges:7303`. **Brontes stays in
+      fixture** (no MSSQL target; TPC-DS never routes to it). Required a translator fix — **ttr-translator
+      0.8.5** drops the logical `dbo` namespace for Postgres/DuckDB unparse (bare table names resolve via
+      `search_path=public`); the model's "Proteus drops the schema qualifier for PostgreSQL" intent was
+      previously unimplemented. Images rebuilt `:testing` from master (ariadne/proteus/argos/theseus/arges/kyklop).
+      Remaining: the automated C2 `tpcds-query` integration context (`RunQueryIntegrationSpec`, MP-4).
 
 **Waves 3–7 (agents / domain / librarian / infra + FEs):**
 - [ ] Author `clusters/bp-dsk/apps/*` for: themis, pythia, midas-core, midas-excel-loader,
