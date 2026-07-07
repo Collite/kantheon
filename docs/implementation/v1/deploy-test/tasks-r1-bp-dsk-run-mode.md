@@ -32,7 +32,7 @@
 ## DONE
 
 - [x] Reconcile-boundary verified on bp-dsk (T1) — a manual `kantheon-*` run ns is left untouched by ArgoCD (2026-07-07).
-- [ ] `theseus-runquery` runs green via `just it-bp-dsk theseus-runquery` (infra-up dsk → `:integrationTest` → infra-down, no leaked ns) — **code-complete; awaiting the live proof run (Bora cluster op).**
+- [x] `theseus-runquery` runs green via `just it-bp-dsk theseus-runquery` (infra-up dsk → `:integrationTest` → infra-down, no leaked ns) — **✅ VERIFIED LIVE on bp-dsk 2026-07-07** (RunQueryIntegrationSpec's active missing-bearer fail-closed assertion passed end-to-end; golem spec correctly skipped by the context filter; result/RLS asserts stay gated on `modelAlignedContext` → C2). Needed the bp-dsk estate CPU/mem-request shrink (olymp, merged) to fit the run namespace on the single node.
 - [x] The same context runs on k3d locally (parity) — recipes untouched, so the k3d/local path is unaffected by this stage.
 - [x] `nightly.txt` / bp-olymp01 nightly unchanged (this stage adds bp-dsk, doesn't move the nightly).
 
