@@ -70,4 +70,11 @@ dependencies {
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
     testImplementation(libs.ktor.server.test.host)
+
+    // Component tier (WS-C1 T5) — the real-POI XLSX render: builds a template, renders through the
+    // production `XlsxRenderer`, and re-opens the output workbook to assert placeholder fill + table
+    // expansion + style preservation + a valid OOXML artifact (not just a non-zero byte count like
+    // the unit spec). POI is `implementation` in main, so the suite needs it on its compile classpath.
+    // PPTX/PDF/HTML (POI slides + Playwright) are engine-deferred — this spec grows to them when they land.
+    "componentTestImplementation"(libs.apache.poi.ooxml)
 }
