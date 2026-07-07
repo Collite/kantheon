@@ -40,11 +40,12 @@
 
 - **C2** uses this mode to run the full run-set (incl. `tpcds-query`) on bp-dsk = **MP-4**.
 - ✅ Mirrored the bp-dsk mode + boundary note into olymp `docs/test-harness.md` §9 (done, T6).
-- **Per-context gate filtering (needed before >1 live integration spec — a C2 pre-req).** Today the
-  `RequiresContextExtension` gate ignores `-Pcontext` for spec *selection*: with `-Pnamespace` set,
-  **every** `@RequiresContext` spec binds to that one namespace, and non-matching specs pass only
-  because their test leaves are currently `enabled = false` (theseus `modelAlignedContext`, golem
-  `liveContext`). Once a second context's leaves go live, `just it-bp-dsk <ctx>` would run the other
-  context's (now-enabled) tests against the wrong namespace. Fix in C2: have the gate **skip** specs
-  whose `@RequiresContext(name)` ≠ the `-Pcontext` sysprop (or scope the Gradle run to the owning
-  module). Not needed for R1's single-live-spec proof, but land it before C2's multi-context run-set.
+- ✅ **Per-context gate filtering — DONE (landed in R1, 2026-07-07).** The first live `it-bp-dsk
+  theseus-runquery` run surfaced this immediately: `integrationTest -Pcontext=theseus-runquery` fans
+  out over **every** module's specs, so `GolemErpIntegrationSpec` also ran and — bound to the theseus
+  namespace via `-Pnamespace` — its always-on fail-closed test threw at `ContextHandle.url()` (no
+  golem service there). Fix: `RequiresContextExtension` now also implements Kotest `TestCaseExtension`
+  and, when `-Pcontext` names a context, **skips** (`TestResult.Ignored`) every test of a spec whose
+  `@RequiresContext` differs — and `beforeSpec` no longer opens a handle for a non-selected spec. With
+  `-Pcontext` unset the filter is inert (the direct unit-test path). Two unit tests added. So
+  `just it-bp-dsk <ctx>` correctly runs only the selected context's spec.
