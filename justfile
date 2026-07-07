@@ -197,6 +197,35 @@ test-component service="":
         ./gradlew "$(just _resolve {{service}}):componentTest" --no-daemon; \
     fi
 
+# Run one integration context end-to-end against **bp-dsk**, on demand (WS-R1 T5) —
+# the local "run on bp-dsk" leg of the TDD loop. `infra-up` (olymp) stands the context
+# up in an isolated `kantheon-<context>-<run-id>` namespace, `:integrationTest` runs the
+# `@RequiresContext` spec against it, and a bash `trap` reaps it on exit (success OR
+# failure → no leaked namespace). One context / one run-id / one namespace (olymp
+# test-harness §8 isolation). The scheduled **nightly stays on bp-olymp01** — this is
+# the developer's on-demand full-run, not a nightly move (WS-R contract, §7-D4).
+#   just it-bp-dsk theseus-runquery
+#   OLYMP_DIR=~/src/olymp just it-bp-dsk theseus-runquery
+# Prereqs: kubectl context `dsk` reachable; an olymp checkout ($OLYMP_DIR or the default
+# below); the private GHCR images pullable — the run copies `argocd/ghcr-pull` into the
+# run namespace via olymp's `--ghcr-from`. The reconcile boundary is verified (R1 T1):
+# ArgoCD never selects `kantheon-*` run namespaces.
+it-bp-dsk context olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/olymp"):
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OLYMP=$(eval echo "{{olymp_dir}}")
+    if [ ! -f "$OLYMP/justfile" ]; then
+        echo "❌ olymp checkout not found at $OLYMP — set OLYMP_DIR" >&2; exit 1
+    fi
+    RUN_ID="dsk-$(date +%s)"
+    echo "== it-bp-dsk {{context}} (run $RUN_ID) on dsk =="
+    trap 'just -f "$OLYMP/justfile" infra-down {{context}} "$RUN_ID" dsk' EXIT
+    NS=$(just -f "$OLYMP/justfile" infra-up {{context}} "$RUN_ID" dsk \
+            --kantheon "$(pwd)" --ghcr-from argocd/ghcr-pull | sed -n 's/^namespace=//p')
+    if [ -z "$NS" ]; then echo "❌ infra-up did not report a namespace" >&2; exit 1; fi
+    echo "== context up in ns $NS — running :integrationTest =="
+    ./gradlew integrationTest -Pcontext={{context}} -Pnamespace="$NS" -PkubeContext=dsk --no-daemon
+
 # Render every module chart (`<module>/k8s`) with `helm template` (chart default
 # values) and diff against the checked-in goldens in shared/charts/.golden/. The
 # regression gate for the kantheon-service library-chart migration (WS-D S1):

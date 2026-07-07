@@ -11,27 +11,41 @@
 
 ## Pre-flight
 
-- [ ] bp-dsk reachable (`kubectl --context dsk`); ArgoCD self-managing (✓).
-- [ ] At least one runnable context exists (`theseus-runquery` ✓).
-- [ ] Branch `feat/r1-bp-dsk-run-mode` in **both** repos.
+- [x] bp-dsk reachable (`kubectl --context dsk`); ArgoCD self-managing (✓). Read-only `kubectl get`
+  works from the coding-agent sandbox; **mutations** (ns/deploy create, `infra-up/down`) are Bora's.
+- [x] At least one runnable context exists (`theseus-runquery` ✓).
+- [ ] Branch `feat/r1-bp-dsk-run-mode` in **both** repos (kantheon ✓ 2026-07-07; olymp pending).
 
 ## Tasks
 
-- [ ] **T1 [O] — Reconcile-boundary verification (the hard pre-task; tests first).** Prove on bp-dsk what test-harness §8 proved on bp-olymp01: create a throwaway namespace `kantheon-boundary-check` (the real run-ns prefix) + a dummy Deployment in it; confirm **neither** `appset-apps` (`clusters/bp-dsk/apps/*`) **nor** `appset-ops` (`clusters/bp-dsk/platform/*`) generates an Application for it and ArgoCD does **not** prune it. Document the invariant (run-ns name pattern `kantheon-<context>-<run-id>` + `olymp.collite/*` labels are outside every generator glob — the generators read repo paths, not namespaces). **Gate:** nothing else in WS-R proceeds until this passes.
-- [ ] **T2 [O] — `infra-up --kube dsk` parameterisation.** Confirm/extend the recipe so `kube=dsk` resolves context `dsk`, creates `kantheon-<context>-<run-id>` (labelled `olymp.collite/{context,run,managed-by}` per the handshake), applies `platform[]` deps + helm-installs `services[]` from the kantheon checkout, waits on `readiness[]`, and prints `namespace=…`. Mirror the bp-olymp01 path; the only delta is the kube context + that platform deps may already exist on bp-dsk (skip-if-present).
-- [ ] **T3 [O] — `infra-down --kube dsk` + trap safety.** Deletes the `kantheon-<context>-<run-id>` namespace on bp-dsk (always, even on failure). Verify no leaked namespace after a deliberately-failing run.
-- [ ] **T4 [K] — Gradle wiring + `ContextHandle` on bp-dsk.** Confirm `./gradlew :integrationTest -Pcontext=<name> -Pnamespace=<ns>` resolves the namespace from the `infra-up` handshake; `@RequiresContext` readiness gate reads bp-dsk (read-only k8s); `ContextHandle` yields in-cluster URLs. Run `theseus-runquery` end-to-end on bp-dsk as the proof.
-- [ ] **T5 [K] — `just it-bp-dsk <context>` convenience loop.** A recipe wrapping up→test→down against bp-dsk (the local on-demand full-run), with `trap` teardown — the TDD "run on bp-dsk" leg for every spec. Document the local→bp-dsk loop.
-- [ ] **T6 [O] — k3d parity check.** Confirm the same `infra-up <context> <id> <k3d-ctx>` still works (the fork/local path) so the TDD "run locally" leg is available without bp-dsk. (Regression check — don't break bp-olymp01/k3d.)
+- [x] **T1 [O] — Reconcile-boundary verification (the hard pre-task; tests first).** ✅ **VERIFIED on bp-dsk 2026-07-07.** Bora created the throwaway `kantheon-boundary-check` ns + a `dummy` Deployment; read-only checks confirmed the invariant holds:
+  - The two ApplicationSets are **git generators over `Collite/olymp` repo paths** — `bp-dsk-apps` = git-*files* `clusters/bp-dsk/apps/*/config.json`; `bp-dsk-ops` = git-*directories* `clusters/bp-dsk/platform/*`. **Neither reads cluster/namespace state.** An ephemeral `kantheon-<context>-<run-id>` ns has no matching repo folder ⇒ **no Application is generated** ⇒ ArgoCD has nothing to prune it with.
+  - Evidence: **0** of the 28 live Applications reference `kantheon-boundary-check` (name or `.spec.destination.namespace`); the ns carries only `kubernetes.io/metadata.name` (no `argocd.*` tracking); the Deployment carries only `app: dummy` (no argocd tracking labels/annotations) and stayed **1/1 Running** (not pruned).
+  - **Invariant documented:** run-ns name pattern + `olymp.collite/*` labels are outside every generator glob because the generators read **repo paths, not namespaces**. *(Still to mirror into olymp `docs/test-harness.md` §9 — T-followup.)*
+  - **Gate cleared:** WS-R may proceed.
+- [x] **T2 [O] — `infra-up --kube dsk` parameterisation.** ✅ **No olymp code needed — the harness is already `--kube`-parameterised** (recon 2026-07-07). `just infra-up context run-id kube *FLAGS` takes `kube` as a positional; `00-bootstrap/bootstrap.sh` already maps `bp-dsk → dsk`; `just-helper.py` creates `kantheon-<context>-<run-id>` with the `olymp.collite/{context,run,managed-by}` labels, applies `platform[]` (kustomize `_test` overlay, else base — no skip-if-present needed, it's namespace-scoped), helm-installs `services[]` from the `--kantheon` checkout, waits `readiness[]`, and prints `namespace=…` as its sole stdout line. The recipe's own usage example is `just infra-up theseus-runquery $RUN_ID dsk --kantheon ~/Dev/collite-gh/kantheon`. Private images pull via `--ghcr-from argocd/ghcr-pull`. **Remaining:** a live confirmation run (Bora cluster op).
+- [x] **T3 [O] — `infra-down --kube dsk` + trap safety.** ✅ **Already provided.** `just infra-down context run-id dsk` = `kubectl delete namespace … --ignore-not-found --wait` (idempotent, safe-if-absent); the `just it-bp-dsk` recipe (T5) wraps it in a bash `trap … EXIT` so it fires on success **or** failure. No olymp change.
+- [x] **T4 [K] — Gradle wiring + `ContextHandle` on bp-dsk.** ✅ **Code done 2026-07-07.** The `-Pcontext`/`-Pnamespace` pass-through already existed; added a **`-PkubeContext`** knob (root `build.gradle.kts` → sysprop `kubeContext` → `Fabric8ClusterReader.defaultClient()` → `Config.autoConfigure("dsk")`) so the read-only cluster reader targets bp-dsk **without** mutating the developer's current-context. `ContextHandle` port-forwards through the dsk API server unchanged. **Remaining:** the live `theseus-runquery` proof run (Bora cluster op).
+- [x] **T5 [K] — `just it-bp-dsk <context>` convenience loop.** ✅ **Done 2026-07-07** (`justfile`): `infra-up dsk --ghcr-from argocd/ghcr-pull` → parse `namespace=` → `./gradlew integrationTest -Pcontext -Pnamespace -PkubeContext=dsk` → `trap` `infra-down` on EXIT. One context / one run-id / one namespace (§8). `OLYMP_DIR` overridable.
+- [x] **T6 [O] — k3d parity check + docs mirror.** ✅ k3d/local path unchanged (same `--kube <k3d-ctx>` recipes — no code touched, so no regression). Docs mirror **done**: bp-dsk added as the third `docs/test-harness.md` §9 cluster mode + the R1-T1 boundary invariant recorded (olymp branch `feat/r1-bp-dsk-run-mode`, commit `c6e483c`; **Bora pushes** — prod GitOps).
 
 ## DONE
 
-- [ ] Reconcile-boundary verified on bp-dsk (T1) — a manual `kantheon-*` run ns is left untouched by ArgoCD.
-- [ ] `theseus-runquery` runs green via `just infra-up theseus-runquery <id> dsk` → `:integrationTest` → `infra-down` (no leaked ns).
-- [ ] The same context runs on k3d locally (parity).
-- [ ] `nightly.txt` / bp-olymp01 nightly unchanged (this stage adds bp-dsk, doesn't move the nightly).
+- [x] Reconcile-boundary verified on bp-dsk (T1) — a manual `kantheon-*` run ns is left untouched by ArgoCD (2026-07-07).
+- [x] `theseus-runquery` runs green via `just it-bp-dsk theseus-runquery` (infra-up dsk → `:integrationTest` → infra-down, no leaked ns) — **✅ VERIFIED LIVE on bp-dsk 2026-07-07** (RunQueryIntegrationSpec's active missing-bearer fail-closed assertion passed end-to-end; golem spec correctly skipped by the context filter; result/RLS asserts stay gated on `modelAlignedContext` → C2). Needed the bp-dsk estate CPU/mem-request shrink (olymp, merged) to fit the run namespace on the single node.
+- [x] The same context runs on k3d locally (parity) — recipes untouched, so the k3d/local path is unaffected by this stage.
+- [x] `nightly.txt` / bp-olymp01 nightly unchanged (this stage adds bp-dsk, doesn't move the nightly).
 
 ## Follow-ups → next stage
 
 - **C2** uses this mode to run the full run-set (incl. `tpcds-query`) on bp-dsk = **MP-4**.
-- Mirror the recipe + boundary note into olymp `docs/test-harness.md` (§9 cluster modes).
+- ✅ Mirrored the bp-dsk mode + boundary note into olymp `docs/test-harness.md` §9 (done, T6).
+- ✅ **Per-context gate filtering — DONE (landed in R1, 2026-07-07).** The first live `it-bp-dsk
+  theseus-runquery` run surfaced this immediately: `integrationTest -Pcontext=theseus-runquery` fans
+  out over **every** module's specs, so `GolemErpIntegrationSpec` also ran and — bound to the theseus
+  namespace via `-Pnamespace` — its always-on fail-closed test threw at `ContextHandle.url()` (no
+  golem service there). Fix: `RequiresContextExtension` now also implements Kotest `TestCaseExtension`
+  and, when `-Pcontext` names a context, **skips** (`TestResult.Ignored`) every test of a spec whose
+  `@RequiresContext` differs — and `beforeSpec` no longer opens a handle for a non-selected spec. With
+  `-Pcontext` unset the filter is inert (the direct unit-test path). Two unit tests added. So
+  `just it-bp-dsk <ctx>` correctly runs only the selected context's spec.

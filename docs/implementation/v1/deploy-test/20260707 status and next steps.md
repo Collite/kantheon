@@ -16,7 +16,7 @@
 | **MP-1** | Query path live on bp-dsk (theseus→proteus→argos→kyklop→**arges**) | ✅ **done** — all 23 constellation pods READY |
 | **MP-2** | TPC-DS queryable (manual `theseus query` returns rows) | ✅ **done live 2026-07-07** — all 4 curated queries |
 | **MP-3** | Component test matrix green in CI | ⬜ not started |
-| **MP-4** | Integration run-set green on bp-dsk + release tags cut | ⬜ not started |
+| **MP-4** | Integration run-set green on bp-dsk + release tags cut | 🟨 **R1 done 2026-07-07** — `just it-bp-dsk theseus-runquery` runs **green on bp-dsk** (first run-mode context live). Remaining for MP-4: the `tpcds-query` context (C2) + the full run-set + release tags |
 
 ---
 
@@ -64,8 +64,19 @@ arges (unparse+execute) → Postgres tpc-ds-1g` as `tpcds_readonly` — all four
 - **C1** component-tier real-dep matrix — 0/13 (Testcontainers, **no cluster needed**) → closes **MP-3**
 - **C2** integration contexts incl. **`tpcds-query`** — 0/14
 
-**WS-R** — unstarted:
-- **R1** `infra-up --kube dsk` run mode + ArgoCD reconcile-boundary verify — 0/13
+**WS-R**:
+- **R1** `infra-up --kube dsk` run mode + ArgoCD reconcile-boundary verify — **code-complete 2026-07-07**
+  (branch `feat/r1-bp-dsk-run-mode`, both repos). **T1 gate ✅ verified** (generators glob olymp repo
+  paths not namespaces; 0/28 apps touch a run ns). **Key finding:** the olymp harness is *already*
+  `--kube`-parameterised (`bootstrap.sh` maps `bp-dsk→dsk`), so **T2/T3 need no olymp code**; T4/T5 are
+  the only new code — a `-PkubeContext` knob (`Fabric8ClusterReader` → `Config.autoConfigure`) + the
+  `just it-bp-dsk <context>` up→test→down loop. T6 = k3d parity (unchanged) + olymp §9 docs mirror
+  (committed on the olymp branch, `c6e483c`). **✅ DONE 2026-07-07** — live proof green on bp-dsk
+  (`just it-bp-dsk theseus-runquery`), olymp merged. Two fixes the first run forced: (1) shrink the
+  bp-dsk estate CPU/mem *requests* (idle single node was 92% CPU-requested — no room for the run ns;
+  limits preserved via Helm deep-merge); (2) **per-context gate filtering** — the `RequiresContext`
+  gate now skips specs whose context ≠ `-Pcontext` (else golem-erp ran against the theseus ns and
+  threw). Both landed; the C2 pre-req (filtering) is satisfied.
 
 **Release tags** — deferred; cut together at **MP-4** (contracts §9).
 
