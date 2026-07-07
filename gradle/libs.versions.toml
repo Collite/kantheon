@@ -5,7 +5,7 @@
 [versions]
 tatrman-modeler           = "0.8.6"
 tatrman-ttr-metadata      = "0.8.6"
-tatrman-translator        = "0.8.4"
+tatrman-translator        = "0.8.5"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
