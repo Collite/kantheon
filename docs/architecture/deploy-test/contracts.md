@@ -259,19 +259,21 @@ Existing plumbing (testing Phase 1): `componentTest` source set, `@Tag("componen
 
 | Spec | Module | Real dep | Seam asserted |
 |---|---|---|---|
-| `ArgesPostgresComponentSpec` | workers/arges | `Containers.postgres()` + TPC-DS subset seed | type mapper + `COPY`-trailing-pipe + read-only + (no-tenant) execute → Arrow |
-| `BrontesMssqlComponentSpec` ✓ | workers/brontes | `Containers.mssql()` | (exists) Proteus-SQL → MSSQL → result shape |
+| `ArgesPostgresComponentSpec` ✓ / `RlsLeakageComponentSpec` ✓ / `TpcdsLoadComponentSpec` ✓ / `ArgesNoRlsTpcdsComponentSpec` ✓ | workers/arges | `Containers.postgres()` + TPC-DS subset seed | type mapper (`numeric(20,4)` boundary) + `COPY`-trailing-pipe + read-only + `SET LOCAL` RLS (leakage + fail-closed) **and** the `requires-tenant-id=false` `pg-tpcds` no-RLS path → Arrow |
+| `BrontesMssqlComponentSpec` ✓ | workers/brontes | `Containers.mssql()` (CI-only) | (exists) Proteus-SQL → MSSQL → result shape |
 | `CharonPostgresComponentSpec` (deferred) | services/charon | postgres | DB extract→Arrow→ingest (lands with Charon DB edges) |
-| `ProteusUnparseComponentSpec` | services/proteus | none (golden SQL) | RelNode → **PostgreSQL** for the 4 TPC-DS queries (golden files) |
-| `ArgosRlsComponentSpec` | services/argos | postgres/mssql | policy enforce + RLS denial |
-| `AriadneModelLoadComponentSpec` | services/ariadne | none/classpath | load TPC-DS + investment + ucetnictvi models; `ListQueries`/`ResolveArea` |
+| `ProteusUnparseComponentSpec` ✓ | services/proteus | none (golden SQL) | RelNode → **PostgreSQL** for the 4 TPC-DS shapes + named-param `{name}→?` (golden files under `resources/proteus/`; `RECORD_GOLDEN=1` regenerates) |
+| `ArgosRlsComponentSpec` ✓ | services/argos | `Containers.postgres()` | `PolicyEngine` tenant-isolation predicate **enforced** on real PG — cross-tenant denial + same-tenant admit, driven by Argos's emitted column+literal |
+| `AriadneModelLoadComponentSpec` ✓ | services/ariadne | none/classpath | reconcile the **real bundled `model-ttr/`** — `ListQueries` (4 TPC-DS curated) + `ResolveArea(tpcds)`/`ResolveArea(accounting)`. **investment deferred** (model unauthored — Midas arc) |
 | `MidasRepositoryComponentSpec` ✓ / `RlsLeakageComponentSpec` ✓ | agents/midas/core | postgres | (exist) repo round-trip + cross-tenant RLS |
-| `ReportRendererComponentSpec` | services/report-renderer | none (POI/Playwright) | XLSX/PPTX render + PDF/HTML pass |
-| `KleioPgvectorComponentSpec` | services/kallimachos | postgres+pgvector/AGE | vector + graph plane |
-| `HebePgMemoryComponentSpec` | agents/hebe | postgres | PG MemoryStore RRF parity |
-| `PrometheusGatewayComponentSpec` | services/prometheus | `Containers.wiremock()` | LLM upstream stub round-trip |
+| `ReportRendererComponentSpec` ✓ | services/report-renderer | none (real POI) | **XLSX** render: scalar fill + table-region expansion + style preservation + valid OOXML. **PPTX/PDF/HTML deferred** (engines + Playwright not wired; no vendored templates) |
+| `KleioPgvectorComponentSpec` (deferred) | services/kallimachos | postgres+pgvector/AGE | vector + graph plane |
+| `HebePgMemoryComponentSpec` (deferred) | agents/hebe | postgres | PG MemoryStore RRF parity |
+| `PrometheusGatewayComponentSpec` (deferred) | services/prometheus | `Containers.wiremock()` | LLM upstream stub round-trip + cost capture — **deferred to Prometheus's separate Spring integration suite** (module build policy keeps WireMock/Testcontainers/SpringBootTest out of its in-module tiers; Spring AI 2.0.0-M2's official Anthropic SDK + full-context deps (PG/Redis/OAuth2/gRPC) make an in-tier hermetic stub inappropriate) |
 
-**Invariants:** `just test-all` collects **zero** `@Tag("component")` (planning-conventions §4 mocked-only gate); component specs run in CI on every PR; image pins are fixed tags (no `latest`). MSSQL specs are **CI-only** (arm64 qemu segfaults — `CiOnly`).
+**Invariants:** `just test-all` collects **zero** `@Tag("component")` (planning-conventions §4 mocked-only gate; enforced structurally by the source-set split + the `test`-classpath leak guard in the root `build.gradle.kts`); component specs run in CI on every PR; image pins are fixed tags (no `latest`). MSSQL specs are **CI-only** (arm64 qemu segfaults — `CiOnly`); the C1 landed specs are all Postgres/no-container, so none needs the gate.
+
+**C1 status (2026-07-07):** landed T1–T5 — 7 green specs across arges/proteus/argos/ariadne/report-renderer (`just test-component`). T6 (Prometheus) deferred per the module policy above. The two scope deviations (investment model, PPTX/PDF/HTML) are unauthored/unwired surfaces, tracked in the row notes.
 
 ---
 
