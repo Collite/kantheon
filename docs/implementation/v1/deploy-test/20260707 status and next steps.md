@@ -16,7 +16,7 @@
 | **MP-1** | Query path live on bp-dsk (theseus→proteus→argos→kyklop→**arges**) | ✅ **done** — all 23 constellation pods READY |
 | **MP-2** | TPC-DS queryable (manual `theseus query` returns rows) | ✅ **done live 2026-07-07** — all 4 curated queries |
 | **MP-3** | Component test matrix green in CI | 🟨 **C1 landed 2026-07-07** — T1–T5 (7 specs: arges×4, proteus, argos, ariadne, report-renderer) green via `just test-component`; T6 (Prometheus) deferred to its separate Spring integration suite. MP-3 closes when CI runs the matrix + the remaining deferred rows (Charon/Kleio/Hebe) land |
-| **MP-4** | Integration run-set green on bp-dsk + release tags cut | 🟨 **R1 done 2026-07-07** — `just it-bp-dsk theseus-runquery` runs **green on bp-dsk** (first run-mode context live). Remaining for MP-4: the `tpcds-query` context (C2) + the full run-set + release tags |
+| **MP-4** | Integration run-set green on bp-dsk + release tags cut | 🟨 **R1 + C2 `tpcds-query` done 2026-07-07** — `just it-bp-dsk theseus-runquery` **and** `just it-bp-dsk tpcds-query` both green on bp-dsk. tpcds-query is the **showcase**: all 4 curated shapes through theseus-mcp→…→arges→tpc-ds-1g return the exact SF1 oracle (12/30/30/3), live. Remaining for MP-4: the rest of the run-set (golem-erp/themis-routing/pythia-rca) + release tags |
 
 ---
 

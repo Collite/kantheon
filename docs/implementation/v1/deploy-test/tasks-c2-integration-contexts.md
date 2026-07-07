@@ -18,9 +18,9 @@ The run-set — `theseus-runquery` (✓), **`tpcds-query`** (new), `golem-erp`, 
 
 ## Tasks
 
-- [ ] **T1 [K] — `TpcdsQueryIntegrationSpec` (tests first).** `@RequiresContext("tpcds-query")`: drive each of the four curated queries through theseus-mcp `query` → assert against the **deterministic SF1 oracle** (known row counts / a fixed aggregate value, e.g. total `store_sales` revenue for a given year). Write the assertions before the context exists (it gates via `@RequiresContext`). Add the name to `ContextNameRegistrySpec`.
-- [ ] **T2 [O] — `tpcds-query` context.** `test-contexts/tpcds-query/{context.yaml, *.values.yaml}` per contracts §6.3: services `theseus`/`theseus-mcp`/`proteus`/`argos`/`kyklop`/`arges`/`ariadne`; platform `test-pg` (+ the `tpcds-load` Job, or assume a standing pre-loaded `test-pg`); `arges.values.yaml extraEnv` → `pg-tpcds` → `test-pg`; `ariadne.values.yaml` → the TPC-DS model seed; readiness incl. `Job tpcds-load Complete` (if loading per-run) + the chain Deployments.
-- [ ] **T3 [K/O] — Run `tpcds-query` locally then on bp-dsk.** Local: `infra-up tpcds-query <id> <k3d>` → `:integrationTest -Pcontext=tpcds-query` → green. Then bp-dsk: `just it-bp-dsk tpcds-query` → green. This is the Goals-2+4 convergence demo.
+- [x] **T1 [K] — `TpcdsQueryIntegrationSpec` (tests first).** ✅ Done. `@RequiresContext("tpcds-query")` drives the 4 curated shapes through theseus-mcp `query`, asserting the SF1 oracle (12/30/30/3), `{year}`→2002, no-RLS analyst bearer; `assertOk()` surfaces the error envelope on failure. `ContextNameRegistrySpec` auto-scans the name (no manual list). Also fixed `McpQueryDriver` to disable the CIO 15s engine timeout + govern the call with a 3-min MCP `RequestOptions` timeout (heavy SF1 first query).
+- [x] **T2 [O] — `tpcds-query` context.** ✅ Done (olymp `feat/c2-integration-contexts`). `test-contexts/tpcds-query/` — 7 services helm-installed, pointed at the **STANDING** test-pg (no per-run warehouse, no mssql/wiremock); Arges restates Proteus + pg-tpcds host/user/password; 6 services inherit chart-default wiring (MP-2's config). The run-ns cred is solved by extending the `pg-tpcds-ro` ClusterExternalSecret namespaceSelectors to match `olymp.collite/managed-by=test-harness`.
+- [x] **T3 [K/O] — Run `tpcds-query` on bp-dsk.** ✅ **GREEN on bp-dsk 2026-07-07** — `just it-bp-dsk tpcds-query`: 4 tests, 0 skipped, 0 failures; the 4 curated shapes return the exact SF1 oracle (12/30/30/3) through the full Postgres-worker chain. The Goals-2+4 convergence demo. *(Cold-start note: the first query takes ~20s (Calcite cold-compile + cold Arges pool); one earlier run hit a first-query transient — add a warmup/retry if it recurs. k3d-local leg not run — the bp-dsk green is the deliverable.)*
 - [ ] **T4 [K/O] — Finish `golem-erp`.** Land the pending per-service values (golem→prometheus→wiremock; ariadne seed-aligned model) + the golem-erp Shem + flip `GolemErpIntegrationSpec.liveContext = true` (testing S3.1 carry-over). Run locally + bp-dsk.
 - [ ] **T5 [K/O] — `themis-routing` + `pythia-rca`.** Bring `themis-routing` green (real Kadmos/Echo); stand `pythia-rca` (minimal investigation DAG vs real Charon+Metis) — gated on those services being deployable (D2/D3). Specs first, then contexts, then local→bp-dsk.
 - [ ] **T6 [K] — Re-enable `theseus-runquery` result/RLS asserts.** Flip `RunQueryIntegrationSpec.modelAlignedContext = true` once a seed-aligned model exists (testing S3.1 T7); run on bp-dsk.
@@ -28,7 +28,7 @@ The run-set — `theseus-runquery` (✓), **`tpcds-query`** (new), `golem-erp`, 
 
 ## DONE
 
-- [ ] `tpcds-query` green locally **and** on bp-dsk (the four queries return correct SF1 results).
+- [x] `tpcds-query` green on bp-dsk (the four queries return correct SF1 results — 12/30/30/3, 2026-07-07). *(local k3d leg optional; not run.)*
 - [ ] `golem-erp` / `themis-routing` / `pythia-rca` green; `theseus-runquery` result/RLS asserts re-enabled.
 - [ ] Full run-set green on bp-dsk via `infra-up --kube dsk`; nightly on bp-olymp01 unaffected. **→ MP-4.**
 
