@@ -64,8 +64,15 @@ arges (unparse+execute) → Postgres tpc-ds-1g` as `tpcds_readonly` — all four
 - **C1** component-tier real-dep matrix — 0/13 (Testcontainers, **no cluster needed**) → closes **MP-3**
 - **C2** integration contexts incl. **`tpcds-query`** — 0/14
 
-**WS-R** — unstarted:
-- **R1** `infra-up --kube dsk` run mode + ArgoCD reconcile-boundary verify — 0/13
+**WS-R**:
+- **R1** `infra-up --kube dsk` run mode + ArgoCD reconcile-boundary verify — **code-complete 2026-07-07**
+  (branch `feat/r1-bp-dsk-run-mode`, both repos). **T1 gate ✅ verified** (generators glob olymp repo
+  paths not namespaces; 0/28 apps touch a run ns). **Key finding:** the olymp harness is *already*
+  `--kube`-parameterised (`bootstrap.sh` maps `bp-dsk→dsk`), so **T2/T3 need no olymp code**; T4/T5 are
+  the only new code — a `-PkubeContext` knob (`Fabric8ClusterReader` → `Config.autoConfigure`) + the
+  `just it-bp-dsk <context>` up→test→down loop. T6 = k3d parity (unchanged) + olymp §9 docs mirror
+  (committed on the olymp branch, `c6e483c`). **Remaining: the live proof run** — `just it-bp-dsk
+  theseus-runquery` on dsk (Bora cluster op) + push both r1 branches.
 
 **Release tags** — deferred; cut together at **MP-4** (contracts §9).
 

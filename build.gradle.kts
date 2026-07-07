@@ -85,6 +85,9 @@ subprojects {
                         providers.gradleProperty("context").orNull?.let { systemProperty("context", it) }
                         providers.gradleProperty("namespace").orNull?.let { systemProperty("namespace", it) }
                         providers.gradleProperty("olympDir").orNull?.let { systemProperty("olympDir", it) }
+                        // WS-R1 T4 — optional named kube context (e.g. `-PkubeContext=dsk` for the
+                        // bp-dsk on-demand run); unset → fabric8 uses the current kubeconfig context.
+                        providers.gradleProperty("kubeContext").orNull?.let { systemProperty("kubeContext", it) }
                     }
                 }
             }
