@@ -17,6 +17,7 @@ import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -73,6 +74,40 @@ suspend fun ContextHandle.callResolve(
     } finally {
         http.close()
     }
+}
+
+/**
+ * Calls [callResolve] up to [attempts] times, returning the first non-error result. Retries on
+ * either a thrown transport error or an `isError` result, sleeping [delayMs] between tries. This
+ * absorbs two cold-context realities: (1) Kadmos (Python NLP) lazy-loads its model on the first
+ * `/v1/analyze` — the first attempt warms it; (2) that load can spike memory enough to restart the
+ * pod, so a follow-up connect can be briefly refused — a later attempt hits the recovered pod. The
+ * NLP/fuzzy legs (unlike the LLM legs) do NOT degrade gracefully, so a blip surfaces as `isError`.
+ * Returns the last observed result if none succeed (so the assertion surfaces the real error).
+ */
+suspend fun ContextHandle.resolveUntilOk(
+    question: String,
+    locale: String = "cs",
+    attempts: Int = 4,
+    delayMs: Long = 8_000,
+): CallToolResult {
+    var last: CallToolResult? = null
+    repeat(attempts) { i ->
+        val res =
+            runCatching {
+                callResolve(
+                    question = question,
+                    locale = locale,
+                    conversationId = "it-themis-$i",
+                )
+            }.getOrNull()
+        if (res != null) {
+            last = res
+            if (res.isError != true) return res
+        }
+        if (i < attempts - 1) delay(delayMs)
+    }
+    return last ?: error("resolve produced no result after $attempts attempts")
 }
 
 /** The text payload of the first content block — for MCP resolve, the outcome JSON string. */

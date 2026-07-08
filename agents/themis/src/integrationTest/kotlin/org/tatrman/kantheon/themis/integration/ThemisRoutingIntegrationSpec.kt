@@ -79,22 +79,12 @@ class ThemisRoutingIntegrationSpec :
             .config(enabled = contextLive) {
                 val handle = contextHandle()
 
-                val res =
-                    runBlocking {
-                        // Warm-up: Kadmos (Python NLP) lazy-loads its model on the FIRST /v1/analyze,
-                        // which on a cold, CPU-throttled node exceeds Themis's NLP timeout. This
-                        // throwaway resolve triggers that load (its outcome is ignored — it may itself
-                        // time out); the asserted call below then runs against a warm Kadmos. Paired
-                        // with the raised NLP timeout in themis-routing/themis-mcp.values.yaml.
-                        runCatching {
-                            handle.callResolve(question = "Zahřívací dotaz.", conversationId = "it-themis-warmup")
-                        }
-                        handle.callResolve(
-                            question = "Kolik máme objednávek za minulý měsíc?",
-                            locale = "cs",
-                            conversationId = "it-themis-routing-smoke",
-                        )
-                    }
+                // Retry across a cold Kadmos: the first attempt triggers its lazy model-load (paired
+                // with the raised NLP timeout in themis-mcp.values.yaml + more Kadmos memory); if that
+                // load restarts the pod, a follow-up connect can be briefly refused, so a later
+                // attempt hits the recovered pod. The NLP/fuzzy legs don't degrade gracefully, so a
+                // blip surfaces as isError — resolveUntilOk returns the first non-error result.
+                val res = runBlocking { handle.resolveUntilOk("Kolik máme objednávek za minulý měsíc?") }
 
                 // Surface the whole result on failure — a hard error names exactly which leg broke.
                 withClue({ "resolve: isError=${res.isError} body=${res.bodyText()}" }) {
