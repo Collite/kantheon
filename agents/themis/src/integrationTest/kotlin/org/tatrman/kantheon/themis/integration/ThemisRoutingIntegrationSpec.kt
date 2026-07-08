@@ -81,6 +81,14 @@ class ThemisRoutingIntegrationSpec :
 
                 val res =
                     runBlocking {
+                        // Warm-up: Kadmos (Python NLP) lazy-loads its model on the FIRST /v1/analyze,
+                        // which on a cold, CPU-throttled node exceeds Themis's NLP timeout. This
+                        // throwaway resolve triggers that load (its outcome is ignored — it may itself
+                        // time out); the asserted call below then runs against a warm Kadmos. Paired
+                        // with the raised NLP timeout in themis-routing/themis-mcp.values.yaml.
+                        runCatching {
+                            handle.callResolve(question = "Zahřívací dotaz.", conversationId = "it-themis-warmup")
+                        }
                         handle.callResolve(
                             question = "Kolik máme objednávek za minulý měsíc?",
                             locale = "cs",
