@@ -224,7 +224,50 @@ it-bp-dsk context olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/ol
             --kantheon "$(pwd)" --ghcr-from argocd/ghcr-pull | sed -n 's/^namespace=//p')
     if [ -z "$NS" ]; then echo "❌ infra-up did not report a namespace" >&2; exit 1; fi
     echo "== context up in ns $NS — running :integrationTest =="
-    ./gradlew integrationTest -Pcontext={{context}} -Pnamespace="$NS" -PkubeContext=dsk --no-daemon
+    # On failure, surface the constellation's own logs BEFORE the trap tears the ns down — an
+    # integration failure is usually a service-side error the client only sees as a bad envelope.
+    if ! ./gradlew integrationTest -Pcontext={{context}} -Pnamespace="$NS" -PkubeContext=dsk --no-daemon; then
+        echo "== integrationTest FAILED — dumping service logs from $NS =="
+        for svc in prometheus golem pythia themis-mcp theseus-mcp theseus proteus argos kyklop arges brontes ariadne kadmos echo capabilities-mcp; do
+            if kubectl --context dsk -n "$NS" get deploy "$svc" >/dev/null 2>&1; then
+                echo "---- $svc (tail) ----"
+                # Drop OTEL exporter noise first (every service retries localhost:4317 when no
+                # collector is present — harmless, but it floods the error grep below).
+                kubectl --context dsk -n "$NS" logs "deploy/$svc" --tail=120 2>/dev/null \
+                    | grep -viE 'otlp|opentelemetry\.exporter|:4317|Failed to (export|connect)|Transient error.*export' \
+                    | grep -iE 'error|fail|exception|chat request|selected model|calling llm|received chat|provider|anthropic|empty|decode|clarification|denied|refus' \
+                    | tail -25 || true
+            fi
+        done
+        exit 1
+    fi
+
+# The bp-dsk on-demand FULL run-set (deploy-test WS-C2 T7 → MP-4). Runs every context listed in
+# deployment/test/bp-dsk-run-set.txt sequentially through the single-context `it-bp-dsk` flow
+# (each does its own namespace-per-run bring-up → integrationTest → teardown, so they can't
+# collide). Continues past a failing context, prints a PASS/FAIL summary, and exits non-zero if
+# any context failed — so one red context doesn't hide the rest. The scheduled nightly
+# (bp-olymp01) is separate + unaffected. See docs/implementation/v1/deploy-test/runbook-bp-dsk.md.
+#   just it-bp-dsk-all
+#   OLYMP_DIR=~/src/olymp just it-bp-dsk-all
+it-bp-dsk-all olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/olymp"):
+    #!/usr/bin/env bash
+    set -uo pipefail
+    SET_FILE="deployment/test/bp-dsk-run-set.txt"
+    if [ ! -f "$SET_FILE" ]; then echo "❌ run-set file not found: $SET_FILE" >&2; exit 1; fi
+    # Strip comments + blank lines to the context list.
+    mapfile -t CONTEXTS < <(sed -E 's/#.*//; s/[[:space:]]+$//' "$SET_FILE" | grep -vE '^[[:space:]]*$')
+    if [ "${#CONTEXTS[@]}" -eq 0 ]; then echo "❌ run-set is empty" >&2; exit 1; fi
+    echo "== it-bp-dsk-all: ${#CONTEXTS[@]} contexts on dsk → ${CONTEXTS[*]} =="
+    declare -a PASSED=() FAILED=()
+    for ctx in "${CONTEXTS[@]}"; do
+        echo; echo "######## run-set: $ctx ########"
+        if just it-bp-dsk "$ctx" "{{olymp_dir}}"; then PASSED+=("$ctx"); else FAILED+=("$ctx"); fi
+    done
+    echo; echo "== it-bp-dsk-all summary =="
+    echo "  ✅ passed (${#PASSED[@]}): ${PASSED[*]:-none}"
+    echo "  ❌ failed (${#FAILED[@]}): ${FAILED[*]:-none}"
+    [ "${#FAILED[@]}" -eq 0 ]
 
 # Render every module chart (`<module>/k8s`) with `helm template` (chart default
 # values) and diff against the checked-in goldens in shared/charts/.golden/. The
@@ -489,24 +532,28 @@ deploy-kt service:
     fi
 
 # `jib` (not jibDockerBuild) pushes straight to the registry, and CI=true forces a multi-arch
-# (amd64+arm64) manifest so the amd64 bp-olymp01 node can pull. The image name is the module
-# basename (theseus-mcp, theseus, brontes, …), matching the chart's image.repository. Auth via
-# env: GHCR_USER + GHCR_TOKEN (a PAT with write:packages). Python services use the Docker lane,
-# not Jib — publish those via build-py + `docker push`. Usage:
+# (amd64+arm64) manifest so the amd64 bp-olymp01 node can pull. The image name defaults to the
+# module basename (theseus-mcp, theseus, brontes, …), matching the chart's image.repository — but
+# a few modules publish under a different name than their directory (e.g. `agents/themis` →
+# image `themis-mcp`), so an optional third arg overrides the image name. Auth via env: GHCR_USER
+# + GHCR_TOKEN (a PAT with write:packages). Python services use the Docker lane, not Jib — publish
+# those via build-py + `docker push`. Usage:
 #   GHCR_USER=BoraPerusic GHCR_TOKEN=ghp_xxx just publish-image tools/theseus-mcp
-#   GHCR_USER=… GHCR_TOKEN=… just publish-image services/theseus v0.1.0   # explicit tag
+#   GHCR_USER=… GHCR_TOKEN=… just publish-image services/theseus v0.1.0            # explicit tag
+#   GHCR_USER=… GHCR_TOKEN=… just publish-image agents/themis testing themis-mcp   # image name ≠ dir
 # Push a Kotlin module's Jib image to GHCR (ghcr.io/boraperusic/<name>:<tag>, default :testing).
-publish-image service tag="testing":
+publish-image service tag="testing" image="":
     @if [ -z "${GHCR_USER:-}" ] || [ -z "${GHCR_TOKEN:-}" ]; then \
         echo "❌ set GHCR_USER + GHCR_TOKEN (a PAT with write:packages) — e.g. GHCR_USER=BoraPerusic GHCR_TOKEN=ghp_… just publish-image {{service}}"; \
         exit 1; \
     fi
+    img="{{image}}"; if [ -z "$img" ]; then img="$(basename {{service}})"; fi; \
     CI=true ./gradlew "$(just _resolve {{service}}):jib" \
-        -Djib.to.image="ghcr.io/boraperusic/$(basename {{service}}):{{tag}}" \
+        -Djib.to.image="ghcr.io/boraperusic/$img:{{tag}}" \
         -Djib.to.auth.username="$GHCR_USER" \
         -Djib.to.auth.password="$GHCR_TOKEN" \
-        --no-daemon
-    @echo "✅ pushed ghcr.io/boraperusic/$(basename {{service}}):{{tag}} (multi-arch amd64+arm64)"
+        --no-daemon; \
+    echo "✅ pushed ghcr.io/boraperusic/$img:{{tag}} (multi-arch amd64+arm64)"
 
 # Bring up the owned local infra (kantheon-architecture §7.1) on the current K3s
 # context: the `kantheon` namespace + everything under `deployment/local`

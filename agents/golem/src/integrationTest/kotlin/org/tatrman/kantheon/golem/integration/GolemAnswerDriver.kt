@@ -105,7 +105,11 @@ suspend fun ContextHandle.answerGolem(
     request: JsonObject,
     bearer: String? = null,
 ): GolemAnswer {
-    val http = HttpClient(CIO)
+    // A real answer-turn runs the LLM roundtrip (PlanComposer → Prometheus → WireMock) + render;
+    // on a cold, CPU-throttled node that easily exceeds the CIO engine's 15 s default request
+    // timeout (Golem's own LLM-gateway timeout is 60 s). Give the client 3 min so we see the turn's
+    // real outcome (STATUS_DONE / clarification) instead of an HttpRequestTimeoutException.
+    val http = HttpClient(CIO) { engine { requestTimeout = 180_000 } }
     try {
         val response =
             http.post("${url("golem")}/v1/answer/sync") {

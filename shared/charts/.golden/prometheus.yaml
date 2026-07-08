@@ -78,7 +78,7 @@ spec:
                   optional: true
           startupProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 7280
             initialDelaySeconds: 10
             periodSeconds: 10

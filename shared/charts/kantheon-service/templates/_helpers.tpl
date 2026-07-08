@@ -47,3 +47,5 @@ in the deployment; an empty override renders nothing (no stray whitespace).
 */}}
 {{- define "kantheon-service.volumeMounts" -}}{{- end -}}
 {{- define "kantheon-service.volumes" -}}{{- end -}}
+{{/* Optional pod initContainers override (renders the whole `initContainers:` block, or nothing). */}}
+{{- define "kantheon-service.initContainers" -}}{{- end -}}

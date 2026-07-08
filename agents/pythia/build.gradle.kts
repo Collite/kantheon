@@ -139,4 +139,21 @@ dependencies {
     testImplementation(libs.ktor.client.mock)
     // In-process gRPC server+channel for the Charon / Metis fixture-server specs.
     testImplementation(libs.grpc.inprocess)
+
+    // Integration tier (WS-C2 T5) — drives the live `pythia-rca` context: Pythia's REST control
+    // surface (/v1/investigations) over real HTTP against a real Pythia pod. The robust tier
+    // exercises PD-8 admission (missing-bearer 403 + cross-user visibility 403) on the async
+    // submit→get flow; the gated tier submits + polls to a terminal Status. The root build's
+    // integrationTest suite already brings kotest + project(); these add the harness
+    // (@RequiresContext/ContextHandle), a Ktor HTTP client, and proto-JSON (JsonFormat) marshalling
+    // of Investigation/InvestigationArtifact. Gated by @RequiresContext: compiles + skips w/o context.
+    "integrationTestImplementation"(project(":shared:libs:kotlin:integration-harness"))
+    // WireMockAdmin — push scripted LLM stubs into the in-cluster WireMock for the gated tier.
+    "integrationTestImplementation"(project(":shared:libs:kotlin:component-testkit"))
+    "integrationTestImplementation"(project(":shared:proto"))
+    "integrationTestImplementation"(libs.protobuf.java.util)
+    "integrationTestImplementation"(libs.ktor.client.core)
+    "integrationTestImplementation"(libs.ktor.client.cio)
+    "integrationTestImplementation"(libs.kotlinx.coroutines.core)
+    "integrationTestImplementation"(libs.kotlinx.serialization.json)
 }

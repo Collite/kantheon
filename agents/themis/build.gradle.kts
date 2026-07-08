@@ -81,6 +81,26 @@ dependencies {
     // Koog in-process mock executor — `getMockExecutor` + `mockLLMAnswer` DSL.
     // Used by the parallel *KoogSpec tests that exercise LLM-using nodes.
     testImplementation(libs.koog.agents.test)
+
+    // Integration tier (WS-C2 T5) — drives the live `themis-routing` context: the MCP
+    // `resolve` tool over real StreamableHTTP (robust smoke) and the REST `/v1/resolve`
+    // routing edge (gated agent-routing tier), against a real themis-mcp pod wired to
+    // real Kadmos + Echo + capabilities-mcp with the LLM stubbed at WireMock via Prometheus.
+    // The root build's integrationTest suite already brings kotest + project(); these add
+    // the harness (@RequiresContext/ContextHandle), the MCP client, a Ktor HTTP client and
+    // JSON parsing. Gated by @RequiresContext: compiles + skips with no context.
+    "integrationTestImplementation"(project(":shared:libs:kotlin:integration-harness"))
+    // WireMockAdmin — push the themis-routing LLM stub into the in-cluster WireMock at runtime.
+    "integrationTestImplementation"(project(":shared:libs:kotlin:component-testkit"))
+    // themis/v1 proto (ResolveRequest/ResolveResponse) for the gated REST routing tier,
+    // marshalled as proto-canonical JSON via JsonFormat — mirroring iris-bff's HttpThemisClient.
+    "integrationTestImplementation"(project(":shared:proto"))
+    "integrationTestImplementation"(libs.protobuf.java.util)
+    "integrationTestImplementation"(libs.kotlin.mcp.sdk)
+    "integrationTestImplementation"(libs.ktor.client.core)
+    "integrationTestImplementation"(libs.ktor.client.cio)
+    "integrationTestImplementation"(libs.kotlinx.coroutines.core)
+    "integrationTestImplementation"(libs.kotlinx.serialization.json)
 }
 
 application {

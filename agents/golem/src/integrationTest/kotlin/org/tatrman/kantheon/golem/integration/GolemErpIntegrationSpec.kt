@@ -1,11 +1,13 @@
 package org.tatrman.kantheon.golem.integration
 
+import io.kotest.assertions.withClue
 import io.kotest.core.annotation.Tags
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import org.tatrman.kantheon.testkit.wiremock.WireMockAdmin
 import org.tatrman.kantheon.testkit.integration.RequiresContext
 import org.tatrman.kantheon.testkit.integration.RequiresContextExtension
 import org.tatrman.kantheon.testkit.integration.contextHandle
@@ -56,7 +58,11 @@ class GolemErpIntegrationSpec :
         // is exercised. answerTurnLive: the LLM-planned render turn (needs the live golem→prometheus
         // →WireMock roundtrip confirmed). Flip answerTurnLive after the first bp-dsk run.
         val contextLive = true
-        val answerTurnLive = false
+        // Flipped ON 2026-07-08: the golem→prometheus→WireMock LLM roundtrip is unblocked by two
+        // prometheus fixes (a `/v1/chat/completions` controller alias + `haiku`/`claude-haiku`/
+        // `sonnet` model aliases in models.yaml → the Anthropic provider). Needs prometheus:testing
+        // rebuilt with those. If the live wire shape still bites, the prometheus log names the link.
+        val answerTurnLive = true
 
         // The Shem's visibility role — matches the deployed golem-erp Shem manifest's
         // `visibility_roles` (`agents/golem/shems/golem-erp/shem.yaml`).
@@ -116,6 +122,13 @@ class GolemErpIntegrationSpec :
         "an admitted domain question returns a STATUS_DONE turn with a rendered envelope"
             .config(enabled = answerTurnLive) {
                 val handle = contextHandle()
+                // The in-cluster WireMock starts EMPTY — push the LLM stub so Prometheus's Anthropic
+                // call to wiremock:8080/v1/messages returns the render-only MiniPlan (else it 404s
+                // and PlanComposer gets an empty reply → clarification, not STATUS_DONE).
+                WireMockAdmin(handle.wireMockAdmin).apply {
+                    reset()
+                    importMappingsFromResource("wiremock/golem-erp/llm/mappings.json")
+                }
                 val bearer = unsignedJwt("alice", roles = listOf(erpRole))
 
                 val answer =
@@ -130,8 +143,13 @@ class GolemErpIntegrationSpec :
                         )
                     }
 
-                answer.status shouldBe 200
-                answer.turnStatus() shouldBe "STATUS_DONE"
-                answer.envelopes().shouldNotBeEmpty()
+                // Surface the whole turn on failure — if it's not STATUS_DONE (e.g. a clarification
+                // because the WireMock/Anthropic reply didn't decode into the render-only MiniPlan),
+                // the body names exactly what Golem produced (status + messages + envelopes).
+                withClue({ "golem turn: httpStatus=${answer.status} body=${answer.body}" }) {
+                    answer.status shouldBe 200
+                    answer.turnStatus() shouldBe "STATUS_DONE"
+                    answer.envelopes().shouldNotBeEmpty()
+                }
             }
     })

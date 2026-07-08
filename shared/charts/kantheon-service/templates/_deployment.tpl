@@ -30,6 +30,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- include "kantheon-service.initContainers" . }}
       containers:
         - name: {{ .Chart.Name }}
           image: {{ include "kantheon-service.image" . | quote }}

@@ -137,6 +137,8 @@ dependencies {
     // (@RequiresContext/ContextHandle), a Ktor HTTP client, and JSON parsing of the
     // ConversationalResponse. Gated by @RequiresContext: compiles + skips with no context.
     "integrationTestImplementation"(project(":shared:libs:kotlin:integration-harness"))
+    // WireMockAdmin — pushes the golem-erp LLM stub into the in-cluster WireMock at runtime.
+    "integrationTestImplementation"(project(":shared:libs:kotlin:component-testkit"))
     "integrationTestImplementation"(libs.ktor.client.core)
     "integrationTestImplementation"(libs.ktor.client.cio)
     "integrationTestImplementation"(libs.kotlinx.coroutines.core)

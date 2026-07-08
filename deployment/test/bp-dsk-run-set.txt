@@ -1,0 +1,17 @@
+# bp-dsk on-demand full run-set — deploy-test WS-C2 T7 → MP-4.
+#
+# One @RequiresContext name per line (blank lines + `#` comments ignored). Consumed by
+# `just it-bp-dsk-all`, which runs each context sequentially through the single-context
+# `just it-bp-dsk` flow (namespace-per-run isolates them). Ordered lean → heavy.
+#
+# The scheduled NIGHTLY (bp-olymp01) is separate and unaffected — it runs only `theseus-runquery`
+# via .github/workflows/integration-nightly.yml (WS-R contract: on-demand full run is the
+# developer's, the nightly move is not). See docs/implementation/v1/deploy-test/runbook-bp-dsk.md.
+#
+# Each context's active vs gated assertion tiers are documented in the runbook.
+
+pythia-rca
+golem-erp
+themis-routing
+theseus-runquery
+tpcds-query
