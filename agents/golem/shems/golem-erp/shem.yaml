@@ -1,0 +1,83 @@
+# Golem-ERP Shem — the deploy-test agent-showcase Golem ("ERP Q&A").
+#
+# CONVERGED DESIGN (2026-06-25), mirrors golem-ucetnictvi / golem-investment. A Golem's
+# capabilities/v1 AgentCapability is ASSEMBLED at boot — this overlay is the thin per-agent residue:
+#
+#   (1) ai-models agent definition  → identity + model slice (areas → packages)
+#   (2) Ariadne model (by package)  → area_entities / preferred_queries / area_terminology
+#   (3) THIS overlay                → the per-agent residue kantheon owns
+#   (4) Golem-template constants    → agent_kind, intent_kinds, capability_refs, hitl, endpoint
+#
+# Prompts belong to the Shem (./prompts), NOT to the model. At deploy this bundle is mounted at
+# GOLEM_SHEM_DIR via a ConfigMap; the harness (olymp `shems:`) mounts shem.yaml, and the runtime
+# prompts fall back to the pod image's classpath `prompts/cs/*` (golem locale default `cs`).
+#
+# DEPLOY-TEST ROLE (WS-C2 T4). This is the `golem-erp` integration context's Shem — it drives the
+# kantheon GolemErpIntegrationSpec. It points at the EXISTING bundled Ariadne `accounting` area
+# (obchodni_doklady + ucetnictvi), so no new Ariadne model / image is needed; the context proves
+# Golem's PD-8 Shem admission + the LLM-planned agent turn (fixture query leg — real query DATA is
+# the tpcds-query / real-data showcase, not this one).
+
+apiVersion: kantheon.shem/v1
+kind: golem-shem
+
+# ── (1) Identity + model slice — sourced from the ai-models agent definition ──
+# Golem reads ai-models agents/erp.yaml and asks Ariadne ResolveArea(accounting) → packages;
+# GetModel(packages) supplies the model. The `accounting` area is served by the bundled Ariadne
+# model-ttr (areas/accounting.ttrm → obchodni_doklady, ucetnictvi), so the pod becomes Ready on the
+# existing ariadne:testing image with no model change.
+source:
+  repo: ai-models
+  agentDef: agents/erp.yaml
+  id: erp                         # ai-models agent id → kantheon agent_id = golem-erp
+  label: "ERP Q&A"               # ai-models label → display_name
+  areas: [accounting]            # Ariadne ResolveArea → accounting packages
+
+# ── Derived / constant (DO NOT author — shown for reference only) ──
+#   agent_id          golem-erp             (golem-<id>)
+#   display_name      "ERP Q&A"             (ai-models label)
+#   agent_kind        AREA_QA               (template constant for kind: golem)
+#   intent_kinds      [PROCEDURAL]          (template constant; RCA/FORECAST/SIMULATION → Pythia)
+#   service_endpoint  http://golem-erp.kantheon.svc.cluster.local:7420
+#   health_check_path /health
+#   capability_refs / preferred_capabilities  theseus.query, theseus.compile, render.table, render.chart
+#   hitl_default      INTERACTIVE
+#   area_entities / preferred_queries / area_terminology  from the Ariadne model — NOT listed here
+
+# ── (3) Overlay — the per-agent residue kantheon owns ──
+overlay:
+  # Entitlement: a Keycloak realm role. Empty list = visible to every authenticated caller.
+  # Convention: kantheon-area-<area>. Matches GolemErpIntegrationSpec `erpRole`; the outsider
+  # (unrelated_role) is denied (PD-8, 403), a missing bearer fails closed (401).
+  visibility_roles:
+    - kantheon-area-accounting
+
+  # OPTIONAL router seed. If omitted, description_for_router is seeded from the area's
+  # description + tags served by Ariadne.
+  description_for_router: |
+    ERP domain Q&A — procedural questions about orders and accounting documents: how many
+    orders, order totals and values, invoices and credit notes. Reads the operational data via
+    theseus; NOT root-cause analysis / forecasting / simulation (→ Pythia), nor other subject
+    areas (HR, Sales).
+
+  # OPTIONAL routing examples. If omitted, sourced from the routing/eval corpus.
+  example_questions:
+    - "How many orders are there?"
+    - "What is the total value of orders this month?"
+    - "Show me the latest invoices."
+  counter_examples:
+    - "Show me HR headcount."                  # → Golem-HR
+    - "What's our sales pipeline this quarter?" # → Golem-Sales
+    - "Why did revenue drop last week?"         # RCA → Pythia
+
+  # OPTIONAL locale defaults. If omitted, template defaults apply. v1: cs + en. The runtime prompt
+  # locale is the pod's GOLEM_LOCALE (default `cs`, which the classpath fallback prompts cover).
+  locale_defaults:
+    - locale: cs-CZ
+      greeting: "Dobrý den, jak vám mohu pomoci s objednávkami?"
+      date_format: "dd.MM.yyyy"
+      currency: "CZK"
+    - locale: en
+      greeting: "Hi, how can I help with your orders?"
+      date_format: "yyyy-MM-dd"
+      currency: "EUR"

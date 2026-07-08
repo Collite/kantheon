@@ -16,7 +16,7 @@
 | **MP-1** | Query path live on bp-dsk (theseus→proteus→argos→kyklop→**arges**) | ✅ **done** — all 23 constellation pods READY |
 | **MP-2** | TPC-DS queryable (manual `theseus query` returns rows) | ✅ **done live 2026-07-07** — all 4 curated queries |
 | **MP-3** | Component test matrix green in CI | 🟨 **C1 landed 2026-07-07** — T1–T5 (7 specs: arges×4, proteus, argos, ariadne, report-renderer) green via `just test-component`; T6 (Prometheus) deferred to its separate Spring integration suite. MP-3 closes when CI runs the matrix + the remaining deferred rows (Charon/Kleio/Hebe) land |
-| **MP-4** | Integration run-set green on bp-dsk + release tags cut | 🟨 **R1 done 2026-07-07** — `just it-bp-dsk theseus-runquery` runs **green on bp-dsk** (first run-mode context live). Remaining for MP-4: the `tpcds-query` context (C2) + the full run-set + release tags |
+| **MP-4** | Integration run-set green on bp-dsk + release tags cut | 🟨 **R1 + C2 `tpcds-query` done 2026-07-07** — `just it-bp-dsk theseus-runquery` **and** `just it-bp-dsk tpcds-query` both green on bp-dsk. tpcds-query is the **showcase**: all 4 curated shapes through theseus-mcp→…→arges→tpc-ds-1g return the exact SF1 oracle (12/30/30/3), live. Remaining for MP-4: the rest of the run-set (golem-erp/themis-routing/pythia-rca) + release tags |
 
 ---
 
@@ -69,7 +69,22 @@ arges (unparse+execute) → Postgres tpc-ds-1g` as `tpcds_readonly` — all four
   unauthored/unwired surfaces: Ariadne `investment` model (T4 covers tpcds + accounting instead) and
   report-renderer PPTX/PDF/HTML (T5 covers the shipped XLSX engine only). MP-3 fully closes once CI runs
   the matrix on every PR + the pre-existing deferred rows (Charon/Kleio/Hebe) land.
-- **C2** integration contexts incl. **`tpcds-query`** — 0/14 (depends on R1)
+- **C2** integration contexts incl. **`tpcds-query`** — **T1–T3 (`tpcds-query`) GREEN on bp-dsk**;
+  **T4 (`golem-erp`) admission tier GREEN on bp-dsk 2026-07-08** (401 + 403 PD-8 admission through a
+  real Golem-ERP pod; answer-turn still gated behind `answerTurnLive`). Live-run fixes landed: golem
+  `:testing` image published (it never existed — only `0.1.0`), prometheus `startupProbe` (the ~97s
+  boot tripped the 90s liveness budget), node `fs.inotify` limits, standing golem `0.1.0`→`:testing`,
+  and a dynamic per-Shem golem ApplicationSet (`bp-dsk-golems`) for prod multi-instance. golem-erp
+  reframed to the **agent showcase** (the fixture query leg returns `detection_failed`, not rows —
+  so it proves the **Golem agent turn** / PD-8 Shem admission, not real query data, which is
+  `tpcds-query`'s job). **No image rebuilds**: the Shem points at the existing bundled Ariadne
+  `accounting` area + is delivered via a per-run **ConfigMap** (new olymp `shems:` harness field);
+  prometheus runs the Spring `test` profile (H2, no PG); the LLM is WireMock-stubbed. Spec split into
+  two gates — `contextLive=true` (401 + 403 admission, robust) and `answerTurnLive=false` (render-only
+  `STATUS_DONE` turn, flip after the first bp-dsk run confirms the golem→prometheus→WireMock roundtrip).
+  Local de-risk done: `GolemErpBundleSpec` green, integrationTest compiles + ktlint clean, helm-template
+  + `infra-up --dry-run` clean. **Remaining C2:** run golem-erp on bp-dsk, then `themis-routing` /
+  `pythia-rca` (T5), re-enable `theseus-runquery` result asserts (T6), assemble the run-set (T7).
 
 **WS-R**:
 - **R1** `infra-up --kube dsk` run mode + ArgoCD reconcile-boundary verify — **code-complete 2026-07-07**

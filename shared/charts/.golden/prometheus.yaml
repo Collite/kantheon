@@ -76,6 +76,13 @@ spec:
                   name: prometheus-secrets
                   key: anthropic-api-key
                   optional: true
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 7280
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 40
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
