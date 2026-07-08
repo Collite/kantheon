@@ -502,24 +502,28 @@ deploy-kt service:
     fi
 
 # `jib` (not jibDockerBuild) pushes straight to the registry, and CI=true forces a multi-arch
-# (amd64+arm64) manifest so the amd64 bp-olymp01 node can pull. The image name is the module
-# basename (theseus-mcp, theseus, brontes, …), matching the chart's image.repository. Auth via
-# env: GHCR_USER + GHCR_TOKEN (a PAT with write:packages). Python services use the Docker lane,
-# not Jib — publish those via build-py + `docker push`. Usage:
+# (amd64+arm64) manifest so the amd64 bp-olymp01 node can pull. The image name defaults to the
+# module basename (theseus-mcp, theseus, brontes, …), matching the chart's image.repository — but
+# a few modules publish under a different name than their directory (e.g. `agents/themis` →
+# image `themis-mcp`), so an optional third arg overrides the image name. Auth via env: GHCR_USER
+# + GHCR_TOKEN (a PAT with write:packages). Python services use the Docker lane, not Jib — publish
+# those via build-py + `docker push`. Usage:
 #   GHCR_USER=BoraPerusic GHCR_TOKEN=ghp_xxx just publish-image tools/theseus-mcp
-#   GHCR_USER=… GHCR_TOKEN=… just publish-image services/theseus v0.1.0   # explicit tag
+#   GHCR_USER=… GHCR_TOKEN=… just publish-image services/theseus v0.1.0            # explicit tag
+#   GHCR_USER=… GHCR_TOKEN=… just publish-image agents/themis testing themis-mcp   # image name ≠ dir
 # Push a Kotlin module's Jib image to GHCR (ghcr.io/boraperusic/<name>:<tag>, default :testing).
-publish-image service tag="testing":
+publish-image service tag="testing" image="":
     @if [ -z "${GHCR_USER:-}" ] || [ -z "${GHCR_TOKEN:-}" ]; then \
         echo "❌ set GHCR_USER + GHCR_TOKEN (a PAT with write:packages) — e.g. GHCR_USER=BoraPerusic GHCR_TOKEN=ghp_… just publish-image {{service}}"; \
         exit 1; \
     fi
+    img="{{image}}"; if [ -z "$img" ]; then img="$(basename {{service}})"; fi; \
     CI=true ./gradlew "$(just _resolve {{service}}):jib" \
-        -Djib.to.image="ghcr.io/boraperusic/$(basename {{service}}):{{tag}}" \
+        -Djib.to.image="ghcr.io/boraperusic/$img:{{tag}}" \
         -Djib.to.auth.username="$GHCR_USER" \
         -Djib.to.auth.password="$GHCR_TOKEN" \
-        --no-daemon
-    @echo "✅ pushed ghcr.io/boraperusic/$(basename {{service}}):{{tag}} (multi-arch amd64+arm64)"
+        --no-daemon; \
+    echo "✅ pushed ghcr.io/boraperusic/$img:{{tag}} (multi-arch amd64+arm64)"
 
 # Bring up the owned local infra (kantheon-architecture §7.1) on the current K3s
 # context: the `kantheon` namespace + everything under `deployment/local`
