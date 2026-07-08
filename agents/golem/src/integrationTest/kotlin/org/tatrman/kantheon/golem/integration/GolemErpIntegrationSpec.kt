@@ -56,7 +56,11 @@ class GolemErpIntegrationSpec :
         // is exercised. answerTurnLive: the LLM-planned render turn (needs the live golem→prometheus
         // →WireMock roundtrip confirmed). Flip answerTurnLive after the first bp-dsk run.
         val contextLive = true
-        val answerTurnLive = false
+        // Flipped ON 2026-07-08: the golem→prometheus→WireMock LLM roundtrip is unblocked by two
+        // prometheus fixes (a `/v1/chat/completions` controller alias + `haiku`/`claude-haiku`/
+        // `sonnet` model aliases in models.yaml → the Anthropic provider). Needs prometheus:testing
+        // rebuilt with those. If the live wire shape still bites, the prometheus log names the link.
+        val answerTurnLive = true
 
         // The Shem's visibility role — matches the deployed golem-erp Shem manifest's
         // `visibility_roles` (`agents/golem/shems/golem-erp/shem.yaml`).
