@@ -228,10 +228,13 @@ it-bp-dsk context olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/ol
     # integration failure is usually a service-side error the client only sees as a bad envelope.
     if ! ./gradlew integrationTest -Pcontext={{context}} -Pnamespace="$NS" -PkubeContext=dsk --no-daemon; then
         echo "== integrationTest FAILED — dumping service logs from $NS =="
-        for svc in prometheus golem theseus-mcp theseus proteus argos kyklop arges brontes ariadne kadmos echo capabilities-mcp; do
+        for svc in prometheus golem pythia themis-mcp theseus-mcp theseus proteus argos kyklop arges brontes ariadne kadmos echo capabilities-mcp; do
             if kubectl --context dsk -n "$NS" get deploy "$svc" >/dev/null 2>&1; then
                 echo "---- $svc (tail) ----"
-                kubectl --context dsk -n "$NS" logs "deploy/$svc" --tail=60 2>/dev/null \
+                # Drop OTEL exporter noise first (every service retries localhost:4317 when no
+                # collector is present — harmless, but it floods the error grep below).
+                kubectl --context dsk -n "$NS" logs "deploy/$svc" --tail=120 2>/dev/null \
+                    | grep -viE 'otlp|opentelemetry\.exporter|:4317|Failed to (export|connect)|Transient error.*export' \
                     | grep -iE 'error|fail|exception|chat request|selected model|calling llm|received chat|provider|anthropic|empty|decode|clarification|denied|refus' \
                     | tail -25 || true
             fi

@@ -65,11 +65,17 @@ class ThemisRoutingIntegrationSpec :
         val terminalOutcomes = listOf("resolved", "awaiting_clarification", "refused")
 
         // ── ROBUST: MCP resolve smoke ────────────────────────────────────────────────────────
-        // The chain is live and the graph terminates in a well-formed outcome. `trace_id` present
-        // proves Kadmos NLP ran; isError=false proves no node threw (graceful LLM degradation). This
-        // is the first end-to-end proof Themis runs in-cluster: boots past the capabilities-mcp
-        // routable-agents gate, reaches Kadmos, executes the resolution graph.
-        "resolve returns a well-formed terminal outcome with an NLP trace"
+        // The chain is live and the graph terminates in a well-formed outcome. `isError=false`
+        // proves no node threw AND that Kadmos NLP ran — the graph builds its context from the NLP
+        // response before any node, so an NLP failure throws and surfaces as `isError=true` with no
+        // `outcome`. So a non-error result carrying a recognized `outcome` is the end-to-end proof
+        // Themis runs in-cluster: boots past the capabilities-mcp routable-agents gate, reaches
+        // Kadmos, and executes the resolution graph (degrading gracefully on the stub-less LLM legs).
+        //
+        // NOTE: we do NOT assert `trace_id` — Themis's MCP resolve only emits it on the `resolved`
+        // and `refused` branches, not `awaiting_clarification` (Main.kt), which is the expected
+        // degraded outcome with an empty WireMock. `isError=false` already covers "Kadmos ran".
+        "resolve returns a well-formed terminal outcome"
             .config(enabled = contextLive) {
                 val handle = contextHandle()
 
@@ -86,7 +92,6 @@ class ThemisRoutingIntegrationSpec :
                 withClue({ "resolve: isError=${res.isError} body=${res.bodyText()}" }) {
                     res.isError shouldBe false
                     res.outcome().shouldNotBeNull() shouldBeIn terminalOutcomes
-                    res.traceId().shouldNotBeNull().shouldNotBeBlank()
                 }
             }
 
