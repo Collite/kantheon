@@ -70,7 +70,11 @@ arges (unparse+execute) → Postgres tpc-ds-1g` as `tpcds_readonly` — all four
   report-renderer PPTX/PDF/HTML (T5 covers the shipped XLSX engine only). MP-3 fully closes once CI runs
   the matrix on every PR + the pre-existing deferred rows (Charon/Kleio/Hebe) land.
 - **C2** integration contexts incl. **`tpcds-query`** — **T1–T3 (`tpcds-query`) GREEN on bp-dsk**;
-  **T4 (`golem-erp`) authored + local-green 2026-07-08, awaiting one gated bp-dsk run.** golem-erp
+  **T4 (`golem-erp`) admission tier GREEN on bp-dsk 2026-07-08** (401 + 403 PD-8 admission through a
+  real Golem-ERP pod; answer-turn still gated behind `answerTurnLive`). Live-run fixes landed: golem
+  `:testing` image published (it never existed — only `0.1.0`), prometheus `startupProbe` (the ~97s
+  boot tripped the 90s liveness budget), node `fs.inotify` limits, standing golem `0.1.0`→`:testing`,
+  and a dynamic per-Shem golem ApplicationSet (`bp-dsk-golems`) for prod multi-instance. golem-erp
   reframed to the **agent showcase** (the fixture query leg returns `detection_failed`, not rows —
   so it proves the **Golem agent turn** / PD-8 Shem admission, not real query data, which is
   `tpcds-query`'s job). **No image rebuilds**: the Shem points at the existing bundled Ariadne
