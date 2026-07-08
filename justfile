@@ -224,7 +224,20 @@ it-bp-dsk context olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/ol
             --kantheon "$(pwd)" --ghcr-from argocd/ghcr-pull | sed -n 's/^namespace=//p')
     if [ -z "$NS" ]; then echo "❌ infra-up did not report a namespace" >&2; exit 1; fi
     echo "== context up in ns $NS — running :integrationTest =="
-    ./gradlew integrationTest -Pcontext={{context}} -Pnamespace="$NS" -PkubeContext=dsk --no-daemon
+    # On failure, surface the constellation's own logs BEFORE the trap tears the ns down — an
+    # integration failure is usually a service-side error the client only sees as a bad envelope.
+    if ! ./gradlew integrationTest -Pcontext={{context}} -Pnamespace="$NS" -PkubeContext=dsk --no-daemon; then
+        echo "== integrationTest FAILED — dumping service logs from $NS =="
+        for svc in prometheus golem theseus-mcp theseus proteus argos kyklop arges brontes ariadne kadmos echo capabilities-mcp; do
+            if kubectl --context dsk -n "$NS" get deploy "$svc" >/dev/null 2>&1; then
+                echo "---- $svc (tail) ----"
+                kubectl --context dsk -n "$NS" logs "deploy/$svc" --tail=60 2>/dev/null \
+                    | grep -iE 'error|fail|exception|chat request|selected model|calling llm|received chat|provider|anthropic|empty|decode|clarification|denied|refus' \
+                    | tail -25 || true
+            fi
+        done
+        exit 1
+    fi
 
 # Render every module chart (`<module>/k8s`) with `helm template` (chart default
 # values) and diff against the checked-in goldens in shared/charts/.golden/. The
