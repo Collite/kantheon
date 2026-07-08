@@ -7,6 +7,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import org.tatrman.kantheon.testkit.wiremock.WireMockAdmin
 import org.tatrman.kantheon.testkit.integration.RequiresContext
 import org.tatrman.kantheon.testkit.integration.RequiresContextExtension
 import org.tatrman.kantheon.testkit.integration.contextHandle
@@ -121,6 +122,13 @@ class GolemErpIntegrationSpec :
         "an admitted domain question returns a STATUS_DONE turn with a rendered envelope"
             .config(enabled = answerTurnLive) {
                 val handle = contextHandle()
+                // The in-cluster WireMock starts EMPTY — push the LLM stub so Prometheus's Anthropic
+                // call to wiremock:8080/v1/messages returns the render-only MiniPlan (else it 404s
+                // and PlanComposer gets an empty reply → clarification, not STATUS_DONE).
+                WireMockAdmin(handle.wireMockAdmin).apply {
+                    reset()
+                    importMappingsFromResource("wiremock/golem-erp/llm/mappings.json")
+                }
                 val bearer = unsignedJwt("alice", roles = listOf(erpRole))
 
                 val answer =
