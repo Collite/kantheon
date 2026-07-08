@@ -1,0 +1,15 @@
+# Renders the golem-erp Shem overlay into the `golem-erp-shem` ConfigMap for GitOps deploy — the
+# olymp `*-golems` ApplicationSet applies this as one source and the golem chart mounts the
+# result at GOLEM_SHEM_DIR (`shem.configMapName: golem-erp-shem`). Flat by design: only shem.yaml
+# is mounted; prompts fall back to the golem image classpath (locale `cs`). Mirrors what the
+# test harness (olymp just-helper.py `shems:`) does with `kubectl create configmap --from-file`.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: golem-erp-shem
+    files:
+      - shem.yaml
+generatorOptions:
+  # Stable name — the golem chart references `golem-erp-shem` by a fixed `shem.configMapName`.
+  disableNameSuffixHash: true
