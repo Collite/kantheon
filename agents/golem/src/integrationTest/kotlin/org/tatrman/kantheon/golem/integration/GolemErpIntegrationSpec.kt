@@ -1,5 +1,6 @@
 package org.tatrman.kantheon.golem.integration
 
+import io.kotest.assertions.withClue
 import io.kotest.core.annotation.Tags
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.StringSpec
@@ -134,8 +135,13 @@ class GolemErpIntegrationSpec :
                         )
                     }
 
-                answer.status shouldBe 200
-                answer.turnStatus() shouldBe "STATUS_DONE"
-                answer.envelopes().shouldNotBeEmpty()
+                // Surface the whole turn on failure — if it's not STATUS_DONE (e.g. a clarification
+                // because the WireMock/Anthropic reply didn't decode into the render-only MiniPlan),
+                // the body names exactly what Golem produced (status + messages + envelopes).
+                withClue({ "golem turn: httpStatus=${answer.status} body=${answer.body}" }) {
+                    answer.status shouldBe 200
+                    answer.turnStatus() shouldBe "STATUS_DONE"
+                    answer.envelopes().shouldNotBeEmpty()
+                }
             }
     })
