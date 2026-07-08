@@ -242,6 +242,33 @@ it-bp-dsk context olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/ol
         exit 1
     fi
 
+# The bp-dsk on-demand FULL run-set (deploy-test WS-C2 T7 → MP-4). Runs every context listed in
+# deployment/test/bp-dsk-run-set.txt sequentially through the single-context `it-bp-dsk` flow
+# (each does its own namespace-per-run bring-up → integrationTest → teardown, so they can't
+# collide). Continues past a failing context, prints a PASS/FAIL summary, and exits non-zero if
+# any context failed — so one red context doesn't hide the rest. The scheduled nightly
+# (bp-olymp01) is separate + unaffected. See docs/implementation/v1/deploy-test/runbook-bp-dsk.md.
+#   just it-bp-dsk-all
+#   OLYMP_DIR=~/src/olymp just it-bp-dsk-all
+it-bp-dsk-all olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/olymp"):
+    #!/usr/bin/env bash
+    set -uo pipefail
+    SET_FILE="deployment/test/bp-dsk-run-set.txt"
+    if [ ! -f "$SET_FILE" ]; then echo "❌ run-set file not found: $SET_FILE" >&2; exit 1; fi
+    # Strip comments + blank lines to the context list.
+    mapfile -t CONTEXTS < <(sed -E 's/#.*//; s/[[:space:]]+$//' "$SET_FILE" | grep -vE '^[[:space:]]*$')
+    if [ "${#CONTEXTS[@]}" -eq 0 ]; then echo "❌ run-set is empty" >&2; exit 1; fi
+    echo "== it-bp-dsk-all: ${#CONTEXTS[@]} contexts on dsk → ${CONTEXTS[*]} =="
+    declare -a PASSED=() FAILED=()
+    for ctx in "${CONTEXTS[@]}"; do
+        echo; echo "######## run-set: $ctx ########"
+        if just it-bp-dsk "$ctx" "{{olymp_dir}}"; then PASSED+=("$ctx"); else FAILED+=("$ctx"); fi
+    done
+    echo; echo "== it-bp-dsk-all summary =="
+    echo "  ✅ passed (${#PASSED[@]}): ${PASSED[*]:-none}"
+    echo "  ❌ failed (${#FAILED[@]}): ${FAILED[*]:-none}"
+    [ "${#FAILED[@]}" -eq 0 ]
+
 # Render every module chart (`<module>/k8s`) with `helm template` (chart default
 # values) and diff against the checked-in goldens in shared/charts/.golden/. The
 # regression gate for the kantheon-service library-chart migration (WS-D S1):
