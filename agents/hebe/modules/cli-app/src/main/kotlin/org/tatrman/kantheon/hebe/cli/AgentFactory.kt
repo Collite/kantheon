@@ -93,6 +93,7 @@ object AgentFactory {
         suspend fun disconnectAll()
     }
 
+    @Suppress("LongMethod")
     fun build(
         config: HebeConfig,
         secretStore: SecretStoreProvider,
@@ -104,7 +105,8 @@ object AgentFactory {
         // tests are unaffected (BYOK).
         axes: org.tatrman.kantheon.hebe.config.Axes =
             org.tatrman.kantheon.hebe.config.ProfileResolver.resolve(
-                org.tatrman.kantheon.hebe.config.RawAxisConfig(),
+                org.tatrman.kantheon.hebe.config
+                    .RawAxisConfig(),
             ),
     ): AgentComponents {
         val receiptsDir = workspaceRoot.resolve("receipts")

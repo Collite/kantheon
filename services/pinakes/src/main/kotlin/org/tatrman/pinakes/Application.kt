@@ -221,7 +221,14 @@ fun Application.module(meterRegistry: PrometheusMeterRegistry) {
     install(ContentNegotiation) { json() }
     routing {
         get("/health") { call.respond(buildJsonObject { put("status", "UP") }) }
-        get("/ready") { call.respond(buildJsonObject { put("status", "UP"); put("stage", "1.3") }) }
+        get("/ready") {
+            call.respond(
+                buildJsonObject {
+                    put("status", "UP")
+                    put("stage", "1.3")
+                },
+            )
+        }
         get("/status") {
             call.respond(
                 buildJsonObject {

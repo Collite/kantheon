@@ -49,14 +49,14 @@ class FileSecretStore(
             val text = Files.readString(file).trim()
             if (text.isEmpty() || text == "{}") return mutableMapOf()
             // Minimal flat-JSON parse ("a":"b") — values are base64, no nesting.
-            text.removeSurrounding("{", "}")
+            text
+                .removeSurrounding("{", "}")
                 .split(',')
                 .filter { it.isNotBlank() }
                 .associate { pair ->
                     val (k, v) = pair.split(':', limit = 2)
                     k.trim().removeSurrounding("\"") to v.trim().removeSurrounding("\"")
-                }
-                .toMutableMap()
+                }.toMutableMap()
         }
 
     private fun write(map: Map<String, String>) =

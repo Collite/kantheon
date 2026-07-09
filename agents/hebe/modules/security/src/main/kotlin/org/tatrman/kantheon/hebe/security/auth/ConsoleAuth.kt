@@ -29,9 +29,13 @@ enum class ConsoleAuthMode {
 
 /** The outcome of verifying a console credential. */
 sealed interface ConsoleAuthResult {
-    data class Authenticated(val subject: String) : ConsoleAuthResult
+    data class Authenticated(
+        val subject: String,
+    ) : ConsoleAuthResult
 
-    data class Rejected(val reason: String) : ConsoleAuthResult
+    data class Rejected(
+        val reason: String,
+    ) : ConsoleAuthResult
 }
 
 /**
@@ -66,8 +70,9 @@ class OidcSessionVerifier(
         }
         val exp = (claims["exp"] as? Number)?.toLong()
         if (exp != null && exp <= now()) return ConsoleAuthResult.Rejected("token expired")
-        val subject = (claims["preferred_username"] ?: claims["sub"]) as? String
-            ?: return ConsoleAuthResult.Rejected("no subject")
+        val subject =
+            (claims["preferred_username"] ?: claims["sub"]) as? String
+                ?: return ConsoleAuthResult.Rejected("no subject")
         return ConsoleAuthResult.Authenticated(subject)
     }
 }

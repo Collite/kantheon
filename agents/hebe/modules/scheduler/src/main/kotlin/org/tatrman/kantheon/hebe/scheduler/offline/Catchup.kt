@@ -11,7 +11,9 @@ package org.tatrman.kantheon.hebe.scheduler.offline
  * supplies the [RoutineSchedule]s; this planner decides what to fire and how to
  * advance `next_run_at`.
  */
-enum class CatchupPolicy(val token: String) {
+enum class CatchupPolicy(
+    val token: String,
+) {
     /** One owed fire on boot regardless of how many were missed (default for kantheon_question). */
     RUN_ONCE_ON_WAKE("run_once_on_wake"),
 
@@ -23,8 +25,7 @@ enum class CatchupPolicy(val token: String) {
     ;
 
     companion object {
-        fun from(token: String): CatchupPolicy =
-            entries.firstOrNull { it.token == token } ?: RUN_ONCE_ON_WAKE
+        fun from(token: String): CatchupPolicy = entries.firstOrNull { it.token == token } ?: RUN_ONCE_ON_WAKE
     }
 }
 

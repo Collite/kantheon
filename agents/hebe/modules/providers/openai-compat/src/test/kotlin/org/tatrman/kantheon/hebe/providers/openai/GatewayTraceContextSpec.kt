@@ -24,48 +24,49 @@ import kotlinx.coroutines.test.runTest
  * active span context, the gateway request carries a `traceparent` whose trace
  * id matches; with no active span, no `traceparent` is sent.
  */
-class GatewayTraceContextSpec : StringSpec({
+class GatewayTraceContextSpec :
+    StringSpec({
 
-    val captured = mutableListOf<HttpRequestData>()
-    val sse = "data: {\"delta\":{\"content\":\"ok\"}}\n\ndata: [DONE]"
+        val captured = mutableListOf<HttpRequestData>()
+        val sse = "data: {\"delta\":{\"content\":\"ok\"}}\n\ndata: [DONE]"
 
-    fun provider(): OpenAiCompatProvider {
-        captured.clear()
-        val engine =
-            MockEngine { request ->
-                captured.add(request)
-                respond(ByteReadChannel(sse), headers = headersOf(HttpHeaders.ContentType, "text/event-stream"))
+        fun provider(): OpenAiCompatProvider {
+            captured.clear()
+            val engine =
+                MockEngine { request ->
+                    captured.add(request)
+                    respond(ByteReadChannel(sse), headers = headersOf(HttpHeaders.ContentType, "text/event-stream"))
+                }
+            val client = GatewayClient.build(apiKey = "k", costCenter = "hebe/x", engine = engine)
+            return OpenAiCompatProvider(baseUrl = "https://gw/v1", defaultModel = "m", httpClient = client)
+        }
+
+        val traceId = "0af7651916cd43dd8448eb211c80319c"
+        val spanId = "b7ad6b7169203331"
+
+        "an active span context produces a matching traceparent header" {
+            runTest {
+                val ctx =
+                    Context.root().with(
+                        Span.wrap(
+                            SpanContext.create(traceId, spanId, TraceFlags.getSampled(), TraceState.getDefault()),
+                        ),
+                    )
+                val scope = ctx.makeCurrent()
+                try {
+                    provider().chat(ChatRequest("", "s", listOf(ChatMessage.User("hi")), emptyList())).toList()
+                } finally {
+                    scope.close()
+                }
+                val tp = captured.single().headers["traceparent"]!!
+                tp shouldStartWith "00-$traceId-"
             }
-        val client = GatewayClient.build(apiKey = "k", costCenter = "hebe/x", engine = engine)
-        return OpenAiCompatProvider(baseUrl = "https://gw/v1", defaultModel = "m", httpClient = client)
-    }
+        }
 
-    val traceId = "0af7651916cd43dd8448eb211c80319c"
-    val spanId = "b7ad6b7169203331"
-
-    "an active span context produces a matching traceparent header" {
-        runTest {
-            val ctx =
-                Context.root().with(
-                    Span.wrap(
-                        SpanContext.create(traceId, spanId, TraceFlags.getSampled(), TraceState.getDefault()),
-                    ),
-                )
-            val scope = ctx.makeCurrent()
-            try {
+        "no active span ⇒ no traceparent header" {
+            runTest {
                 provider().chat(ChatRequest("", "s", listOf(ChatMessage.User("hi")), emptyList())).toList()
-            } finally {
-                scope.close()
+                captured.single().headers["traceparent"] shouldBe null
             }
-            val tp = captured.single().headers["traceparent"]!!
-            tp shouldStartWith "00-$traceId-"
         }
-    }
-
-    "no active span ⇒ no traceparent header" {
-        runTest {
-            provider().chat(ChatRequest("", "s", listOf(ChatMessage.User("hi")), emptyList())).toList()
-            captured.single().headers["traceparent"] shouldBe null
-        }
-    }
-})
+    })

@@ -20,7 +20,9 @@ enum class ToolPosture {
 }
 
 /** The tool families posture reasons about. */
-enum class ToolFamily(val token: String) {
+enum class ToolFamily(
+    val token: String,
+) {
     SHELL("shell"),
     KUBECTL("kubectl"),
     GIT("git"),
@@ -65,7 +67,9 @@ enum class ToolFamily(val token: String) {
 sealed interface PostureDecision {
     data object Allow : PostureDecision
 
-    data class Deny(val family: ToolFamily) : PostureDecision
+    data class Deny(
+        val family: ToolFamily,
+    ) : PostureDecision
 }
 
 /**

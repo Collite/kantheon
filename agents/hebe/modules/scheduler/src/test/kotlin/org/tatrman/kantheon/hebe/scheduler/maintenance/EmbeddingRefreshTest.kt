@@ -17,7 +17,8 @@ private fun fakeLlmProvider() =
             )
 
         override fun capabilities() =
-            org.tatrman.kantheon.hebe.api.ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
+            org.tatrman.kantheon.hebe.api
+                .ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
     }
 
 class EmbeddingRefreshTest :

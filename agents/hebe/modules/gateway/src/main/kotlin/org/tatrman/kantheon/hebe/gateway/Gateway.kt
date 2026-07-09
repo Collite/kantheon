@@ -90,7 +90,9 @@ class Gateway {
         installAuth(secretStore, passwordSecret)
 
         mcpDeps?.let { deps ->
-            val mcpServer = org.tatrman.kantheon.hebe.mcp.createHebeMcpServer()
+            val mcpServer =
+                org.tatrman.kantheon.hebe.mcp
+                    .createHebeMcpServer()
             installMcpHttpTransport(mcpServer, deps.config, deps.registry, deps.dispatcher, "gateway-http")
         }
 

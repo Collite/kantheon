@@ -54,7 +54,15 @@ class ReportRendererComponentSpec :
                     template,
                     ReportData(
                         scalars = mapOf("portfolio.name" to "Smith Family", "as_of" to "2026-07-07"),
-                        tables = mapOf("positions" to listOf(listOf("AAPL", "100"), listOf("MSFT", "50"), listOf("NVDA", "25"))),
+                        tables =
+                            mapOf(
+                                "positions" to
+                                    listOf(
+                                        listOf("AAPL", "100"),
+                                        listOf("MSFT", "50"),
+                                        listOf("NVDA", "25"),
+                                    ),
+                            ),
                     ),
                 )
 
@@ -77,7 +85,10 @@ class ReportRendererComponentSpec :
                 sheet.getRow(4).getCell(0).stringCellValue shouldBe "NVDA"
 
                 // The anchor's number format propagated to the expanded rows (style preservation).
-                sheet.getRow(4).getCell(0).cellStyle.dataFormatString shouldBe "#,##0.00"
+                sheet
+                    .getRow(4)
+                    .getCell(0)
+                    .cellStyle.dataFormatString shouldBe "#,##0.00"
 
                 // The anchor is a plain value cell now — the `{{table:…}}` marker was consumed.
                 sheet.getRow(2).getCell(0).cellType shouldBe CellType.STRING

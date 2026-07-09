@@ -99,7 +99,9 @@ object McpDispatcherFactory {
 
         override suspend fun systemPrompt(isGroup: Boolean): String = ""
 
-        override suspend fun snapshot(): org.tatrman.kantheon.hebe.api.MemorySnapshot = org.tatrman.kantheon.hebe.api.MemorySnapshot(0, 0, 0)
+        override suspend fun snapshot(): org.tatrman.kantheon.hebe.api.MemorySnapshot =
+            org.tatrman.kantheon.hebe.api
+                .MemorySnapshot(0, 0, 0)
     }
 
     /**

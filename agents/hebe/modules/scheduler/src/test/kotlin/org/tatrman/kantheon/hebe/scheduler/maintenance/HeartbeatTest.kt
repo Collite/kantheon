@@ -42,7 +42,9 @@ private fun noopMemoryStore() =
 
         override suspend fun systemPrompt(isGroup: Boolean): String = ""
 
-        override suspend fun snapshot(): org.tatrman.kantheon.hebe.api.MemorySnapshot = org.tatrman.kantheon.hebe.api.MemorySnapshot(0, 0, 0)
+        override suspend fun snapshot(): org.tatrman.kantheon.hebe.api.MemorySnapshot =
+            org.tatrman.kantheon.hebe.api
+                .MemorySnapshot(0, 0, 0)
     }
 
 private fun noopLlmProvider(response: String) =
@@ -55,7 +57,8 @@ private fun noopLlmProvider(response: String) =
             )
 
         override fun capabilities() =
-            org.tatrman.kantheon.hebe.api.ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
+            org.tatrman.kantheon.hebe.api
+                .ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
     }
 
 private fun noopApprovalGate() =
@@ -114,7 +117,9 @@ private fun noopReceipts() =
         override suspend fun append(partial: org.tatrman.kantheon.hebe.api.PartialReceipt): Long = 0L
     }
 
-private fun createFakeDispatcher(memory: org.tatrman.kantheon.hebe.api.MemoryStore): org.tatrman.kantheon.hebe.tools.dispatch.ToolDispatcher =
+private fun createFakeDispatcher(
+    memory: org.tatrman.kantheon.hebe.api.MemoryStore,
+): org.tatrman.kantheon.hebe.tools.dispatch.ToolDispatcher =
     org.tatrman.kantheon.hebe.tools.dispatch.ToolDispatcher(
         registry =
             org.tatrman.kantheon.hebe.tools.dispatch
@@ -138,7 +143,12 @@ private fun noopCostGuard() =
 private fun noopCompactor(): org.tatrman.kantheon.hebe.core.compaction.PreemptivePruner {
     val compactorLlm = mockk<org.tatrman.kantheon.hebe.api.LlmProvider>()
     every { compactorLlm.capabilities() } returns
-        org.tatrman.kantheon.hebe.api.ProviderCapabilities(streaming = true, toolUse = false, multimodal = false, maxContextTokens = 128_000)
+        org.tatrman.kantheon.hebe.api.ProviderCapabilities(
+            streaming = true,
+            toolUse = false,
+            multimodal = false,
+            maxContextTokens = 128_000,
+        )
     val workspaceFs = mockk<org.tatrman.kantheon.hebe.memory.workspace.WorkspaceFs>(relaxed = true)
     val config =
         org.tatrman.kantheon.hebe.config.HebeConfig

@@ -166,7 +166,8 @@ class Heartbeat(
                         msg: org.tatrman.kantheon.hebe.api.OutboundMessage,
                     ) {}
 
-                    override suspend fun healthCheck(): org.tatrman.kantheon.hebe.api.ChannelHealth = org.tatrman.kantheon.hebe.api.ChannelHealth.Up
+                    override suspend fun healthCheck(): org.tatrman.kantheon.hebe.api.ChannelHealth =
+                        org.tatrman.kantheon.hebe.api.ChannelHealth.Up
 
                     @Suppress("EmptyFunctionBlock")
                     override suspend fun shutdown() {}

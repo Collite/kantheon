@@ -92,7 +92,11 @@ class McpClientManager(
                 }
 
                 attempt++
-                logger.warn("MCP server '{}' connection failed (attempt $attempt), retrying in ${currentRetryMs / 1000}s: {}", config.name, e.message)
+                logger.warn(
+                    "MCP server '{}' connection failed (attempt $attempt), retrying in ${currentRetryMs / 1000}s: {}",
+                    config.name,
+                    e.message,
+                )
                 serverStatuses[config.name] = McpServerStatus.Reconnecting(attempt, currentRetryMs)
 
                 delay(currentRetryMs)
@@ -201,7 +205,8 @@ class McpClientManager(
                 } catch (e: Exception) {
                     logger.warn("MCP server '{}' monitor detected disconnect: {}", config.name, e.message)
                     connectedClients.remove(config.name)
-                    registry.list()
+                    registry
+                        .list()
                         .filter { it.spec.name.startsWith("mcp_${config.name}_") }
                         .forEach { registry.unregister(it.spec.name) }
                     serverStatuses[config.name] = McpServerStatus.Reconnecting(0, INITIAL_RETRY_MS)
@@ -234,6 +239,5 @@ class McpClientManager(
         }
     }
 
-    fun connectionStatus(): Map<String, McpServerStatus> =
-        serverStatuses.toMap()
+    fun connectionStatus(): Map<String, McpServerStatus> = serverStatuses.toMap()
 }

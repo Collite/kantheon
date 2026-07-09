@@ -286,6 +286,9 @@ validate-charts mode="check":
 lint-all:
     ./gradlew ktlintCheck detekt --no-daemon
 
+lint-kt:
+    ./gradlew ktlintFormat detekt --no-daemon
+
 # --- Hebe (personal autonomous agent) ----------------------------------------
 # Hebe's 21 modules became kantheon root-build modules in P1 Stage 1.1. These
 # recipes mirror the standalone `just` recipes the gradle merge retired.

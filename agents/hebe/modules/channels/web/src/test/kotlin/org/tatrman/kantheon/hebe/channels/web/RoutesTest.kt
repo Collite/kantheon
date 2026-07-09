@@ -159,7 +159,8 @@ class RoutesTest {
                     sessionId = "reply-target",
                     threadId = null,
                 ),
-                org.tatrman.kantheon.hebe.api.OutboundMessage("Reply text"),
+                org.tatrman.kantheon.hebe.api
+                    .OutboundMessage("Reply text"),
             )
 
             val events = session.getEventsSince(0)

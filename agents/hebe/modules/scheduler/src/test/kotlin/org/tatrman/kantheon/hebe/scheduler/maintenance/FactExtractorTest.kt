@@ -19,7 +19,8 @@ private fun fakeLlmProvider() =
             )
 
         override fun capabilities() =
-            org.tatrman.kantheon.hebe.api.ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
+            org.tatrman.kantheon.hebe.api
+                .ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
     }
 
 private fun emptyLlmProvider() =
@@ -32,7 +33,8 @@ private fun emptyLlmProvider() =
             )
 
         override fun capabilities() =
-            org.tatrman.kantheon.hebe.api.ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
+            org.tatrman.kantheon.hebe.api
+                .ProviderCapabilities(streaming = false, toolUse = false, multimodal = false, maxContextTokens = 0)
     }
 
 private fun insertAssistantMessage(

@@ -27,6 +27,11 @@ fun Route.adminRoutes(embeddingService: EmbeddingService) {
             return@post
         }
         val ok = embeddingService.embedSource(id)
-        call.respond(buildJsonObject { put("sourceId", id); put("embedded", ok) })
+        call.respond(
+            buildJsonObject {
+                put("sourceId", id)
+                put("embedded", ok)
+            },
+        )
     }
 }

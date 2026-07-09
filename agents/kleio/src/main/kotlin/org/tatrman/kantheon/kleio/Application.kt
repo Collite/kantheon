@@ -90,7 +90,14 @@ fun Application.module(
     install(ContentNegotiation) { json() }
     routing {
         get("/health") { call.respond(buildJsonObject { put("status", "UP") }) }
-        get("/ready") { call.respond(buildJsonObject { put("status", "UP"); put("agent", "kleio") }) }
+        get("/ready") {
+            call.respond(
+                buildJsonObject {
+                    put("status", "UP")
+                    put("agent", "kleio")
+                },
+            )
+        }
         get("/metrics") { call.respondText(meterRegistry.scrape(), ContentType.Text.Plain) }
 
         // The grounded mart turn (KleioRequest → GroundedResponse, proto-JSON).

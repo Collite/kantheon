@@ -191,7 +191,8 @@ class ChannelManagerImpl(
                     sessionId = effectiveSessionId,
                     threadId = msg.threadId,
                 ),
-                org.tatrman.kantheon.hebe.api.OutboundMessage(text = "Error: ${outcome.message}"),
+                org.tatrman.kantheon.hebe.api
+                    .OutboundMessage(text = "Error: ${outcome.message}"),
             )
         }
         observer.event(ObserverEvent.TurnEnd(sessionId = effectiveSessionId, turnId = turnId, outcome = "failed"))

@@ -11,7 +11,9 @@ class StuckJobDetectorTest :
     StringSpec({
         "run with no stuck jobs returns zero" {
             val db = DbFactory.openInMemory()
-            val repo = org.tatrman.kantheon.hebe.scheduler.JobRepo(db)
+            val repo =
+                org.tatrman.kantheon.hebe.scheduler
+                    .JobRepo(db)
             val detector = StuckJobDetector(db, repo)
 
             val result = detector.run()
@@ -23,7 +25,9 @@ class StuckJobDetectorTest :
 
         "run marks stuck jobs and returns count" {
             val db = DbFactory.openInMemory()
-            val repo = org.tatrman.kantheon.hebe.scheduler.JobRepo(db)
+            val repo =
+                org.tatrman.kantheon.hebe.scheduler
+                    .JobRepo(db)
             val oldTime = System.currentTimeMillis() - 60 * 60 * 1000
             insertRunningJob(db, "job-stuck-1", oldTime)
 
@@ -40,7 +44,9 @@ class StuckJobDetectorTest :
 
         "retryable stuck job creates new pending job" {
             val db = DbFactory.openInMemory()
-            val repo = org.tatrman.kantheon.hebe.scheduler.JobRepo(db)
+            val repo =
+                org.tatrman.kantheon.hebe.scheduler
+                    .JobRepo(db)
             val oldTime = System.currentTimeMillis() - 60 * 60 * 1000
             insertRunningJob(db, "job-retry-1", oldTime, payload = """{"retryable": true}""")
 
@@ -57,7 +63,9 @@ class StuckJobDetectorTest :
 
         "non-retryable stuck job does not create new job" {
             val db = DbFactory.openInMemory()
-            val repo = org.tatrman.kantheon.hebe.scheduler.JobRepo(db)
+            val repo =
+                org.tatrman.kantheon.hebe.scheduler
+                    .JobRepo(db)
             val oldTime = System.currentTimeMillis() - 60 * 60 * 1000
             insertRunningJob(db, "job-no-retry", oldTime, payload = """{}""")
 

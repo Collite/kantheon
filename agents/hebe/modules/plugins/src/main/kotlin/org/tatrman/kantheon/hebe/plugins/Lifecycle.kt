@@ -109,10 +109,11 @@ open class Lifecycle(
             }
             pluginStore.register(pluginId, namespacedTools)
             log.info("Plugin '{}' started with {} tool(s)", pluginId, namespacedTools.size)
-            observer.span(
-                "plugin.start",
-                mapOf("plugin.id" to pluginId, "plugin.version" to pluginWrapper.descriptor.version),
-            ).use { span -> }
+            observer
+                .span(
+                    "plugin.start",
+                    mapOf("plugin.id" to pluginId, "plugin.version" to pluginWrapper.descriptor.version),
+                ).use { span -> }
         } catch (e: Exception) {
             log.error("Plugin '{}' init failed: {}", pluginId, e.message, e)
             observer.span("plugin_init_error", mapOf("pluginId" to pluginId)).use { span ->

@@ -35,7 +35,10 @@ class OboTokenService(
     private val mutex = Mutex()
     private var cached: CachedToken? = null
 
-    private data class CachedToken(val accessToken: String, val expiresAtEpochSec: Long)
+    private data class CachedToken(
+        val accessToken: String,
+        val expiresAtEpochSec: Long,
+    )
 
     /** The bound user this service acts for. */
     val boundUser: String get() = strategy.boundUser
@@ -58,7 +61,10 @@ class OboTokenService(
 }
 
 /** A minted token + its lifetime, from a [GrantStrategy]. */
-data class MintedToken(val accessToken: String, val expiresInSeconds: Long)
+data class MintedToken(
+    val accessToken: String,
+    val expiresInSeconds: Long,
+)
 
 /** Pluggable Keycloak grant path. */
 interface GrantStrategy {

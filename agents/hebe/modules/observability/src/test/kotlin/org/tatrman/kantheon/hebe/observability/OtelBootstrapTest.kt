@@ -27,7 +27,13 @@ class OtelBootstrapTest {
         val spans = exporter.finishedSpanItems
         assertEquals(1, spans.size)
         assertEquals("routine.fire", spans[0].name)
-        assertTrue(spans[0].attributes.asMap().keys.any { it.key == "job.id" })
+        assertTrue(
+            spans[0]
+                .attributes
+                .asMap()
+                .keys
+                .any { it.key == "job.id" },
+        )
         provider.close()
     }
 

@@ -117,7 +117,11 @@ object GatewayClient {
                 // spans cron-tick → gateway → … (no active span ⇒ no-op).
                 io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
                     .getInstance()
-                    .inject(io.opentelemetry.context.Context.current(), request) { req, key, value ->
+                    .inject(
+                        io.opentelemetry.context.Context
+                            .current(),
+                        request,
+                    ) { req, key, value ->
                         req?.headers?.append(key, value)
                     }
             }

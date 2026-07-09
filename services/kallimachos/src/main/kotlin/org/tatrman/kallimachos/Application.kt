@@ -131,7 +131,13 @@ fun Application.probeModule(
         // Ready once the corpus planes are wired (Stage 1.2). P2 adds the
         // vector/AGE extension checks to this gate.
         get("/ready") {
-            call.respond(buildJsonObject { put("status", "UP"); put("stage", "1.2"); put("profile", storageProfile) })
+            call.respond(
+                buildJsonObject {
+                    put("status", "UP")
+                    put("stage", "1.2")
+                    put("profile", storageProfile)
+                },
+            )
         }
         get("/status") {
             call.respond(
