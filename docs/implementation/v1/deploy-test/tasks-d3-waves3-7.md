@@ -147,17 +147,24 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
 
 ## Wave 7 — infra (`whois`, `health`, `landing` FE — in scope; `backstage`, `kallimachos-browse` — best-effort)
 
-- [ ] **T1 [O] — Platform deps.** `whois`: its **own Postgres** (not the shared cluster — per the fork,
-      whois carries its own PG) + OPA bundle; `health`: none (aggregator — check targets re-pointed to the
-      kantheon estate); `landing`: none (nginx); `backstage`: its existing `backstage-postgres` (waves-1–2
-      T1 noted it uses its own). Keycloak clients for the FEs (hand-off).
-- [ ] **T2 [O] — App dirs.** `whois`, `health`, `landing` (in scope). `backstage`, `kallimachos-browse`
-      (best-effort — author if cheap, do not block the program).
+- [x] **T1 [O] — Platform deps.** **NONE needed for the in-scope three (bring-up):** `whois` runs in
+      `json` repository mode (chart default) — loads the bundled classpath fixture, DB-less, no OPA
+      mount (BundleHandler is lazy). Its **own Postgres** + `db` mode + Keycloak/ERP role-sync is the
+      fork end-state, deferred as a follow-up (Argos whois-enrichment off by default → bearer, so not a
+      gate). `health`: none (self-liveness probe `/health/all?threshold=0`; some bundled targets point at
+      pre-fork FQDNs → re-point later). `landing`: none (nginx; auth off for bring-up → no Keycloak
+      client hand-off yet). `backstage`: its own `backstage-postgres` (best-effort, not authored).
+- [x] **T2 [O] — App dirs.** **3 in-scope apps AUTHORED 2026-07-09 (olymp `feat/d3-wave7`: `12796ac`).**
+      `whois` (json mode), `health` (defaults), `landing` (HTTPRoute on `eg` at
+      `landing.192-168-1-38.nip.io` + estate deep-links). Probe paths verified against actual routes
+      (whois `/ready`+`/health`, health `/health/all`, landing `/healthz`). All render; `just validate
+      bp-dsk` clean (65 objects). config.json pin `master` (T5 pre-satisfied). `backstage`,
+      `kallimachos-browse` (best-effort) — not authored (backstage needs a custom Node image + its own PG).
 - [ ] **T3 — Images.** Publish `whois:testing`, `health:testing`, `landing:testing` (FE nginx); backstage
-      custom build (best-effort).
+      custom build (best-effort). **← hand-off (Bora's PAT).**
 - [ ] **T4 — Sync + smoke (hand-off).** **`landing` reachable = the program gate** (D3 §7-D3);
       whois `/health` + role lookup; health roll-up green.
-- [ ] **T5 [K/O] — chartRevision→`master`** on merge.
+- [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — all 3 config.json pin `master`.
 
 ---
 
