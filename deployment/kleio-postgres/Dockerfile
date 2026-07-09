@@ -6,9 +6,15 @@
 # the CNPG PG18 base (which keeps the CNPG contract: barman-cloud, the postgres uid 26,
 # the entrypoint). pg_trgm is core contrib (already present).
 #
-# Build + push (from repo root):
-#   docker build -t ghcr.io/boraperusic/kleio-postgres:testing deployment/kleio-postgres
-#   docker push  ghcr.io/boraperusic/kleio-postgres:testing
+# Build + push (from repo root). Two rules:
+#   1. the tag MUST encode the PG major version — CNPG parses it to determine the Postgres major
+#      and rejects a bare `:testing` ("invalid version tag"). Use `:18` (matches the PG18 base).
+#   2. build for the CLUSTER's arch (bp-dsk nodes are linux/amd64) — a plain `docker build` on an
+#      Apple-Silicon Mac produces arm64-only and the node fails with "no match for platform".
+# Use buildx and push straight to the registry (a foreign-arch build can't load into the local
+# daemon). AGE compiles from source, so under QEMU emulation this is slow but works:
+#   docker buildx build --platform linux/amd64 -t ghcr.io/boraperusic/kleio-postgres:18 \
+#     --push deployment/kleio-postgres
 # The olymp Cluster `kleio-pg` references this via spec.imageName.
 #
 # PIN the base tag deliberately — CNPG operand tags float. `18-standard-bookworm` is the

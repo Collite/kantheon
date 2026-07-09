@@ -116,9 +116,11 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
       shared `postgres`** (role removed from `postgres/base/cluster.yaml`; DB removed from
       `databases.yaml`; `pg-kleio-cred` relocated to `kleio-pg/overlays/bp-dsk`). Files:
       `olymp platform/data/kleio-pg/{base/cluster.yaml, base/kustomization.yaml, overlays/bp-dsk/*}`,
-      registered in `clusters/bp-dsk/platform/data/kustomization.yaml`. Both overlays kustomize-build
-      clean. **Hand-off: build + push `ghcr.io/boraperusic/kleio-postgres:testing`** (Dockerfile needs
-      a build-test — AGE-on-PG18 compile + confirm the `postgresql-18-pgvector` apt pkg resolves).
+      registered in `clusters/bp-dsk/platform/data/kustomization.yaml`. **DONE 2026-07-09 — kleio-pg
+      LIVE on bp-dsk** (PG 18.4 x86_64; `\dx` = age/pg_trgm/vector; four-plane smoke passes). Image at
+      `ghcr.io/boraperusic/kleio-postgres:18` (PG-major tag, `linux/amd64`, private → ghcr-pull in the
+      `data` ns). **Full creation+install runbook — image, manifests, every bring-up gotcha,
+      verification: [`kleio-pg.md`](./kleio-pg.md).** Remaining = the kleio APP wiring (T2).
       `kallimachos`/`pinakes`/`kallimachos-mcp`: confirm deps (pinakes = artifact store? kallimachos =
       browse/index). Hebe Keycloak OBO client for any platform-reaching profile.
 - [ ] **T2 [O] — App dirs.** 5 apps. Hebe app = the `cli-app` server-mode image (`:testing`, port 8765),
