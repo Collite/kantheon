@@ -161,8 +161,13 @@ jobs:
         with: { distribution: temurin, java-version: '21' }
       - uses: gradle/actions/setup-gradle@v5
         if: steps.lane.outputs.lane == 'kotlin'
-      - name: Gradle auth for Collite/modeler (TTR toolchain)
-        if: steps.lane.outputs.lane == 'kotlin'
+      # Both the Kotlin lane (jib compiles against the TTR toolchain) and the Python
+      # lane (build-py -> proto-py -> `:shared:proto:preparePythonPackage` resolves the
+      # tatrman proto artifacts) need auth to the Collite/tatrman GitHub Packages repo.
+      # GITHUB_TOKEN is NOT auto-exported to env, so without this the Python builds hit
+      # the repo anonymously -> deterministic 401 (kadmos/metis/steropes).
+      - name: Gradle auth for Collite/tatrman (TTR toolchain)
+        if: steps.lane.outputs.lane == 'kotlin' || steps.lane.outputs.lane == 'python'
         env:
           GPR_USER: ${{ secrets.MODELER_PKG_USER != '' && secrets.MODELER_PKG_USER || github.actor }}
           GPR_TOKEN: ${{ secrets.MODELER_PKG_TOKEN != '' && secrets.MODELER_PKG_TOKEN || secrets.GITHUB_TOKEN }}
