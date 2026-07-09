@@ -1,0 +1,103 @@
+channel,r_reason_desc,lines,amt
+catalog,reason 31                                                                                           ,8135,10793378
+catalog,duplicate purchase                                                                                  ,4123,5495127
+catalog,reason 26                                                                                           ,4129,5384618
+catalog,it is a girl                                                                                        ,4075,5367036
+catalog,reason 32                                                                                           ,4013,5339861
+catalog,reason 29                                                                                           ,4011,5315596
+catalog,Did not like the make                                                                               ,4023,5303912
+catalog,reason 27                                                                                           ,4038,5294557
+catalog,unauthoized purchase                                                                                ,4044,5294542
+catalog,Did not like the warranty                                                                           ,4090,5275505
+catalog,Stopped working                                                                                     ,4026,5266945
+catalog,Lost my job                                                                                         ,4037,5241423
+catalog,Not the product that was ordred                                                                     ,4052,5231657
+catalog,reason 35                                                                                           ,4085,5224638
+catalog,Not working any more                                                                                ,4073,5223799
+catalog,Parts missing                                                                                       ,3996,5218981
+catalog,reason 25                                                                                           ,4037,5217522
+catalog,Gift exchange                                                                                       ,4000,5188112
+catalog,Did not fit                                                                                         ,4013,5180305
+catalog,reason 23                                                                                           ,4093,5157468
+catalog,Did not like the color                                                                              ,4070,5143060
+catalog,Did not get it on time                                                                              ,4116,5141189
+catalog,reason 33                                                                                           ,4013,5132180
+catalog,reason 28                                                                                           ,4027,5128393
+catalog,reason 24                                                                                           ,4013,5104891
+catalog,No service location in my area                                                                      ,4009,5092177
+catalog,Wrong size                                                                                          ,3934,5076085
+catalog,Package was damaged                                                                                 ,4030,5069730
+catalog,Found a better price in a store                                                                     ,4029,5068512
+catalog,Does not work with a product that I have                                                            ,3978,5063111
+catalog,Found a better extended warranty in a store                                                         ,3973,5052720
+catalog,its is a boy                                                                                        ,3995,5020434
+catalog,reason 34                                                                                           ,3926,5003686
+catalog,Did not like the model                                                                              ,4021,4904264
+store,reason 31                                                                                           ,15790,15204804
+store,Did not like the make                                                                               ,7896,7816363
+store,reason 24                                                                                           ,7977,7801073
+store,reason 32                                                                                           ,8069,7800194
+store,Did not fit                                                                                         ,8034,7798399
+store,duplicate purchase                                                                                  ,7924,7793710
+store,reason 29                                                                                           ,8032,7789128
+store,Wrong size                                                                                          ,7963,7775838
+store,Package was damaged                                                                                 ,7949,7758885
+store,Gift exchange                                                                                       ,7917,7749238
+store,it is a girl                                                                                        ,8049,7744314
+store,its is a boy                                                                                        ,8104,7702683
+store,Not working any more                                                                                ,7878,7699937
+store,Found a better extended warranty in a store                                                         ,8083,7678509
+store,Did not get it on time                                                                              ,7837,7652957
+store,Found a better price in a store                                                                     ,8000,7643009
+store,reason 35                                                                                           ,7887,7642633
+store,reason 28                                                                                           ,7983,7639327
+store,Not the product that was ordred                                                                     ,7938,7633749
+store,reason 23                                                                                           ,7990,7619856
+store,Did not like the warranty                                                                           ,7857,7609676
+store,Lost my job                                                                                         ,7894,7597465
+store,Did not like the color                                                                              ,7988,7584174
+store,Stopped working                                                                                     ,7912,7567223
+store,Did not like the model                                                                              ,7862,7541257
+store,reason 26                                                                                           ,7812,7505511
+store,reason 25                                                                                           ,7779,7455645
+store,unauthoized purchase                                                                                ,7941,7441845
+store,reason 33                                                                                           ,7938,7431606
+store,reason 27                                                                                           ,7833,7424037
+store,reason 34                                                                                           ,7880,7393008
+store,No service location in my area                                                                      ,7859,7349713
+store,Parts missing                                                                                       ,7934,7315668
+store,Does not work with a product that I have                                                            ,7741,7308591
+web,reason 31                                                                                           ,3899,5045916
+web,Did not like the warranty                                                                           ,1990,2695388
+web,Parts missing                                                                                       ,2034,2651998
+web,Did not like the make                                                                               ,1910,2637255
+web,reason 26                                                                                           ,2029,2635971
+web,Gift exchange                                                                                       ,1998,2616511
+web,reason 32                                                                                           ,2022,2607418
+web,reason 24                                                                                           ,1961,2601197
+web,reason 23                                                                                           ,1981,2595290
+web,reason 29                                                                                           ,2033,2578356
+web,reason 33                                                                                           ,1962,2577467
+web,Did not fit                                                                                         ,1988,2575146
+web,unauthoized purchase                                                                                ,1951,2572640
+web,Package was damaged                                                                                 ,1987,2572627
+web,No service location in my area                                                                      ,2018,2572162
+web,its is a boy                                                                                        ,1953,2571999
+web,it is a girl                                                                                        ,1982,2554371
+web,Found a better extended warranty in a store                                                         ,1939,2526681
+web,Not the product that was ordred                                                                     ,1975,2525515
+web,reason 28                                                                                           ,1950,2518704
+web,reason 25                                                                                           ,1914,2510482
+web,Does not work with a product that I have                                                            ,1945,2499556
+web,Stopped working                                                                                     ,1916,2452870
+web,Not working any more                                                                                ,2025,2451844
+web,Did not like the color                                                                              ,1925,2443993
+web,Found a better price in a store                                                                     ,1934,2424107
+web,reason 34                                                                                           ,1922,2399536
+web,Did not like the model                                                                              ,1924,2360822
+web,duplicate purchase                                                                                  ,1957,2327276
+web,reason 35                                                                                           ,1877,2323808
+web,Lost my job                                                                                         ,1979,2318254
+web,Wrong size                                                                                          ,1875,2245045
+web,reason 27                                                                                           ,1919,2229223
+web,Did not get it on time                                                                              ,1877,2220973

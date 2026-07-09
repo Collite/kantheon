@@ -1,0 +1,16 @@
+t,n
+call_center,6
+catalog_returns,144067
+catalog_sales,1441548
+customer,100000
+inventory,11745000
+item,18000
+promotion,300
+reason,35
+store,12
+store_returns,287514
+store_sales,2880404
+warehouse,5
+web_returns,71763
+web_sales,719384
+web_site,30

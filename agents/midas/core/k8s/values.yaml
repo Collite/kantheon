@@ -45,8 +45,9 @@ telemetry:
   serviceName: midas-core
 
 # Downstream constellation wiring. Defaults match stable in-cluster service names.
+# capabilities-mcp is HTTP-only on 7501 (its chart ports.http; themis/other agents use :7501).
 extraEnv:
-  - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7099" }
+  - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7501" }
 
 # Probes (HTTP on the http port).
 readinessProbe:

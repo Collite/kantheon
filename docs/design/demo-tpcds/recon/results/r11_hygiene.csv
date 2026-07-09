@@ -1,0 +1,10 @@
+metric,value
+catalog_sales_dates,2021-01-01 .. 2026-01-08
+categories,Books | Children | Electronics | Home | Jewelry | Men | Music | Shoes | Sports | Women
+inventory_dates,2021-01-01 .. 2025-12-26
+n_brands,712
+n_classes,99
+ss_customer_null_pct,4.50
+ss_sold_date_null_pct,4.52
+store_sales_dates,2021-01-02 .. 2026-01-02
+web_sales_dates,2021-01-02 .. 2026-01-02
