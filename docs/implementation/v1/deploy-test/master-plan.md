@@ -141,7 +141,7 @@ WS-R bp-dsk ──────────── infra-up --kube dsk + boundary 
 
 - **MP-1 — Query path live on bp-dsk.** WS-D waves 1–3 done (esp. **Arges** + theseus + proteus + argos + kyklop). Unblocks WS-T load target and the `tpcds-query`/`theseus-runquery` contexts on bp-dsk.
 - **MP-2 — TPC-DS queryable.** WS-T load Job green + Ariadne model + curated queries resolve → a manual `theseus query` against `pg-tpcds` returns rows.
-- **MP-3 — Component suite comprehensive.** WS-C component matrix green in CI (no cluster needed — startable **now**, in parallel with everything).
+- **MP-3 — Component suite comprehensive.** WS-C component matrix green in CI (no cluster needed — startable **now**, in parallel with everything). ✅ **REACHED 2026-07-09** — C1 T1–T5 + T7 landed (7 specs; arges/proteus/argos/ariadne/report-renderer), the `test-component` step runs the matrix on every PR + merge, master CI green. T6 (Prometheus) + Charon/Kleio/Hebe rows deferred as arc follow-ups (contracts §5), not blockers.
 - **MP-4 — Integration green on bp-dsk + release tags cut.** WS-R: the run-set (incl. `tpcds-query`) runs green via `infra-up --kube dsk`; then cut the deferred v1 release tags (§7-D6). **Program DONE.**
 
 **Parallelism:** WS-C component tier and the WS-T kantheon-side DDL/model/queries need no cluster and start immediately. WS-D and the olymp-side WS-T/WS-R need bp-dsk. WS-R's `tpcds-query` context is the natural convergence demo.

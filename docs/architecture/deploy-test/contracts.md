@@ -273,7 +273,7 @@ Existing plumbing (testing Phase 1): `componentTest` source set, `@Tag("componen
 
 **Invariants:** `just test-all` collects **zero** `@Tag("component")` (planning-conventions §4 mocked-only gate; enforced structurally by the source-set split + the `test`-classpath leak guard in the root `build.gradle.kts`); component specs run in CI on every PR; image pins are fixed tags (no `latest`). MSSQL specs are **CI-only** (arm64 qemu segfaults — `CiOnly`); the C1 landed specs are all Postgres/no-container, so none needs the gate.
 
-**C1 status (2026-07-07):** landed T1–T5 — 7 green specs across arges/proteus/argos/ariadne/report-renderer (`just test-component`). T6 (Prometheus) deferred per the module policy above. The two scope deviations (investment model, PPTX/PDF/HTML) are unauthored/unwired surfaces, tracked in the row notes.
+**C1 status — DONE, MP-3 closed (2026-07-09):** T1–T5 + T7 landed — 7 green specs across arges/proteus/argos/ariadne/report-renderer, run via the CI `test-component` step on **every PR + merge** (master green). The `test-all` mocked-only gate still collects zero `@Tag("component")` (structural leak guard). T6 (Prometheus) + the Charon/Kleio/Hebe rows stay deferred as arc follow-ups (not MP-3 blockers). The two scope deviations (investment model, PPTX/PDF/HTML) are unauthored/unwired surfaces, tracked in the row notes. CI wrinkle fixed post-landing: `AriadneModelLoadComponentSpec` now reads the bundled model from the authored resources dir on disk (was a `jar:` classpath URI → `FileSystemNotFoundException` on CI, where the module rides the suite classpath as a JAR).
 
 ---
 

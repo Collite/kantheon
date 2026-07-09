@@ -29,7 +29,7 @@ A task is DONE only when its specs are green **both locally and on bp-dsk** (whe
 | | D3 — bp-dsk ArgoCD apps + platform deps (waves 1–7) | [`tasks-d3-bp-dsk-apps.md`](./tasks-d3-bp-dsk-apps.md) | O (+K descriptors) | **query-path chunk authored** (2026-07-05; single-ns; waves 1–2 + platform; live sync + waves 3–7 pending) |
 | **T — TPC-DS** | T1 — `test-pg` server + `tpc-ds-1g` + load Job | [`tasks-t1-test-pg-load.md`](./tasks-t1-test-pg-load.md) | O (+K DDL) | **authored** (2026-07-06; load form proven; live load = runbook `t1-tpcds-load.md`) |
 | | T2 — Ariadne TPC-DS model + curated queries + `pg-tpcds` profile | [`tasks-t2-model-connection.md`](./tasks-t2-model-connection.md) | K | written |
-| **C — Test suite** | C1 — Component-tier real-dep matrix | [`tasks-c1-component-matrix.md`](./tasks-c1-component-matrix.md) | K | written |
+| **C — Test suite** | C1 — Component-tier real-dep matrix | [`tasks-c1-component-matrix.md`](./tasks-c1-component-matrix.md) | K | **done — MP-3 closed 2026-07-09** (T1–T5 + T7; T6/Charon/Kleio/Hebe deferred) |
 | | C2 — Integration contexts (incl. `tpcds-query`) + run-set | [`tasks-c2-integration-contexts.md`](./tasks-c2-integration-contexts.md) | K (+O contexts) | written |
 | **R — bp-dsk runs** | R1 — `--kube dsk` run mode + reconcile-boundary | [`tasks-r1-bp-dsk-run-mode.md`](./tasks-r1-bp-dsk-run-mode.md) | O (+K wiring) | written |
 
@@ -64,8 +64,8 @@ R1 (--kube dsk + boundary) ─────────────────�
 
 ## 4. Definition of DONE (program)
 
-- [ ] Full constellation reconciled on bp-dsk (landing in; backstage/kallimachos-browse best-effort).
-- [ ] `tpc-ds-1g` on `test-pg` queryable through theseus→…→arges; the 4 curated queries return correct SF1 results.
-- [ ] Component matrix green in CI on every PR.
-- [ ] Integration run-set incl. `tpcds-query` green via `infra-up --kube dsk` (nightly continues on bp-olymp01).
-- [ ] Deferred v1 release tags cut (contracts §9).
+- [ ] Full constellation reconciled on bp-dsk (landing in; backstage/kallimachos-browse best-effort). **← the only open program item — D3 waves 3–7 (in progress).**
+- [x] `tpc-ds-1g` on `test-pg` queryable through theseus→…→arges; the 4 curated queries return correct SF1 results. **(MP-2, 2026-07-07.)**
+- [x] Component matrix green in CI on every PR. **(MP-3, 2026-07-09.)**
+- [x] Integration run-set incl. `tpcds-query` green via `infra-up --kube dsk` (nightly continues on bp-olymp01). **(MP-4, 2026-07-08.)**
+- [x] Deferred v1 release tags cut (contracts §9). **(v0.6.0 sweep, 2026-07-09.)**
