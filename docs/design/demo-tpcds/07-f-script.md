@@ -1,6 +1,6 @@
 # F — Script, rehearsal & fallbacks
 
-Status: 🟢 **converged 2026-07-09** (F-1..F-4 in the control-room log; this doc is the deliverable).
+Status: 🟢 **converged 2026-07-09** (F-1..F-4 in the control-room log). **Beat dialogue is canonical in `demo-transcript.md` (W-1 — the design artifact); this doc is the presenter-operations companion** (timing, fallbacks, rehearsal). Keep the two in sync at R0.
 This is the **presenter script** for the live demo — the third build-phase input alongside `05-d` (model) and `06-e` (cluster). Persona: **Maya Chen, Senior Category Manager, Hartland Stores** (A-2) — her remit spans categories across all three channels, which is exactly why a cross-category channel drop lands on her desk. Actor: Bora. Demo-present: **a Monday in mid-January 2026** — "we just closed 2025" (C-1a).
 
 Converged forks (session S8):
