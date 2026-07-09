@@ -2,6 +2,10 @@
 
 One section per workstream: Question → Branches → Cross-links → Open.
 
+> **Status 2026-07-09: all workstreams A–F 🟢 converged** (+ SWEEP-1 consolidation done).
+> This map is retained as the historical option tree; the control-room decision log is the
+> ground truth for what won and why. Option docs: `02-a` … `07-f`.
+
 ## A — Narrative & storylines
 
 **Question:** What story does the 25–30 min live demo tell, and how is it shaped?
@@ -49,12 +53,14 @@ Cross-links: C-3 ↔ A-3 (converged: seeded); C-1γ ↔ Hebe weekly-briefing bea
 
 Cross-links: D-1 ↔ B (routing showcase needs ≥2 routable targets to be visible); D-2 ↔ A beats; D-3 ↔ GI-5 (golem-tpcds Shem via ConfigMap, no image rebuild).
 
-## E — Cluster shape (⏸ parked)
+## E — Cluster shape (🟢 converged — `06-e-cluster-spec.md`)
 
-**Question:** What runs where for the showcase (olymp test deployment), and what does "demo-ready" mean operationally?
+**Question:** What runs where for the showcase, and what does "demo-ready" mean operationally?
 
-## F — Script, rehearsal & fallbacks
+Branches walked: host = bp-dsk-pinned / olymp integration cluster / **dedicated showcase cluster (won, E-1)**; data = surgery on `tpc-ds-1g` / **separate `hartland` DB (won, E-2)**; warehouse PG = shared Kantheon PG / **dedicated CNPG (won, S-14)**.
+
+## F — Script, rehearsal & fallbacks (🟢 converged — `07-f-script.md`)
 
 **Question:** What does the presenter actually say/click, and what happens when a beat fails live?
 
-Branches (later): beat-by-beat script; pre-warmed sessions; canned-replay fallback per beat (pins replay = natural fallback mechanism); reset procedure between runs.
+Branches walked: Q-8 cameo = **thin CFO Shem (won, F-1)** / gap-only / RLS contrast; ε coda = always-go / no-go / **conditional-go (won, F-2)**; S5 web-uptick = **OFF (won, F-3)** / ON; base cut = lean / **spine+cameo+Discover (won, F-4)** / rich. Plus: 5-layer fallback architecture, rehearsal ladder R0–R5, timing boxes.

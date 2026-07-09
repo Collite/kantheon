@@ -106,11 +106,21 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
 
 ## Wave 6 — librarian (`hebe`, `kleio`, `kallimachos`, `pinakes`, `kallimachos-mcp`)
 
-- [ ] **T1 [O] — Platform deps.** `hebe` DB (`pg-hebe-cred`, added waves-1–2 T1 — schema per instance;
-      k8s profile → in-cluster PG); `kleio` DB (`pg-kleio-cred`, added; **pgvector/AGE** extensions —
-      confirm the CNPG image/extensions support them, else a kleio-specific PG). `kallimachos`/`pinakes`/
-      `kallimachos-mcp`: confirm deps (pinakes = artifact store? kallimachos = browse/index).
-      Hebe Keycloak OBO client for any platform-reaching profile.
+- [~] **T1 [O] — Platform deps.** `hebe` DB (`pg-hebe-cred`, added waves-1–2 T1 — schema per instance;
+      k8s profile → in-cluster PG). **`kleio`: DEDICATED Postgres instance authored (Bora decision
+      2026-07-09) — pgvector + Apache AGE + full-text.** The shared CNPG image ships neither pgvector
+      nor AGE, so kleio gets its own `kleio-pg` CNPG cluster (PG 18, matching the estate — AGE 1.6.x
+      supports 18) running a **custom image** (`kantheon deployment/kleio-postgres/Dockerfile`: CNPG
+      base + pgvector via apt + AGE compiled from source). `shared_preload_libraries: [age]`;
+      `postInitApplicationSQL` runs `CREATE EXTENSION vector/pg_trgm/age`. Kleio **migrated off the
+      shared `postgres`** (role removed from `postgres/base/cluster.yaml`; DB removed from
+      `databases.yaml`; `pg-kleio-cred` relocated to `kleio-pg/overlays/bp-dsk`). Files:
+      `olymp platform/data/kleio-pg/{base/cluster.yaml, base/kustomization.yaml, overlays/bp-dsk/*}`,
+      registered in `clusters/bp-dsk/platform/data/kustomization.yaml`. Both overlays kustomize-build
+      clean. **Hand-off: build + push `ghcr.io/boraperusic/kleio-postgres:testing`** (Dockerfile needs
+      a build-test — AGE-on-PG18 compile + confirm the `postgresql-18-pgvector` apt pkg resolves).
+      `kallimachos`/`pinakes`/`kallimachos-mcp`: confirm deps (pinakes = artifact store? kallimachos =
+      browse/index). Hebe Keycloak OBO client for any platform-reaching profile.
 - [ ] **T2 [O] — App dirs.** 5 apps. Hebe app = the `cli-app` server-mode image (`:testing`, port 8765),
       delivered via the dynamic per-instance ApplicationSet if multi-instance (mirror `bp-dsk-golems`),
       else a single standing app.

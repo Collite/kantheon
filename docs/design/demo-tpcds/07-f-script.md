@@ -40,7 +40,7 @@ Assumes E-5 items 1–6 green and the freeze window declared. All steps are the 
 - **T-45** · Warm the estate: one throwaway Golem turn + one throwaway Pythia turn in a scratch session (kills cold JVM + first-token latency); delete the scratch session.
 - **T-30** · **Fire the Monday routine manually** (Hebe) → the briefing lands in Maya's inbox. Verify the inbox badge shows.
 - **T-15** · LLM provider reachability + latency probe; Metis worker alive; SSE stream check.
-- **T-10** · Browser A logged in as `maya@hartland.example`, Iris open, **inbox badge visible but unopened**; Browser B (separate profile) logged in as the CFO persona, minimized. Stage zoom/font set; notifications off.
+- **T-10** · Browser A logged in as `maya@hartland.example`, Iris open, **inbox badge visible but unopened**; Browser B (separate profile) logged in as Dan Whitaker (CFO), minimized. Stage zoom/font set; notifications off.
 
 ---
 
@@ -166,7 +166,7 @@ Five turns. Turns 1–3 are pattern plans (instant, P-2); turn 4 is the free-SQL
 
 Placement: after beat 6, as "one more thing". Detachable — no beat references it.
 
-**[BORA]** "One more thing. Everything you saw was Maya's world. Kantheon builds a *per-user* world." → switch to **Browser B (CFO persona)**.
+**[BORA]** "One more thing. Everything you saw was Maya's world. Kantheon builds a *per-user* world. This is Dan Whitaker — Hartland's CFO." → switch to **Browser B (Dan Whitaker, CFO — S-13)**.
 
 **[SCREEN]** CFO's Discover page: **two** domain cards — Hartland Analytics *and* **Hartland Finance**.
 

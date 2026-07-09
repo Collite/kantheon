@@ -10,10 +10,12 @@ calendar 2026: *"we just closed 2025"*); then back up so the surgery never has t
 `date_dim` spans 1900–2199 and already carries **correct** weekday/holiday/week-seq values for
 the target years. Rewriting its rows would break its internal consistency (d_date vs d_dow vs
 d_week_seq). Instead `run-redate.sh` **re-points the facts**: every `*_date_sk` column in every
-table except `date_dim` jumps +24 years via an old_sk→new_sk map (calendar-exact,
-`d_date + interval '24 years'` — month/day preserved, so the F-2 seasonality shape is intact).
-Plain `date`-typed columns (item/store/call_center/web_site validity windows) shift by the same
-interval, and `c_birth_year` bumps +24 so customer ages stay ~45 relative to the new present.
+table except `date_dim` jumps by the offset (default **+23** years, per C-1a) via an
+old_sk→new_sk map (calendar-exact, `d_date + interval '<offset> years'` — month/day preserved,
+so the F-2 seasonality shape is intact). Plain `date`-typed columns (item/store/call_center/
+web_site validity windows) shift by the same interval, and `c_birth_year` bumps by the offset
+so customer ages stay ~45 relative to the new present. *(SWEEP-1 doc fix: this paragraph
+previously said "+24" from the pre-C-1a draft.)*
 
 ## Order of operations (E-2 revision, 2026-07-09: surgery targets a separate `hartland` DB — `tpc-ds-1g` stays pristine, integration fixtures never notice)
 
@@ -34,12 +36,20 @@ interval, and `c_birth_year` bumps +24 so customer ages stay ~45 relative to the
 4. **Seed scripts** — the Memphis DC Meltdown (`02-seed-*`, built next phase per
    `03-c-data-options.md` spec v2) + dim display-name UPDATEs (Hartland naming), all against
    `hartland`. Baseline refresh: `../recon/run-recon.sh dsk hartland`.
+   Naming-UPDATE canon (SWEEP-1): **stores** keyed on `s_store_id` — 6 logical stores, the 12
+   rows are SCD versions sharing a name (S-7: Nashville, Memphis, Knoxville, Chattanooga,
+   Franklin, Murfreesboro); **warehouses** — Memphis DC = the highest-Marketplace-share
+   warehouse per r13, the NULL-named row gets one of the remaining cities (S-8: Columbus,
+   Dallas, Reno, Allentown); **placeholder reasons** (S-9, in order, as many as needed):
+   Changed my mind · Found a better price · Wrong size · Wrong color · Ordered by mistake ·
+   No longer needed · Not as pictured · Unwanted gift · Incompatible with my device ·
+   Quality not as expected.
 5. **Demo dump** — the versioned artifact the showcase cluster restores from:
    ```sh
    kubectl --context dsk -n data exec test-pg-1 -c postgres -- \
      pg_dump -Fc -Z6 -d hartland > hartland-demo-$(date +%Y%m%d).dump
    ```
-   Store next to the .dat files in the `tpcds-staging` Seaweed bucket (or a dedicated one).
+   Store in the `tpcds-staging` Seaweed bucket under the `hartland/` prefix (S-10; no new bucket).
 
 ## Ripple checklist — mostly VOID by E-2 (tpc-ds-1g pristine ⇒ fixtures untouched)
 
