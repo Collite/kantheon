@@ -12,6 +12,18 @@
 >
 > *Created 2026-07-09. Owner: Bora. Repos: **[O]** olymp apps+platform · **[K]** kantheon descriptors/chartRevision.*
 
+> **Known wrinkle — fresh-DB-agent startup race (seen on Pythia, 2026-07-09).** When a new
+> DB-backed app and its ESO credential secret are synced together, the pod starts *before* ESO
+> materializes the secret; with the chart's `envFrom` `optional: true`, the container boots without
+> the DB env and fails loud (fail-fast by design), crashlooping a few times until the secret lands,
+> then self-heals. Pythia came up clean once `pythia-db-credentials` existed (DB connected, Flyway
+> migrated. **HARDENED (2026-07-09):** DB-enabled app values override the chart's `envFrom` to
+> `optional: false`, so the container waits in `CreateContainerConfigError` for its secret instead
+> of crashlooping — no false crash. This is the **standard pattern for every DB-backed agent app**
+> (apply to midas/hebe/kleio in waves 5–6). It lives in the deploy-time values — not the shared
+> library template (which only `toYaml`s `envFrom`), nor the agent chart default (whose `optional:
+> true` is required by DB-less deploys like the `pythia-rca` context).
+
 ## Ground state (verified 2026-07-09)
 
 - **Kantheon charts: all present.** Every wave 4–7 module has a `k8s/` chart (D2): themis, pythia,
@@ -38,37 +50,59 @@ For each wave: **platform deps [O]** → **app dirs [O]** (`clusters/bp-dsk/apps
 
 ---
 
-## Wave 4 — agents (`themis`, `pythia`)
+## Wave 4 — agents (`themis`, `pythia`)  — **AUTHORED 2026-07-09 (olymp `feat/d3-waves3-7`)**
 
 Both already have integration contexts proving they boot in-cluster (`themis-routing`, `pythia-rca`),
 so their wiring is known-good; this is the standing (prod) app, not a per-run context.
+**Persistence decision (Bora, 2026-07-09): prod Pythia runs with persistence ON (`pg-pythia`).**
+`just validate bp-dsk` renders the whole cluster clean (65 objects) with all wave-4 files in.
 
-- [ ] **T1 [O] — Platform deps.** `pythia` DB: add the `pythia` CNPG database + role +
-      `pg-pythia-cred` ClusterExternalSecret into the `kantheon` ns (mirror the pg-golem/pg-iris
-      pattern; T1 of waves 1–2 added midas/hebe/kleio but **not** pythia). `themis`: none (stateless;
-      reads capabilities-mcp + kadmos/echo/prometheus, all already deployed).
-- [ ] **T2 [O] — App dirs.** `apps/themis/` (themis-mcp + the themis agent per its chart) and
-      `apps/pythia/`. Values = image `:testing` + ghcr-pull; pythia `extraEnv` → `PYTHIA_DB_*` from
-      `pg-pythia-cred` (prod wants persistence on, unlike the DB-less `pythia-rca` context).
+- [x] **T1 [O] — Platform deps.** Pythia DB was **already declared** data-side (`base/databases.yaml`
+      `pythia`/owner pythia + data-ns `pg-pythia-cred`). Added the missing **app-namespace** cred:
+      `platform/auth/clusterexternalsecret-pg-pythia.yaml` → materializes `pythia-db-credentials`
+      into the `kantheon` ns with the env keys Pythia reads (`PYTHIA_DB_USER`/`PYTHIA_DB_PASSWORD`,
+      from vault key `pg-pythia`) — a variant of the golem basic-auth template, because Pythia injects
+      creds via `envFrom` not a `db:` block. Registered in `platform/auth/kustomization.yaml`. Themis:
+      none (stateless; chart defaults already point at capabilities-mcp/kadmos/echo/prometheus).
+- [x] **T2 [O] — App dirs.** `apps/themis-mcp/` (dir = chart fullname = service `themis-mcp`, port
+      7901, image `ghcr.io/boraperusic/themis-mcp:testing`) and `apps/pythia/` (service `pythia`, port
+      7090, image `ghcr.io/boraperusic/pythia:testing`; `extraEnv` retargets `PYTHIA_DB_HOST` →
+      `postgres-rw.data.svc.cluster.local`, `PYTHIA_DB_ENABLED=true`, NATS dropped → PG-log-only).
+      **Consumer wiring:** iris-bff `IRIS_THEMIS_BASE_URL` → `http://themis-mcp:7901` (its default was
+      `:8080`; the chart serves REST `/v1/resolve` + MCP on 7901). config.json `chartRevision: master`
+      (so T5 flip is pre-satisfied). All three render clean via `helm template`.
 - [ ] **T3 — Images.** Publish `themis-mcp:testing` + `pythia:testing` if not already in GHCR
-      (both were published for the C2 contexts — likely present; verify).
+      (both were published for the C2 contexts — likely present; verify). **← hand-off (Bora's PAT).**
 - [ ] **T4 — Sync + smoke (hand-off).** ArgoCD Synced/Healthy; smoke: themis MCP `resolve` reachable,
       pythia `POST /v1/investigations` 202 + admission 403 (mirrors the context assertions).
-- [ ] **T5 [K/O] — chartRevision→`master`** for themis + pythia on merge.
+- [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — both apps' config.json pins `master`.
 
-## Wave 5 — domain (`midas-core`, `midas-excel-loader`, `report-renderer`, `sysifos-bff`, `sysifos` FE)
+## Wave 5 — domain (`midas-core`, `midas-excel-loader`, `report-renderer`, `sysifos-bff`, `sysifos` FE)  — **AUTHORED 2026-07-09 (olymp `feat/d3-waves3-7`)**
 
-- [ ] **T1 [O] — Platform deps.** `midas` DB already added (waves-1–2 T1: `pg-midas-cred`) — verify it
-      lands in `kantheon` ns. `midas-excel-loader`: blob scratch `emptyDir` (no DB). `report-renderer`:
-      none. `sysifos-bff`: its datastore (confirm — reuses midas PG or own?). `sysifos` FE + `sysifos-bff`:
-      Keycloak client (realm JSON — hand-off, like iris).
-- [ ] **T2 [O] — App dirs.** 5 apps. `midas/loaders/excel` app image basename is `midas-excel-loader`
-      (descriptor note). `sysifos` FE = nginx chart (image + ghcr-pull).
-- [ ] **T3 — Images.** Publish `midas:testing`, `midas-excel-loader:testing`, `report-renderer:testing`,
-      `sysifos-bff:testing`, `sysifos:testing` (FE nginx, amd64). Several were part of the v0.6.0 sweep —
-      verify GHCR.
+`just validate bp-dsk` renders clean (65 control-plane objects); all 5 charts `helm template`
+correctly (right images); 30 valid app config.json (5/5 wave-5 present). **Resolved unknowns:**
+sysifos-bff has **no DB** (it's a BFF → midas-core); midas-core's `db:` block uses a **required**
+secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — unlike pythia).
+
+- [x] **T1 [O] — Platform deps.** Only `midas-core` needs one. Midas DB was already declared data-side
+      (`base/databases.yaml` `midas`/owner midas + data-ns `pg-midas-cred`). Added the app-ns cred:
+      `platform/auth/clusterexternalsecret-pg-midas.yaml` → `pg-midas-cred` (basic-auth, username
+      `midas`, vault key `pg-midas`) into the `kantheon` ns, registered in the auth kustomization.
+      `midas-excel-loader` (emptyDir scratch), `report-renderer`, `sysifos-bff` (BFF→midas-core): none.
+      `sysifos` FE Keycloak client = hand-off (auth disabled by default → FE still boots;
+      sysifos-bff `auth.verifySignature: false` set to match iris-bff's transitional state).
+      **Tracked estate-wide (iris + sysifos SSO) in [kantheon#7](https://github.com/Collite/kantheon/issues/7).**
+- [x] **T2 [O] — App dirs.** 5 apps authored. `midas-core` (db → `pg-midas-cred`, host
+      `postgres-rw.data.svc`, **user `midas`** — the chart default `midas_app` role isn't provisioned);
+      `midas-excel-loader` (→ midas-core:7310 default); `report-renderer` (stateless); `sysifos-bff`
+      (→ midas-core:7310 default); `sysifos` FE (nginx; BFF upstream default `sysifos-bff:7601` — no
+      override). All config.json `chartRevision: master`.
+- [ ] **T3 — Images.** Publish/verify in `ghcr.io/boraperusic`: `midas-core:testing` **(publish to the
+      chart name `midas-core`, not the basename `core`)**, `midas-excel-loader:testing` (basename `excel`
+      → publish as `midas-excel-loader`), `report-renderer:testing`, `sysifos-bff:testing`,
+      `sysifos:testing` (FE nginx, amd64). **← hand-off (Bora's PAT).**
 - [ ] **T4 — Sync + smoke (hand-off).** Midas answer path smoke; report-renderer health; sysifos FE loads.
-- [ ] **T5 [K/O] — chartRevision→`master`** for the 5 modules on merge.
+- [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — all 5 config.json pin `master`.
 
 ## Wave 6 — librarian (`hebe`, `kleio`, `kallimachos`, `pinakes`, `kallimachos-mcp`)
 

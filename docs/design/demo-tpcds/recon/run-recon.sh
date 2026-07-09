@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Demo-TPCDS Q-1 data recon — read-only aggregate battery against `tpc-ds-1g` on the dsk cluster.
 #
-# Usage:   ./run-recon.sh [kube-context]     (default: dsk)
+# Usage:   ./run-recon.sh [kube-context] [database]     (defaults: dsk, tpc-ds-1g)
+#          post-surgery baselines: ./run-recon.sh dsk hartland
 # Access:  kubectl exec into the CNPG pod `test-pg-1` (ns `data`), psql over the local socket,
 #          SET ROLE tpcds_readonly — the same path the WS-T1 runbook / MP-2 smoke used.
 # Output:  ./results/rNN_*.csv (small aggregates, all committable). Commit results/ so the
 #          design session can analyze them. Expected total runtime: a few minutes at SF1.
 set -euo pipefail
-CTX="${1:-dsk}"; NS="data"; POD="test-pg-1"; DB="tpc-ds-1g"
+CTX="${1:-dsk}"; DB="${2:-tpc-ds-1g}"; NS="data"; POD="test-pg-1"
 DIR="$(cd "$(dirname "$0")" && pwd)"; OUT="$DIR/results"; mkdir -p "$OUT"
 
 q() { # q <name>  (SQL on stdin)
@@ -322,6 +323,22 @@ SELECT 'web', d.d_year,
 FROM web_sales JOIN date_dim d ON ws_sold_date_sk = d.d_date_sk
 GROUP BY d.d_year
 ORDER BY channel, d_year;
+SQL
+
+# ------------------------- r13 warehouse slice (Q-6: seed calibration for the incident)
+q r13_warehouse_share <<'SQL'
+SELECT 'catalog' AS channel, coalesce(w.w_warehouse_name,'(null)') AS warehouse, d.d_year,
+       count(*) AS line_items, round(sum(cs_ext_sales_price)::numeric) AS revenue
+FROM catalog_sales JOIN date_dim d ON cs_sold_date_sk = d.d_date_sk
+     LEFT JOIN warehouse w ON cs_warehouse_sk = w.w_warehouse_sk
+GROUP BY 2, d.d_year
+UNION ALL
+SELECT 'web', coalesce(w.w_warehouse_name,'(null)'), d.d_year, count(*),
+       round(sum(ws_ext_sales_price)::numeric)
+FROM web_sales JOIN date_dim d ON ws_sold_date_sk = d.d_date_sk
+     LEFT JOIN warehouse w ON ws_warehouse_sk = w.w_warehouse_sk
+GROUP BY 2, d.d_year
+ORDER BY channel, warehouse, d_year;
 SQL
 
 echo
