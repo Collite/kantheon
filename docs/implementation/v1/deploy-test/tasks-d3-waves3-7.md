@@ -120,17 +120,30 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
       LIVE on bp-dsk** (PG 18.4 x86_64; `\dx` = age/pg_trgm/vector; four-plane smoke passes). Image at
       `ghcr.io/boraperusic/kleio-postgres:18` (PG-major tag, `linux/amd64`, private → ghcr-pull in the
       `data` ns). **Full creation+install runbook — image, manifests, every bring-up gotcha,
-      verification: [`kleio-pg.md`](./kleio-pg.md).** Remaining = the kleio APP wiring (T2).
-      `kallimachos`/`pinakes`/`kallimachos-mcp`: confirm deps (pinakes = artifact store? kallimachos =
-      browse/index). Hebe Keycloak OBO client for any platform-reaching profile.
-- [ ] **T2 [O] — App dirs.** 5 apps. Hebe app = the `cli-app` server-mode image (`:testing`, port 8765),
-      delivered via the dynamic per-instance ApplicationSet if multi-instance (mirror `bp-dsk-golems`),
-      else a single standing app.
+      verification: [`kleio-pg.md`](./kleio-pg.md).** **DONE 2026-07-09** — kleio-pg live; kleio APP
+      credential authored: `clusterexternalsecret-kleio-db-url.yaml` templates the full JDBC URL
+      (creds embedded, vault `pg-kleio`) into a `kleio-db-url` secret in the `kantheon` ns
+      (charon-redis-url pattern — kleio reads a single `KLEIO_DB_URL` with no separate user/pass).
+      **Deps confirmed 2026-07-09:** `kallimachos` = RAG/index service (DB via `KALLIMACHOS_DB_URL/USER/
+      PASSWORD`, but its `postgres` profile needs pgvector+AGE → runs `memory` profile for bring-up,
+      DB-less); `pinakes` = doc-warehouse stager on SeaweedFS S3 (`seaweedfs-s3.data.svc:8333`,
+      unauthenticated like charon) → kallimachos LoadApi; `kallimachos-mcp` = stateless MCP edge.
+      `hebe` DB (`hebe` role+DB in `postgres/base` — schema-per-instance `hebe_dev`) + the `hebe-dev`
+      instance Secret + Keycloak OBO client are a `provision.sh` hand-off (contracts §4.4). Remaining
+      T1 hand-off items: run `just hebe-provision dev`; give kallimachos a pgvector+AGE database on
+      kleio-pg to flip it to the `postgres` profile (follow-up, not a bring-up blocker).
+- [x] **T2 [O] — App dirs.** **5 apps AUTHORED 2026-07-09 (olymp `feat/d3-waves3-7`: `1ac49a9` +
+      `e8e3010`).** `kleio` (KLEIO_DB_URL via `kleio-db-url` secretKeyRef → kleio-pg; kallimachos-mcp
+      + prometheus wiring), `kallimachos` (memory profile, DB-less), `pinakes` (Seaweed retargeted),
+      `kallimachos-mcp` (stateless), `hebe` (**single standing app** — Bora decision 2026-07-09 —
+      instanceId `dev`, k8s profile, `hebe-dev` Secret mount at HEBE_SECRETS_DIR). All render via
+      `helm template`; `just validate bp-dsk` clean (65 control-plane objects). config.json all pin
+      `chartRevision: master` (T5 pre-satisfied).
 - [ ] **T3 — Images.** Publish `hebe:testing` (from `:agents:hebe:modules:cli-app:jib` — the path-map
       fix landed 2026-07-09), `kleio`, `kallimachos`, `pinakes`, `kallimachos-mcp`.
 - [ ] **T4 — Sync + smoke (hand-off).** Hebe web console reachable; kleio vector/graph plane up;
       kallimachos index reachable.
-- [ ] **T5 [K/O] — chartRevision→`master`** on merge.
+- [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — all 5 config.json pin `master`.
 
 ## Wave 7 — infra (`whois`, `health`, `landing` FE — in scope; `backstage`, `kallimachos-browse` — best-effort)
 
