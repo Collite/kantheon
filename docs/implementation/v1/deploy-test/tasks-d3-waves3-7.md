@@ -71,9 +71,9 @@ so their wiring is known-good; this is the standing (prod) app, not a per-run co
       **Consumer wiring:** iris-bff `IRIS_THEMIS_BASE_URL` → `http://themis-mcp:7901` (its default was
       `:8080`; the chart serves REST `/v1/resolve` + MCP on 7901). config.json `chartRevision: master`
       (so T5 flip is pre-satisfied). All three render clean via `helm template`.
-- [ ] **T3 — Images.** Publish `themis-mcp:testing` + `pythia:testing` if not already in GHCR
+- [x] **T3 — Images.** Publish `themis-mcp:testing` + `pythia:testing` if not already in GHCR
       (both were published for the C2 contexts — likely present; verify). **← hand-off (Bora's PAT).**
-- [ ] **T4 — Sync + smoke (hand-off).** ArgoCD Synced/Healthy; smoke: themis MCP `resolve` reachable,
+- [x] **T4 — Sync + smoke (hand-off).** ArgoCD Synced/Healthy; smoke: themis MCP `resolve` reachable,
       pythia `POST /v1/investigations` 202 + admission 403 (mirrors the context assertions).
 - [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — both apps' config.json pins `master`.
 
@@ -97,11 +97,11 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
       `midas-excel-loader` (→ midas-core:7310 default); `report-renderer` (stateless); `sysifos-bff`
       (→ midas-core:7310 default); `sysifos` FE (nginx; BFF upstream default `sysifos-bff:7601` — no
       override). All config.json `chartRevision: master`.
-- [ ] **T3 — Images.** Publish/verify in `ghcr.io/boraperusic`: `midas-core:testing` **(publish to the
+- [x] **T3 — Images.** Publish/verify in `ghcr.io/boraperusic`: `midas-core:testing` **(publish to the
       chart name `midas-core`, not the basename `core`)**, `midas-excel-loader:testing` (basename `excel`
       → publish as `midas-excel-loader`), `report-renderer:testing`, `sysifos-bff:testing`,
       `sysifos:testing` (FE nginx, amd64). **← hand-off (Bora's PAT).**
-- [ ] **T4 — Sync + smoke (hand-off).** Midas answer path smoke; report-renderer health; sysifos FE loads.
+- [x] **T4 — Sync + smoke (hand-off).** Midas answer path smoke; report-renderer health; sysifos FE loads.
 - [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — all 5 config.json pin `master`.
 
 ## Wave 6 — librarian (`hebe`, `kleio`, `kallimachos`, `pinakes`, `kallimachos-mcp`)
@@ -139,9 +139,9 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
       instanceId `dev`, k8s profile, `hebe-dev` Secret mount at HEBE_SECRETS_DIR). All render via
       `helm template`; `just validate bp-dsk` clean (65 control-plane objects). config.json all pin
       `chartRevision: master` (T5 pre-satisfied).
-- [ ] **T3 — Images.** Publish `hebe:testing` (from `:agents:hebe:modules:cli-app:jib` — the path-map
+- [x] **T3 — Images.** Publish `hebe:testing` (from `:agents:hebe:modules:cli-app:jib` — the path-map
       fix landed 2026-07-09), `kleio`, `kallimachos`, `pinakes`, `kallimachos-mcp`.
-- [ ] **T4 — Sync + smoke (hand-off).** Hebe web console reachable; kleio vector/graph plane up;
+- [x] **T4 — Sync + smoke (hand-off).** Hebe web console reachable; kleio vector/graph plane up;
       kallimachos index reachable.
 - [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — all 5 config.json pin `master`.
 
@@ -160,9 +160,9 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
       (whois `/ready`+`/health`, health `/health/all`, landing `/healthz`). All render; `just validate
       bp-dsk` clean (65 objects). config.json pin `master` (T5 pre-satisfied). `backstage`,
       `kallimachos-browse` (best-effort) — not authored (backstage needs a custom Node image + its own PG).
-- [ ] **T3 — Images.** Publish `whois:testing`, `health:testing`, `landing:testing` (FE nginx); backstage
+- [x] **T3 — Images.** Publish `whois:testing`, `health:testing`, `landing:testing` (FE nginx); backstage
       custom build (best-effort). **← hand-off (Bora's PAT).**
-- [ ] **T4 — Sync + smoke (hand-off).** **`landing` reachable = the program gate** (D3 §7-D3);
+- [x] **T4 — Sync + smoke (hand-off).** **`landing` reachable = the program gate** (D3 §7-D3);
       whois `/health` + role lookup; health roll-up green.
 - [x] **T5 [K/O] — chartRevision→`master`.** Pre-satisfied — all 3 config.json pin `master`.
 
@@ -170,12 +170,17 @@ secretKeyRef, so it's **self-hardened** (waits for its secret, no crashloop — 
 
 ## DONE (chunk 2 → program DONE)
 
-- [ ] Waves 4–7 apps authored [O] + platform deps provisioned; all render + `infra-up --dry-run` clean.
-- [ ] Every wave 4–7 module reconciles **Synced/Healthy** on bp-dsk (landing in; backstage/
-      kallimachos-browse best-effort).
-- [ ] Estate smokes green; **`landing` reachable**.
-- [ ] chartRevision→`master` flips landed for all waves (T7 of the parent list).
-- [ ] tasks-overview §4 program-DoD "full constellation reconciled on bp-dsk" checked → **program DONE**.
+- [x] Waves 4–7 apps authored [O] + platform deps provisioned; all render + `infra-up --dry-run` clean.
+- [x] Every wave 4–7 module reconciles **Synced/Healthy** on bp-dsk (landing in; backstage/
+      kallimachos-browse best-effort — not deployed).
+- [x] Estate smokes green; **`landing` reachable**.
+- [x] chartRevision→`master` flips landed for all waves (pre-satisfied — all config.json pin `master`).
+- [x] tasks-overview §4 program-DoD "full constellation reconciled on bp-dsk" checked → **program DONE**.
+
+> **PROGRAM DONE — 2026-07-09.** Full constellation reconciled Synced/Healthy on bp-dsk (waves 1–7).
+> Bring-up lessons captured inline + as follow-up issues: #7 (SSO), #9/#10 (hebe readiness + LLM),
+> #11 (whois db-mode/own-PG), #12 (health target re-point — self-probe `/healthz` split shipped `6418459`),
+> #13 (landing health tile). Best-effort `backstage` + `kallimachos-browse` not deployed (do not gate).
 
 ## Hand-off boundaries (not autonomous)
 
