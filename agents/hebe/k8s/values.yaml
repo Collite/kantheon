@@ -58,15 +58,18 @@ telemetry:
   endpoint: ""
   serviceName: hebe
 
-# Probes. Ready = config resolved + PG reachable + migrations at head + channels up;
-# liveness is the bare process check.
+# Probes. The gateway serves a single PUBLIC health route — GET /health → "OK" 200 (Gateway.kt,
+# outside the authenticate("admin") block). There is NO /ready or /healthz, so both probes MUST
+# hit /health — else the kubelet gets 404, readiness never passes AND liveness kills the pod
+# (~30s after start) even though hebe is fully up. (A richer readiness endpoint — config/PG/
+# channels — is a future gateway addition; until then /health is the only probe target.)
 readinessProbe:
-  path: /ready
+  path: /health
   initialDelaySeconds: 3
   periodSeconds: 3
   failureThreshold: 30
 livenessProbe:
-  path: /healthz
+  path: /health
   initialDelaySeconds: 10
   periodSeconds: 10
 
