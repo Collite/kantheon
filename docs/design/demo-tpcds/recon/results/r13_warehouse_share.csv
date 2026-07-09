@@ -1,0 +1,61 @@
+channel,warehouse,d_year,line_items,revenue
+catalog,(null),2021,57631,144497866
+catalog,(null),2022,57588,146223418
+catalog,(null),2023,58242,147567759
+catalog,(null),2024,58033,146687324
+catalog,(null),2025,57749,146063956
+catalog,(null),2026,717,1800292
+catalog,Bad cards must make.,2021,56985,145614716
+catalog,Bad cards must make.,2022,56725,144092334
+catalog,Bad cards must make.,2023,57629,145867645
+catalog,Bad cards must make.,2024,56972,145343591
+catalog,Bad cards must make.,2025,56815,145414175
+catalog,Bad cards must make.,2026,681,1765516
+catalog,Conventional childr,2021,57326,146923493
+catalog,Conventional childr,2022,56974,144829749
+catalog,Conventional childr,2023,57395,145697621
+catalog,Conventional childr,2024,57290,145084754
+catalog,Conventional childr,2025,57150,144203708
+catalog,Conventional childr,2026,699,1860394
+catalog,Doors canno,2021,56941,145103939
+catalog,Doors canno,2022,56887,145487177
+catalog,Doors canno,2023,57097,145323045
+catalog,Doors canno,2024,57107,145109516
+catalog,Doors canno,2025,56818,145591268
+catalog,Doors canno,2026,669,1732119
+catalog,Important issues liv,2021,56805,144800952
+catalog,Important issues liv,2022,57519,147516706
+catalog,Important issues liv,2023,57172,145890861
+catalog,Important issues liv,2024,57305,146112893
+catalog,Important issues liv,2025,56754,144529142
+catalog,Important issues liv,2026,693,1706627
+web,(null),2021,28537,72498948
+web,(null),2022,28180,72097635
+web,(null),2023,28361,71972261
+web,(null),2024,29404,74543844
+web,(null),2025,28732,73329067
+web,(null),2026,316,804686
+web,Bad cards must make.,2021,28832,73338337
+web,Bad cards must make.,2022,28818,74217235
+web,Bad cards must make.,2023,28484,72569064
+web,Bad cards must make.,2024,29637,74921388
+web,Bad cards must make.,2025,28531,73592291
+web,Bad cards must make.,2026,313,752705
+web,Conventional childr,2021,28547,74188232
+web,Conventional childr,2022,28617,71948534
+web,Conventional childr,2023,28409,72288288
+web,Conventional childr,2024,29044,74277632
+web,Conventional childr,2025,28516,72863439
+web,Conventional childr,2026,310,827963
+web,Doors canno,2021,28611,73401228
+web,Doors canno,2022,28550,73104823
+web,Doors canno,2023,28471,72515335
+web,Doors canno,2024,29327,74413216
+web,Doors canno,2025,28227,71403111
+web,Doors canno,2026,300,759940
+web,Important issues liv,2021,28573,72929519
+web,Important issues liv,2022,28692,72896570
+web,Important issues liv,2023,28457,72556699
+web,Important issues liv,2024,29607,74934441
+web,Important issues liv,2025,28492,73822742
+web,Important issues liv,2026,300,736993
