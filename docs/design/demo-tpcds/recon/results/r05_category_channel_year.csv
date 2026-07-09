@@ -1,0 +1,199 @@
+channel,category,d_year,revenue
+catalog,(null),1998,2309433
+catalog,(null),1999,2287403
+catalog,(null),2000,2381879
+catalog,(null),2001,1568696
+catalog,(null),2002,1452045
+catalog,(null),2003,18328
+catalog,Books                                             ,1998,70865439
+catalog,Books                                             ,1999,70466138
+catalog,Books                                             ,2000,73752776
+catalog,Books                                             ,2001,70758895
+catalog,Books                                             ,2002,69541460
+catalog,Books                                             ,2003,963011
+catalog,Children                                          ,1998,71707105
+catalog,Children                                          ,1999,71488010
+catalog,Children                                          ,2000,71681217
+catalog,Children                                          ,2001,71620825
+catalog,Children                                          ,2002,73360828
+catalog,Children                                          ,2003,878910
+catalog,Electronics                                       ,1998,71797474
+catalog,Electronics                                       ,1999,72393674
+catalog,Electronics                                       ,2000,72500155
+catalog,Electronics                                       ,2001,74048808
+catalog,Electronics                                       ,2002,74883442
+catalog,Electronics                                       ,2003,849654
+catalog,Home                                              ,1998,71404538
+catalog,Home                                              ,1999,72009114
+catalog,Home                                              ,2000,70995202
+catalog,Home                                              ,2001,73750161
+catalog,Home                                              ,2002,73644293
+catalog,Home                                              ,2003,1043450
+catalog,Jewelry                                           ,1998,72302958
+catalog,Jewelry                                           ,1999,70878586
+catalog,Jewelry                                           ,2000,71838862
+catalog,Jewelry                                           ,2001,69629112
+catalog,Jewelry                                           ,2002,68296128
+catalog,Jewelry                                           ,2003,905886
+catalog,Men                                               ,1998,71991719
+catalog,Men                                               ,1999,72362770
+catalog,Men                                               ,2000,72339245
+catalog,Men                                               ,2001,72003168
+catalog,Men                                               ,2002,73330073
+catalog,Men                                               ,2003,980363
+catalog,Music                                             ,1998,75798762
+catalog,Music                                             ,1999,76286075
+catalog,Music                                             ,2000,74985237
+catalog,Music                                             ,2001,75961858
+catalog,Music                                             ,2002,74800156
+catalog,Music                                             ,2003,762678
+catalog,Shoes                                             ,1998,75128107
+catalog,Shoes                                             ,1999,74486443
+catalog,Shoes                                             ,2000,74186268
+catalog,Shoes                                             ,2001,75021784
+catalog,Shoes                                             ,2002,72787127
+catalog,Shoes                                             ,2003,795581
+catalog,Sports                                            ,1998,73675387
+catalog,Sports                                            ,1999,74062459
+catalog,Sports                                            ,2000,70572676
+catalog,Sports                                            ,2001,71148926
+catalog,Sports                                            ,2002,70606258
+catalog,Sports                                            ,2003,838953
+catalog,Women                                             ,1998,69960044
+catalog,Women                                             ,1999,71428710
+catalog,Women                                             ,2000,75113416
+catalog,Women                                             ,2001,72825843
+catalog,Women                                             ,2002,73100441
+catalog,Women                                             ,2003,828133
+store,(null),1998,3118073
+store,(null),1999,2918533
+store,(null),2000,3168619
+store,(null),2001,2197849
+store,(null),2002,2181708
+store,(null),2003,15580
+store,Books                                             ,1998,101250144
+store,Books                                             ,1999,99157233
+store,Books                                             ,2000,103975292
+store,Books                                             ,2001,100488405
+store,Books                                             ,2002,99472501
+store,Books                                             ,2003,1074153
+store,Children                                          ,1998,101215641
+store,Children                                          ,1999,99532323
+store,Children                                          ,2000,102272277
+store,Children                                          ,2001,99319529
+store,Children                                          ,2002,102535817
+store,Children                                          ,2003,1151092
+store,Electronics                                       ,1998,102162925
+store,Electronics                                       ,1999,100410197
+store,Electronics                                       ,2000,102303321
+store,Electronics                                       ,2001,103184658
+store,Electronics                                       ,2002,104737140
+store,Electronics                                       ,2003,1296645
+store,Home                                              ,1998,100844819
+store,Home                                              ,1999,100619669
+store,Home                                              ,2000,100722766
+store,Home                                              ,2001,102083599
+store,Home                                              ,2002,104823721
+store,Home                                              ,2003,1252360
+store,Jewelry                                           ,1998,101672513
+store,Jewelry                                           ,1999,101597723
+store,Jewelry                                           ,2000,101841472
+store,Jewelry                                           ,2001,97841595
+store,Jewelry                                           ,2002,96932520
+store,Jewelry                                           ,2003,1045386
+store,Men                                               ,1998,101291086
+store,Men                                               ,1999,100594056
+store,Men                                               ,2000,101905543
+store,Men                                               ,2001,101109347
+store,Men                                               ,2002,101719645
+store,Men                                               ,2003,1031222
+store,Music                                             ,1998,108009803
+store,Music                                             ,1999,106082735
+store,Music                                             ,2000,107468311
+store,Music                                             ,2001,106743279
+store,Music                                             ,2002,105153839
+store,Music                                             ,2003,1079890
+store,Shoes                                             ,1998,104883898
+store,Shoes                                             ,1999,105123323
+store,Shoes                                             ,2000,108013848
+store,Shoes                                             ,2001,104487050
+store,Shoes                                             ,2002,102818170
+store,Shoes                                             ,2003,1111199
+store,Sports                                            ,1998,104333565
+store,Sports                                            ,1999,103315091
+store,Sports                                            ,2000,100467438
+store,Sports                                            ,2001,99895011
+store,Sports                                            ,2002,102049045
+store,Sports                                            ,2003,1098799
+store,Women                                             ,1998,100266907
+store,Women                                             ,1999,98847321
+store,Women                                             ,2000,105758473
+store,Women                                             ,2001,102603704
+store,Women                                             ,2002,102381400
+store,Women                                             ,2003,995199
+web,(null),1998,1286407
+web,(null),1999,1099916
+web,(null),2000,1035795
+web,(null),2001,755214
+web,(null),2002,788870
+web,(null),2003,6413
+web,Books                                             ,1998,36443797
+web,Books                                             ,1999,35642224
+web,Books                                             ,2000,36595978
+web,Books                                             ,2001,36600851
+web,Books                                             ,2002,35438612
+web,Books                                             ,2003,331297
+web,Children                                          ,1998,36446396
+web,Children                                          ,1999,36895649
+web,Children                                          ,2000,35477183
+web,Children                                          ,2001,36217032
+web,Children                                          ,2002,36357901
+web,Children                                          ,2003,356639
+web,Electronics                                       ,1998,36075557
+web,Electronics                                       ,1999,36395155
+web,Electronics                                       ,2000,35542345
+web,Electronics                                       ,2001,37649257
+web,Electronics                                       ,2002,36749005
+web,Electronics                                       ,2003,417233
+web,Home                                              ,1998,34768714
+web,Home                                              ,1999,36238486
+web,Home                                              ,2000,34840446
+web,Home                                              ,2001,37615247
+web,Home                                              ,2002,37135466
+web,Home                                              ,2003,366464
+web,Jewelry                                           ,1998,35630447
+web,Jewelry                                           ,1999,36335650
+web,Jewelry                                           ,2000,35667089
+web,Jewelry                                           ,2001,35530206
+web,Jewelry                                           ,2002,33652173
+web,Jewelry                                           ,2003,441785
+web,Men                                               ,1998,36151430
+web,Men                                               ,1999,34726861
+web,Men                                               ,2000,36042875
+web,Men                                               ,2001,38047681
+web,Men                                               ,2002,36686755
+web,Men                                               ,2003,428110
+web,Music                                             ,1998,38428381
+web,Music                                             ,1999,38132400
+web,Music                                             ,2000,37156265
+web,Music                                             ,2001,39636201
+web,Music                                             ,2002,36355392
+web,Music                                             ,2003,338724
+web,Shoes                                             ,1998,37643102
+web,Shoes                                             ,1999,36915603
+web,Shoes                                             ,2000,37420526
+web,Shoes                                             ,2001,37842267
+web,Shoes                                             ,2002,37655265
+web,Shoes                                             ,2003,459647
+web,Sports                                            ,1998,37312614
+web,Sports                                            ,1999,36844314
+web,Sports                                            ,2000,35491441
+web,Sports                                            ,2001,36088185
+web,Sports                                            ,2002,37392565
+web,Sports                                            ,2003,357899
+web,Women                                             ,1998,36169419
+web,Women                                             ,1999,35038540
+web,Women                                             ,2000,36631704
+web,Women                                             ,2001,37108382
+web,Women                                             ,2002,36798646
+web,Women                                             ,2003,378076

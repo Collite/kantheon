@@ -16,7 +16,7 @@ q() { # q <name>  (SQL on stdin)
   { echo "SET ROLE tpcds_readonly;"; cat; } |
     kubectl --context "$CTX" -n "$NS" exec -i "$POD" -c postgres -- \
       psql -q --csv -v ON_ERROR_STOP=1 -d "$DB" -f - > "$OUT/$name.csv"
-  printf '-> %s lines\n' "$(wc -l < "$OUT/$name.csv" | tr -d ' ')"
+  printf -- '-> %s lines\n' "$(wc -l < "$OUT/$name.csv" | tr -d ' ')"
 }
 
 # ---------------------------------------------------------------- r00 sanity
