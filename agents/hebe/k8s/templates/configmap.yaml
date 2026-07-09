@@ -1,0 +1,24 @@
+{{/*
+Hebe reads its axis model from $HOME/.hebe/config.toml (Main.kt RunCommand). The k8s
+profile's storage.backend=postgres is schema-per-instance and REQUIRES an explicit
+instance_id — and crucially, when NO config.toml exists the resolver takes the env-only
+path that ignores HEBE_INSTANCE_ID (ProfileResolver.resolve vs AxesLoader.resolve). So a
+config.toml MUST be present in-cluster. This ConfigMap renders the minimal file (profile +
+instance_id) from values; the container mounts it (see _volumes.tpl) at $HOME/.hebe with
+HOME pinned by _env.tpl. Extra axis overrides can be appended via config.extraToml.
+*/}}
+{{- if .Values.config.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kantheon-service.fullname" . }}-config
+  labels:
+    {{- include "kantheon-service.labels" . | nindent 4 }}
+data:
+  config.toml: |
+    profile = {{ .Values.hebe.profile | quote }}
+    instance_id = {{ .Values.hebe.instanceId | quote }}
+{{- with .Values.config.extraToml }}
+{{ . | indent 4 }}
+{{- end }}
+{{- end }}

@@ -2,6 +2,10 @@
      The base carries no OTEL vars; the standard OTel block is added here (env-agnostic,
      off by default) for parity with the constellation. */}}
 {{- define "hebe.env" -}}
+{{- if .Values.config.enabled }}
+- name: HOME # pin user.home so RunCommand's $HOME/.hebe/config.toml matches the mount path
+  value: {{ .Values.config.homeDir | quote }}
+{{- end }}
 - name: HEBE_PROFILE
   value: {{ .Values.hebe.profile | quote }}
 - name: HEBE_INSTANCE_ID

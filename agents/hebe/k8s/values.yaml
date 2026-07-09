@@ -34,6 +34,15 @@ hebe:
   profile: k8s
   instanceId: dev
 
+# The axis config.toml mounted at $HOME/.hebe/config.toml (configmap.yaml + _volumes.tpl). The
+# k8s profile's postgres store is schema-per-instance and needs an explicit instance_id; with NO
+# config.toml the resolver ignores HEBE_INSTANCE_ID, so the file must exist in-cluster. `homeDir`
+# pins $HOME so the mount path is deterministic; `extraToml` appends further axis overrides.
+config:
+  enabled: true
+  homeDir: /root
+  extraToml: ""
+
 # Per-instance Secret skeleton (PG creds, Keycloak client creds + bound user, llm-gateway
 # key, Telegram bot token, receipts signing key), mounted read-only at HEBE_SECRETS_DIR.
 # The Secret is provisioned by the deploying context (provision.sh), not templated here.
