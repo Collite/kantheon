@@ -61,7 +61,7 @@ jobs:
           # would otherwise match more than one directory.
           declare -A PATHS=(
             [golem]=agents/golem
-            [hebe]=agents/hebe
+            [hebe]=agents/hebe/modules/cli-app
             [iris-bff]=agents/iris-bff
             [midas]=agents/midas/core
             [pythia]=agents/pythia
