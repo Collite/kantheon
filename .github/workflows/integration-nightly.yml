@@ -45,17 +45,17 @@ jobs:
       issues: write
     steps:
       - name: Checkout kantheon (the SHA under test)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkout olymp (the harness + contexts)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: Collite/olymp
           token: ${{ secrets.OLYMP_GITHUB_TOKEN }}
           path: olymp
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -127,7 +127,7 @@ jobs:
 
       - name: Open/refresh a tracked issue on failure (ratified policy — architecture §8)
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const title = `nightly integration red: ${process.env.CONTEXT}`;

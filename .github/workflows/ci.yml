@@ -18,16 +18,16 @@ jobs:
       # cz.dfpartner coupling was fully removed in fork Stage 2.6.
       packages: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
           cache: gradle
 
       - name: install just
-        uses: extractions/setup-just@v2
+        uses: extractions/setup-just@v4
 
       - name: init
         run: just init
@@ -66,7 +66,7 @@ jobs:
       # PD-5 drift detection relies on (pythia/contracts.md §3a). A conscious
       # algorithm change must regenerate the fixtures and commit them.
       - name: setup python (fingerprint guard)
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -96,9 +96,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
@@ -135,14 +135,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5
         with:
           version: v3.16.2
 
       - name: install just
-        uses: extractions/setup-just@v2
+        uses: extractions/setup-just@v4
 
       - name: validate charts (render + golden diff)
         run: just validate-charts
@@ -157,9 +157,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
