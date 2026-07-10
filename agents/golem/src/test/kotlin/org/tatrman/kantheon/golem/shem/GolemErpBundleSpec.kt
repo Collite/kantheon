@@ -22,8 +22,8 @@ import java.nio.file.Path
  * against the live `ShemOverlayParser` + assembly contract — mirrors `GolemUcetnictviBundleSpec`
  * / `GolemInvestmentBundleSpec`. Catches drift between the authored bundle and the assembly
  * contract before the pod is deployed (the ahead-of-cluster pattern). The `golem-erp` Shem points
- * at the EXISTING bundled Ariadne `accounting` area (no new model), so the `golem-erp` integration
- * context needs no ariadne image change — see `GolemErpIntegrationSpec`.
+ * at the EXISTING bundled Veles `accounting` area (no new model), so the `golem-erp` integration
+ * context needs no veles image change — see `GolemErpIntegrationSpec`.
  */
 class GolemErpBundleSpec :
     StringSpec({
@@ -69,11 +69,11 @@ class GolemErpBundleSpec :
             cap.displayName shouldBe "ERP Q&A"
             cap.areaName shouldBe "accounting"
             // template refs are always present (no per-Shem tool refs on this Shem)
-            cap.capabilityRefsList shouldContainAll listOf("theseus.query:v1", "render.table:v1")
+            cap.capabilityRefsList shouldContainAll listOf("query.query:v1", "render.table:v1")
         }
     })
 
-/** A minimal accounting-shaped Ariadne model fixture (two entities + one pattern query). */
+/** A minimal accounting-shaped Veles model fixture (two entities + one pattern query). */
 private fun accountingModel(): ModelSnapshot =
     ModelSnapshot.from(
         ModelBundle

@@ -31,7 +31,7 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
 
     // Proto bindings — all in-repo via :shared:proto. fork Stage 2.6 retargeted
-    // Themis off cz.dfpartner:shared-proto: nlp.v1 → kadmos.v1, metadata
+    // Themis off cz.dfpartner:shared-proto: nlp.v1 → nlp.v1, metadata
     // ResponseMessage/Severity → common.v1 (the last ai-platform Maven coupling).
     implementation(project(":shared:proto"))
 
@@ -85,7 +85,7 @@ dependencies {
     // Integration tier (WS-C2 T5) — drives the live `themis-routing` context: the MCP
     // `resolve` tool over real StreamableHTTP (robust smoke) and the REST `/v1/resolve`
     // routing edge (gated agent-routing tier), against a real themis-mcp pod wired to
-    // real Kadmos + Echo + capabilities-mcp with the LLM stubbed at WireMock via Prometheus.
+    // real Nlp + the fuzzy service + capabilities-mcp with the LLM stubbed at WireMock via the LLM gateway.
     // The root build's integrationTest suite already brings kotest + project(); these add
     // the harness (@RequiresContext/ContextHandle), the MCP client, a Ktor HTTP client and
     // JSON parsing. Gated by @RequiresContext: compiles + skips with no context.

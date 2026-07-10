@@ -1,6 +1,6 @@
 name: publish-python-images
 
-# Build + push the constellation's Python service images (kadmos, metis, steropes)
+# Build + push the constellation's Python service images (nlp, metis, polars)
 # to GHCR. These CANNOT be built reliably on an arm64 Mac: `docker buildx --platform
 # linux/amd64` runs the amd64 `uv`/Python under QEMU, and `uv sync` segfaults there
 # (qemu signal 11). GitHub's ubuntu runners are NATIVE amd64 — no emulation — so the
@@ -22,7 +22,7 @@ on:
         required: true
       services:
         description: "Space-separated module paths to build"
-        default: "services/kadmos services/metis workers/steropes"
+        default: "services/nlp services/metis workers/polars"
         required: true
 
 jobs:
@@ -45,8 +45,8 @@ jobs:
       - name: install just
         uses: extractions/setup-just@v4
 
-      # The kadmos/metis Dockerfiles COPY shared/proto/build/python-package, and
-      # steropes COPYs shared/ wholesale — all need the generated proto python package.
+      # The nlp/metis Dockerfiles COPY shared/proto/build/python-package, and
+      # polars COPYs shared/ wholesale — all need the generated proto python package.
       # (This is the step the manual `docker buildx` bypassed, causing the "not found".)
       - name: generate proto python package
         run: just proto-py

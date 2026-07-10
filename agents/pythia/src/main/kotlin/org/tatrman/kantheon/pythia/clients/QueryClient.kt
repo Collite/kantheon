@@ -32,9 +32,9 @@ class QueryException(
 ) : RuntimeException(message, cause)
 
 /**
- * The query edge — theseus-mcp (compile + run). Every call carries the user's OBO
+ * The query edge — query-mcp (compile + run). Every call carries the user's OBO
  * bearer (PD-8); a null/expired bearer fails closed. The real impl is
- * [TheseusQueryClient]; tests inject a fake.
+ * [QueryQueryClient]; tests inject a fake.
  */
 interface QueryClient {
     suspend fun compile(

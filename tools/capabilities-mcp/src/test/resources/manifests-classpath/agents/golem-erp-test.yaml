@@ -8,7 +8,7 @@ example_questions:
 counter_examples:
   - "Proč klesly tržby Castrolu?"
 capability_refs:
-  - theseus.query:v1
+  - query.query:v1
 service_endpoint: "http://golem-erp.kantheon.svc.cluster.local:7401"
 health_check_path: /health
 typical_latency_ms: 5000
@@ -21,7 +21,7 @@ area_entities:
 preferred_queries:
   - listUnpaidInvoices
 preferred_capabilities:
-  - theseus.query:v1
+  - query.query:v1
 style_addendum: "Czech responses default to formal."
 locale_defaults:
   - locale: cs-CZ

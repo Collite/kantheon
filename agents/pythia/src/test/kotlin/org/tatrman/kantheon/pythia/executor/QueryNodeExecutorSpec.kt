@@ -38,7 +38,7 @@ private fun queryNode(
         ).build()
 
 /**
- * Stage 2.3 T1/T2 — the QueryNode executor: runs theseus-mcp queries (compile-
+ * Stage 2.3 T1/T2 — the QueryNode executor: runs query-mcp queries (compile-
  * before-run for stacks, OBO bearer, pipeline_warnings forwarded), resolves
  * HandleRef params, enforces the IN-list ≤ 500 rule, and parks on token expiry.
  */

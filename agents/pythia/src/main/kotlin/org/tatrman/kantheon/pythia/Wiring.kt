@@ -27,7 +27,7 @@ import org.tatrman.kantheon.pythia.executor.CompositeNodeExecutor
 import org.tatrman.kantheon.pythia.executor.DagExecutor
 import org.tatrman.kantheon.pythia.executor.DataFrameNodeExecutor
 import org.tatrman.kantheon.pythia.executor.QueryNodeExecutor
-import org.tatrman.kantheon.pythia.clients.TheseusQueryClient
+import org.tatrman.kantheon.pythia.clients.QueryQueryClient
 import org.tatrman.kantheon.pythia.orchestrator.ExecutionEngine
 import org.tatrman.kantheon.pythia.orchestrator.InvestigationOrchestrator
 import org.tatrman.kantheon.pythia.orchestrator.TtlSweeper
@@ -166,7 +166,7 @@ fun buildComponents(
     )
 }
 
-/** The Themis/LLM/theseus-backed intelligence, wired when configured; null → stubs. */
+/** The Themis/LLM/query-backed intelligence, wired when configured; null → stubs. */
 private class Intelligence(
     val resolver: Resolver?,
     val planner: Planner?,
@@ -229,15 +229,15 @@ private fun buildIntelligence(
     // no Seaweed evidence persistence, the IN-list>500 path stays a PERMANENT flag.
     val dataPlane = buildDataPlane(config, closeables, metrics)
 
-    // Execution engine — wired only when the query edge (theseus-mcp) is also configured.
-    val theseusUrl = config.getString("pythia.theseus.url")
+    // Execution engine — wired only when the query edge (query-mcp) is also configured.
+    val queryUrl = config.getString("pythia.query.url")
     val engine =
-        if (theseusUrl.isNotBlank()) {
+        if (queryUrl.isNotBlank()) {
             val composite =
                 CompositeNodeExecutor(
                     query =
                         QueryNodeExecutor(
-                            TheseusQueryClient(theseusUrl),
+                            QueryQueryClient(queryUrl),
                             inListMaterialiser = dataPlane?.inListMaterialiser,
                         ),
                     render = RenderNodeExecutor(promptExecutor),

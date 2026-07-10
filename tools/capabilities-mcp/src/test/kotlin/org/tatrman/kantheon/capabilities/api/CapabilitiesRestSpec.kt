@@ -153,7 +153,7 @@ class CapabilitiesRestSpec :
                 val firstBody =
                     buildString {
                         append("""{"capability":{"kind":"tool","tool":""")
-                        append("""{"capabilityId":"theseus.query:v1","category":"theseus.*",""")
+                        append("""{"capabilityId":"query.query:v1","category":"query.*",""")
                         append(""""version":"v1","description":"first"}}}""")
                     }
                 val rid1 =
@@ -175,7 +175,7 @@ class CapabilitiesRestSpec :
                 rid1.shouldNotBeBlank()
                 rid2 shouldBe rid1
                 reg
-                    .get("theseus.query:v1")
+                    .get("query.query:v1")
                     ?.capability
                     ?.tool
                     ?.description shouldBe "second"
@@ -184,7 +184,7 @@ class CapabilitiesRestSpec :
 
         "POST /v1/capabilities/{rid}/heartbeat refreshes lastHeartbeatAt" {
             val reg = InMemoryRegistry()
-            val rid = reg.register(toolCapability("theseus.query:v1").asCapability())
+            val rid = reg.register(toolCapability("query.query:v1").asCapability())
             testApplication {
                 application(testApp(reg))
                 val client = createClient { install(ClientContentNegotiation) { json() } }

@@ -13,7 +13,7 @@ import java.text.Normalizer
  *  - diacritics (NFD strip — Czech "Plzeň" == "Plzen")
  *  - a closed set of trailing legal-form suffixes (s.r.o., a.s., spol. s r.o., …)
  *
- * It deliberately does NOT do fuzzy/edit-distance matching — that is Echo's job
+ * It deliberately does NOT do fuzzy/edit-distance matching — that is the fuzzy matcher.s job
  * (the Czech-aware fuzzy matcher) and is the deploy-path upgrade for the
  * Kallimachos-backed index. This keeps the in-process index honest without
  * over-merging distinct entities.

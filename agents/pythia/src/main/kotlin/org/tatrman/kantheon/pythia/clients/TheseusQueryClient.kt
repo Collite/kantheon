@@ -21,19 +21,19 @@ import org.slf4j.LoggerFactory
 import org.tatrman.kantheon.pythia.executor.TokenExpiredException
 
 /**
- * Real [QueryClient] over **theseus-mcp** (MCP streamable-HTTP) — mirrors golem's
- * `TheseusQueryClient`, adding `pipeline_warnings` forwarding (Rule-6) and bearer
+ * Real [QueryClient] over **query-mcp** (MCP streamable-HTTP) — mirrors golem's
+ * `QueryQueryClient`, adding `pipeline_warnings` forwarding (Rule-6) and bearer
  * fail-closed + token-expiry mapping (401/Unauthorized → [TokenExpiredException],
  * which parks AWAITING_USER_INPUT, kantheon-security §2.1). A fresh client+transport
  * is built per call so the per-user bearer never leaks. **Live-edge transport is
  * integration-deferred** (planning-conventions §4); the unit gate runs a fake.
  */
-class TheseusQueryClient(
+class QueryQueryClient(
     private val url: String,
     private val clientName: String = "pythia",
     private val clientVersion: String = "v0.2.0",
 ) : QueryClient {
-    private val log = LoggerFactory.getLogger(TheseusQueryClient::class.java)
+    private val log = LoggerFactory.getLogger(QueryQueryClient::class.java)
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun compile(
@@ -92,14 +92,14 @@ class TheseusQueryClient(
         arguments: Map<String, Any?>,
         bearer: String?,
     ): CallToolResult {
-        if (bearer.isNullOrBlank()) throw QueryException("theseus-mcp '$tool' requires an OBO bearer (none forwarded)")
+        if (bearer.isNullOrBlank()) throw QueryException("query-mcp '$tool' requires an OBO bearer (none forwarded)")
         val httpClient = buildHttpClient(bearer)
         try {
             val client = Client(Implementation(name = clientName, version = clientVersion))
             client.connect(StreamableHttpClientTransport(client = httpClient, url = url))
             return try {
                 (client.callTool(name = tool, arguments = arguments) as? CallToolResult)
-                    ?: throw QueryException("theseus-mcp '$tool' returned no usable result")
+                    ?: throw QueryException("query-mcp '$tool' returned no usable result")
             } finally {
                 client.close()
             }
@@ -107,9 +107,9 @@ class TheseusQueryClient(
             throw e
         } catch (e: Exception) {
             // Map an auth rejection to a parkable token-expiry (fail-closed, kantheon-security §2.1).
-            if (looksLikeAuthFailure(e)) throw TokenExpiredException("theseus-mcp rejected the bearer: ${e.message}")
-            log.warn("theseus-mcp '{}' call failed: {}", tool, e.message)
-            throw QueryException("theseus-mcp '$tool' call failed: ${e.message}", e)
+            if (looksLikeAuthFailure(e)) throw TokenExpiredException("query-mcp rejected the bearer: ${e.message}")
+            log.warn("query-mcp '{}' call failed: {}", tool, e.message)
+            throw QueryException("query-mcp '$tool' call failed: ${e.message}", e)
         } finally {
             httpClient.close()
         }

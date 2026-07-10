@@ -11,7 +11,7 @@ import org.tatrman.kallimachos.tx.Transactor
 /**
  * The EMBED operation + the backfill of the non-atomic embedding edge
  * (architecture §13). Ingestion commits parts with `embedding_status = PENDING`;
- * this service embeds them via Prometheus (out-of-band) and flips them to `OK`.
+ * this service embeds them via the LLM gateway (out-of-band) and flips them to `OK`.
  * The embed call is OUTSIDE the transaction (no HTTP under a held tx); only the
  * vector upsert + status flip are transactional. A failed embed leaves the
  * source `PENDING` for a later backfill — never a hard error.

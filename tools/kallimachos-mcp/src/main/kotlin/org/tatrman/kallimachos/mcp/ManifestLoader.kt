@@ -15,7 +15,7 @@ import java.io.File
 /**
  * Loads the `library.*:v1` `ToolCapability` manifests under
  * `src/main/resources/manifests/tools/` (one per tool) and builds a [Capability]
- * per manifest for capabilities-mcp registration. Mirrors the ariadne-mcp loader.
+ * per manifest for capabilities-mcp registration. Mirrors the veles-mcp loader.
  */
 internal class ManifestLoader {
     private val log = LoggerFactory.getLogger(ManifestLoader::class.java)

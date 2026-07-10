@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.tatrman.kallimachos.v1.PageKind
 import org.tatrman.pinakes.clients.CorpusPageWriter
-import org.tatrman.pinakes.clients.PrometheusClient
+import org.tatrman.pinakes.clients.LlmGatewayClient
 import org.tatrman.pinakes.compile.ConceptRefDraft
 import org.tatrman.pinakes.compile.EdgeDraft
 import org.tatrman.pinakes.compile.Linker
@@ -26,7 +26,7 @@ class CompileHardeningSpec :
     StringSpec({
         "an over-budget compile degrades to a mechanical SUMMARY without calling the LLM" {
             val neverCalled =
-                object : PrometheusClient {
+                object : LlmGatewayClient {
                     override suspend fun complete(
                         systemPrompt: String,
                         userPrompt: String,

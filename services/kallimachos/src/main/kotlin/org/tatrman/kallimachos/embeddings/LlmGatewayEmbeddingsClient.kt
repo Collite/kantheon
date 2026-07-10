@@ -12,7 +12,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Embeddings via the Prometheus gateway (contracts §10). Prometheus exposes the
+ * Embeddings via the LLM gateway (contracts §10). The LLM gateway exposes the
  * OpenAI-shaped embeddings surface — `POST /api/v1/embeddings`, request
  * `{model, input:{texts:[...]}}`, response `{data:[{index, embedding}], model}` —
  * so this client speaks that wire directly. Batched; one `data` item per input,
@@ -34,7 +34,7 @@ class EmbeddingCountMismatch(
     val actual: Int,
 ) : RuntimeException("embedding count $actual != requested $expected")
 
-class PrometheusEmbeddingsClient(
+class LlmGatewayEmbeddingsClient(
     private val http: HttpClient,
     private val baseUrl: String,
     private val config: EmbedConfig,
@@ -70,7 +70,7 @@ class PrometheusEmbeddingsClient(
                 contentType(ContentType.Application.Json)
                 setBody(EmbedBody(config.modelId, EmbedInput(texts)))
             }
-        require(resp.status.isSuccess()) { "Prometheus embeddings failed: ${resp.status}" }
+        require(resp.status.isSuccess()) { "LLM-gateway embeddings failed: ${resp.status}" }
         val reply: EmbedReply = resp.body()
         if (reply.data.size != texts.size) throw EmbeddingCountMismatch(texts.size, reply.data.size)
         // Restore submission order — OpenAI-shaped responses carry an `index` per item.

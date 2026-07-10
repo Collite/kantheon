@@ -3,7 +3,7 @@ syntax = "proto3";
 package org.tatrman.kantheon.themis.v1;
 option java_package = "org.tatrman.kantheon.themis.v1";
 
-// fork Stage 2.6 switch-over: nlp.v1 → in-repo kadmos.v1; Rule-6 ResponseMessage
+// fork Stage 2.6 switch-over: nlp.v1 → in-repo nlp.v1; Rule-6 ResponseMessage
 // → kantheon common stand-in. After this, no kantheon proto imports cz/dfpartner/.
 import "org/tatrman/kantheon/common/v1/response_message.proto";
 import "org/tatrman/nlp/v1/nlp.proto";

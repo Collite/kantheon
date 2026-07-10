@@ -2,7 +2,7 @@ package org.tatrman.kallimachos.embeddings
 
 /**
  * The embedding model egress (architecture §4/§11). One multilingual model for
- * the whole corpus — a conformed dimension. The Prometheus `EmbedText` client
+ * the whole corpus — a conformed dimension. The LLM-gateway `EmbedText` client
  * (contracts §10) implements this; the doc-store `RemoteHttpEmbeddingsClient` is
  * the documented fallback (risks §14).
  */

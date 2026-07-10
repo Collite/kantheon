@@ -4,7 +4,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import org.tatrman.kantheon.pythia.executor.TokenExpiredException
 
-/** Scripted [QueryClient] for executor/evaluator tests (no live theseus edge). */
+/** Scripted [QueryClient] for executor/evaluator tests (no live query edge). */
 class FakeQueryClient(
     private val rows: JsonArray = Json.parseToJsonElement("[]") as JsonArray,
     private val warnings: List<String> = emptyList(),

@@ -5,10 +5,10 @@ namespace: kantheon
 
 # Owned local-infra for kantheon (kantheon-architecture §7.1). The single entry
 # point applied by `just local-infra-up` (Stage 4.1 T5). Started at fork Stage 3.3
-# with MSSQL — the backing store Brontes (the MSSQL worker) executes against.
+# with MSSQL — the backing store Mssql (the MSSQL worker) executes against.
 #
-# NOTE: WireMock-LLM upstreams for Prometheus are an integration-track concern
-# (Stage 2.5 T4) — the local Prometheus overlay runs on placeholder keys + the
+# NOTE: WireMock-LLM upstreams for the LLM gateway are an integration-track concern
+# (Stage 2.5 T4) — the local LLM-gateway overlay runs on placeholder keys + the
 # in-memory `test` profile, so no LLM stub exists yet. When the integration track
 # adds the WireMock fixtures, they land here (this is the single entry point).
 resources:

@@ -21,7 +21,7 @@ import java.util.Base64
 // Helpers for the `golem-erp` integration spec: minting OBO bearers and driving the
 // Golem `POST /v1/answer/sync` REST edge (GolemRequest JSON → ConversationalResponse
 // JSON) through the ContextHandle-resolved golem service URL. Mirrors the
-// theseus-runquery McpQueryDriver, but over plain HTTP/JSON rather than MCP.
+// query-runquery McpQueryDriver, but over plain HTTP/JSON rather than MCP.
 
 /**
  * Mints an **unsigned** JWT (`header.payload.sig`). Golem's [ShemAdmission]
@@ -105,7 +105,7 @@ suspend fun ContextHandle.answerGolem(
     request: JsonObject,
     bearer: String? = null,
 ): GolemAnswer {
-    // A real answer-turn runs the LLM roundtrip (PlanComposer → Prometheus → WireMock) + render;
+    // A real answer-turn runs the LLM roundtrip (PlanComposer → LLM gateway → WireMock) + render;
     // on a cold, CPU-throttled node that easily exceeds the CIO engine's 15 s default request
     // timeout (Golem's own LLM-gateway timeout is 60 s). Give the client 3 min so we see the turn's
     // real outcome (STATUS_DONE / clarification) instead of an HttpRequestTimeoutException.

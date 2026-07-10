@@ -1,6 +1,6 @@
 # Default values for themis-mcp. Env-agnostic: sane defaults, NO cluster knowledge. Deploying
 # environments override image, telemetry, and the downstream wiring in extraEnv (e.g. a test
-# context points LLM_GATEWAY at WireMock or a real Prometheus).
+# context points LLM_GATEWAY at WireMock or a real LLM gateway).
 
 replicaCount: 1
 
@@ -45,15 +45,15 @@ extraEnv:
   - { name: CAPABILITIES_MCP_HOST, value: "capabilities-mcp" }
   - { name: CAPABILITIES_MCP_PORT, value: "7501" }
   - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7501" }
-  - { name: NLP_MCP_HOST, value: "kadmos" }
+  - { name: NLP_MCP_HOST, value: "nlp" }
   - { name: NLP_MCP_PORT, value: "7270" }
-  - { name: NLP_MCP_URL, value: "http://kadmos:7270" }
-  - { name: FUZZY_MCP_HOST, value: "echo" }
+  - { name: NLP_MCP_URL, value: "http://nlp:7270" }
+  - { name: FUZZY_MCP_HOST, value: "fuzzy" }
   - { name: FUZZY_MCP_PORT, value: "7265" }
-  - { name: FUZZY_MCP_URL, value: "http://echo:7265" }
-  - { name: LLM_GATEWAY_HOST, value: "prometheus" }
+  - { name: FUZZY_MCP_URL, value: "http://fuzzy:7265" }
+  - { name: LLM_GATEWAY_HOST, value: "llm-gateway" }
   - { name: LLM_GATEWAY_PORT, value: "7280" }
-  - { name: LLM_GATEWAY_URL, value: "http://prometheus:7280" }
+  - { name: LLM_GATEWAY_URL, value: "http://llm-gateway:7280" }
 
 readinessProbe:
   path: /ready

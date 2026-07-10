@@ -105,7 +105,7 @@ class HttpKallimachosMcpClient(
 }
 
 /**
- * Kleio → Prometheus grounded synthesis. Speaks Prometheus's OpenAI-shaped chat
+ * Kleio → LLM-gateway grounded synthesis. Speaks the LLM gateway's OpenAI-shaped chat
  * surface — `POST /api/v1/chat/completions`, `{model, messages:[{role,content}]}`,
  * reply `{choices:[{message:{content}}]}` (with a top-level `content` fallback).
  * The prompt constrains the answer to the retrieved chunks and asks the model to
@@ -115,7 +115,7 @@ class HttpKallimachosMcpClient(
  */
 class HttpKleioLlmClient(
     private val http: HttpClient,
-    private val prometheusBaseUrl: String,
+    private val llmGatewayBaseUrl: String,
     private val systemPrompt: String,
     private val model: String,
 ) : KleioLlmClient {
@@ -146,7 +146,7 @@ class HttpKleioLlmClient(
             }
         val raw =
             http
-                .post("$prometheusBaseUrl/api/v1/chat/completions") {
+                .post("$llmGatewayBaseUrl/api/v1/chat/completions") {
                     contentType(ContentType.Application.Json)
                     setBody(body.toString())
                 }.bodyAsText()

@@ -5,7 +5,7 @@ description: |
   + prophet + gRPC) — an env-agnostic Helm chart. Holds no cluster knowledge: image, replicas,
   resources, telemetry endpoint are all values. Per-environment values live in the deploying repo
   (Olymp clusters via ArgoCD multi-source D3'; test contexts via the Olymp scripted harness).
-  Converted from the kustomize base/overlays, mirroring services/kadmos/k8s (Python). The image is
+  Converted from the kustomize base/overlays, mirroring services/nlp/k8s (Python). The image is
   built via `build-py` (not Jib); the chart itself is identical in shape to a backend chart.
 type: application
 version: 0.1.0

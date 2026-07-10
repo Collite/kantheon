@@ -47,7 +47,7 @@ class UnknownBrokerException(
 /**
  * Loads + serves the broker templates from the `brokers/` classpath dir (one YAML
  * per broker). Mirrors
- * the ariadne-mcp `ManifestLoader` idiom (Jackson YAML, snake_case keys). Built once
+ * the veles-mcp `ManifestLoader` idiom (Jackson YAML, snake_case keys). Built once
  * at startup; lookups are by `broker_id`.
  */
 class BrokerRegistry private constructor(

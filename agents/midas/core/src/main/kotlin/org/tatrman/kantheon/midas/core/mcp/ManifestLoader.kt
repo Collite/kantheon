@@ -15,7 +15,7 @@ import java.io.File
 /**
  * Loads the five Midas-core `ToolCapability` manifests under
  * `src/main/resources/manifests/tools/` and builds one [Capability] per manifest
- * (the `tools/ariadne-mcp` pattern, copied — the shared `ManifestYamlLoader` lives
+ * (the `tools/veles-mcp` pattern, copied — the shared `ManifestYamlLoader` lives
  * in `:tools:capabilities-mcp`, which a service must not depend on). Snake_case YAML
  * keys map to the camelCase Kotlin properties.
  */

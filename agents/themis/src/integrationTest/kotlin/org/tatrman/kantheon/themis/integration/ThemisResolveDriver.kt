@@ -30,7 +30,7 @@ import java.util.Base64
 // Helpers for the `themis-routing` integration specs (WS-C2 T5). Two wires, matching Themis's
 // two edges (Main.kt):
 //  - the MCP `resolve` tool over StreamableHTTP — the ROBUST smoke. On this edge Themis sets
-//    `routingEnabled=false`, so it exercises NLP (Kadmos) + the resolution graph and returns an
+//    `routingEnabled=false`, so it exercises NLP (Nlp) + the resolution graph and returns an
 //    outcome, but no agent-routing. No bearer required.
 //  - REST `POST /v1/resolve` (proto-canonical JSON via JsonFormat, mirroring iris-bff's
 //    HttpThemisClient) — the GATED agent-routing tier: routing is only computed here.
@@ -44,7 +44,7 @@ import java.util.Base64
  * nominal run; isError=true only on a hard error).
  *
  * [callTimeout] bounds the whole MCP call — generous (3 min) because a cold Themis JVM in a
- * CPU-throttled test namespace runs NLP (Kadmos) + up to four LLM legs (via Prometheus) on the
+ * CPU-throttled test namespace runs NLP (Nlp) + up to four LLM legs (via LLM gateway) on the
  * first request. The CIO engine-level timeout is disabled so this MCP-level bound governs.
  */
 suspend fun ContextHandle.callResolve(
@@ -79,7 +79,7 @@ suspend fun ContextHandle.callResolve(
 /**
  * Calls [callResolve] up to [attempts] times, returning the first non-error result. Retries on
  * either a thrown transport error or an `isError` result, sleeping [delayMs] between tries. This
- * absorbs two cold-context realities: (1) Kadmos (Python NLP) lazy-loads its model on the first
+ * absorbs two cold-context realities: (1) Nlp (Python NLP) lazy-loads its model on the first
  * `/v1/analyze` — the first attempt warms it; (2) that load can spike memory enough to restart the
  * pod, so a follow-up connect can be briefly refused — a later attempt hits the recovered pod. The
  * NLP/fuzzy legs (unlike the LLM legs) do NOT degrade gracefully, so a blip surfaces as `isError`.
@@ -126,7 +126,7 @@ fun CallToolResult.bodyJson(): JsonObject? =
  */
 fun CallToolResult.outcome(): String? = (bodyJson()?.get("outcome") as? JsonPrimitive)?.content
 
-/** The `trace_id` from the outcome JSON — present iff Kadmos NLP ran (it stamps the trace). */
+/** The `trace_id` from the outcome JSON — present iff Nlp NLP ran (it stamps the trace). */
 fun CallToolResult.traceId(): String? = (bodyJson()?.get("trace_id") as? JsonPrimitive)?.content
 
 /** The `error` message from a hard-error result (`isError=true`), if any. */
@@ -183,7 +183,7 @@ fun freshResolveRequest(
  * Mints an **unsigned** JWT (`header.payload.sig`) carrying [username] + [roles] in the Keycloak
  * shape (`realm_access.roles`). Themis forwards the caller's bearer verbatim as the OBO token;
  * signature verification is the ingress/sidecar's job, so an unsigned token with the right claims
- * suffices to exercise identity end-to-end. Mirrors the theseus-runquery driver.
+ * suffices to exercise identity end-to-end. Mirrors the query-runquery driver.
  */
 fun unsignedJwt(
     username: String,

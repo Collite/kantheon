@@ -267,7 +267,7 @@ class EnvelopeGoldenSpec :
                     .setToolCall(
                         ToolCallEvent
                             .newBuilder()
-                            .setTool("theseus-mcp")
+                            .setTool("query-mcp")
                             .setPhase("started")
                             .setSummary("running query"),
                     ).build()
@@ -305,7 +305,7 @@ class EnvelopeGoldenSpec :
             }
             roundTripStreamEvent(evToolCall).let {
                 it.eventCase shouldBe IrisStreamEvent.EventCase.TOOL_CALL
-                it.toolCall.tool shouldBe "theseus-mcp"
+                it.toolCall.tool shouldBe "query-mcp"
             }
             roundTripStreamEvent(evThinking).let {
                 it.eventCase shouldBe IrisStreamEvent.EventCase.THINKING

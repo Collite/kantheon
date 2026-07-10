@@ -48,7 +48,7 @@ class PlanValidator(
             }
         }
 
-        // Capability existence for QueryNodes (theseus) + ModelNodes (Metis, Phase 4).
+        // Capability existence for QueryNodes (query) + ModelNodes (Metis, Phase 4).
         for (node in plan.nodesList) {
             when (node.kindCase) {
                 PlanNode.KindCase.QUERY ->

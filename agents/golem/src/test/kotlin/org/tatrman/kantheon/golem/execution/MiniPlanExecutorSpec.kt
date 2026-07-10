@@ -267,7 +267,7 @@ class MiniPlanExecutorSpec :
 
                 result.status shouldBe Status.STATUS_DONE
                 val call = client.queries.single()
-                // The `{name}` template is forwarded UNCHANGED — Proteus rewrites it downstream.
+                // The `{name}` template is forwarded UNCHANGED — Translate rewrites it downstream.
                 call.source shouldBe
                     "SELECT * FROM ucetnictvi WHERE NAZEV_STR = {nazev_strediska} AND UCET_OBD = {obdobi}"
                 // The parameters are the typed envelope, not the raw args.
@@ -327,7 +327,7 @@ class MiniPlanExecutorSpec :
 
                 result.status shouldBe Status.STATUS_FAILED
                 result.errorCode shouldBe "PATTERN_PARAM_UNFILLED"
-                // The under-bound query must NOT reach theseus.
+                // The under-bound query must NOT reach query.
                 client.queries.size shouldBe 0
             }
         }

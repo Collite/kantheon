@@ -46,7 +46,7 @@ data class ShemOverlayBlock(
     val localeDefaults: List<LocaleDefaultYaml> = emptyList(),
     // Optional per-Shem tool capability refs, appended to the template constants by
     // [ShemAssembler]. Most Golems leave this empty (they reach data through the template
-    // theseus/render refs); a Golem fronting a service with bespoke MCP tools declares them
+    // query/render refs); a Golem fronting a service with bespoke MCP tools declares them
     // here so they ride the registered AgentCapability — e.g. golem-investment → midas.*:v1.
     val capabilityRefs: List<String> = emptyList(),
 )

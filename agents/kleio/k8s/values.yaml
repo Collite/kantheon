@@ -39,7 +39,7 @@ extraEnv:
   - { name: KLEIO_DB_URL, value: "jdbc:postgresql://kantheon-pg:5432/kleio" }
   - { name: KLEIO_KALLIMACHOS_MCP_HOST, value: "kallimachos-mcp" }
   - { name: KLEIO_KALLIMACHOS_MCP_PORT, value: "7262" }
-  - { name: KLEIO_PROMETHEUS_HOST, value: "prometheus" }
+  - { name: KLEIO_LLM_GATEWAY_HOST, value: "llm-gateway" }
 
 # Probes. The base ships only a readiness probe; a liveness probe is added here on the same
 # /ready endpoint (the only endpoint the base declares) since the library always renders one.

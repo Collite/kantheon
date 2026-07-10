@@ -16,23 +16,23 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 /**
- * P2 Stage 2.1 T2 — the Prometheus embeddings client against a Wiremock'd
- * Prometheus (contracts §10; EXAMPLES §9). Stubs the REAL OpenAI-shaped surface
- * Prometheus serves: `POST /api/v1/embeddings` → `{data:[{index, embedding}]}`.
+ * P2 Stage 2.1 T2 — the LLM-gateway embeddings client against a Wiremock'd
+ * the LLM gateway (contracts §10; EXAMPLES §9). Stubs the REAL OpenAI-shaped surface
+ * The LLM gateway serves: `POST /api/v1/embeddings` → `{data:[{index, embedding}]}`.
  * The conformed dimension N is checked against each embedding's length (mismatch
  * = config error); a data count that disagrees with the inputs throws; an embed
  * error throws (the service catches → PENDING).
  */
-class PrometheusEmbeddingsClientSpec :
+class LlmGatewayEmbeddingsClientSpec :
     StringSpec({
         val config = EmbedConfig(modelId = "bge-m3", modelVersion = "1", dimensions = 3)
 
         fun client(
             wm: WireMockServer,
             cfg: EmbedConfig = config,
-        ): PrometheusEmbeddingsClient {
+        ): LlmGatewayEmbeddingsClient {
             val http = HttpClient(CIO) { install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) } }
-            return PrometheusEmbeddingsClient(http, "http://localhost:${wm.port()}", cfg)
+            return LlmGatewayEmbeddingsClient(http, "http://localhost:${wm.port()}", cfg)
         }
 
         "embeds a batch and returns one vector per input (ordered by index)" {

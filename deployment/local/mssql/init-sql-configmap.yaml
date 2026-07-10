@@ -7,8 +7,8 @@ metadata:
     app: mssql
     tier: local-infra
 data:
-  # Seed database for local Brontes (MSSQL worker) smoke/integration runs.
-  # The connection_id `df-test` maps to this database in a local Kyklop overlay.
+  # Seed database for local Mssql (MSSQL worker) smoke/integration runs.
+  # The connection_id `df-test` maps to this database in a local Dispatch overlay.
   init.sql: |
     IF DB_ID('kantheon_local') IS NULL
     BEGIN

@@ -4,7 +4,7 @@ description: |
   The Kantheon charon-mcp wrapper — the MCP edge over Charon (the Arrow data mover). Env-agnostic
   Helm chart: image, replicas, resources, telemetry endpoint and the downstream gRPC wiring to
   Charon (plus optional capabilities-mcp registration) are all values. Per-environment values live
-  in the deploying repo. Converted from the kustomize base/overlays, mirroring theseus-mcp (D2).
+  in the deploying repo. Converted from the kustomize base/overlays, mirroring query-mcp (D2).
 type: application
 # Chart version: the packaging. appVersion tracks the default image tag.
 version: 0.1.0

@@ -63,7 +63,7 @@ dependencies {
     // Apache POI — the XLSX parser (Stage 1.5 T2).
     implementation(libs.apache.poi.ooxml)
 
-    // Broker template configs are YAML on the classpath (Jackson; the ariadne-mcp
+    // Broker template configs are YAML on the classpath (Jackson; the veles-mcp
     // ManifestLoader pattern reused for brokers/*.yaml).
     implementation(libs.jackson.databind)
     implementation(libs.jackson.module.kotlin)

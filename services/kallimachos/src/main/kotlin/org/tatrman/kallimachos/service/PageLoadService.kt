@@ -27,7 +27,7 @@ data class ConceptRefInput(
     val entityType: String,
     val entityId: String,
     val displayLabel: String,
-    val ariadneQname: String = "",
+    val velesQname: String = "",
 )
 
 data class LinkLoad(
@@ -101,7 +101,7 @@ class PageLoadService(
                 put("entityType", JsonPrimitive(ref.entityType))
                 put("entityId", JsonPrimitive(ref.entityId))
                 put("displayLabel", JsonPrimitive(ref.displayLabel))
-                put("ariadneQname", JsonPrimitive(ref.ariadneQname))
+                put("velesQname", JsonPrimitive(ref.velesQname))
             },
         )
 }

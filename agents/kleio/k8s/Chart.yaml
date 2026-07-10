@@ -2,7 +2,7 @@ apiVersion: v2
 name: kleio
 description: |
   The Kantheon kleio agent — an env-agnostic Helm chart. Holds no cluster knowledge: image,
-  replicas, resources, telemetry and downstream wiring (DB URL, kallimachos-mcp, prometheus)
+  replicas, resources, telemetry and downstream wiring (DB URL, kallimachos-mcp, llm-gateway)
   are all values. Per-environment values live in the deploying GitOps repo (Olymp), wired via
   ArgoCD multi-source (D3'). Converted from the kustomize base/overlays (D2).
 type: application

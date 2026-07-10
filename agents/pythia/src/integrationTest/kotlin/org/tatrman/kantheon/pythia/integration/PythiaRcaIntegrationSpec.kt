@@ -33,9 +33,9 @@ import org.tatrman.kantheon.testkit.integration.contextHandle
  *
  *  - **`investigationLive` (GATED)** — the full investigation loop to a terminal Status
  *    (DONE/FAILED/HALTED/INCONCLUSIVE): submit with a non-interactive HitlPolicy, then poll. Reaching
- *    a *confident* DONE needs the SQL-only RCA chain — Prometheus (LLM: planner is STRONG, synth
+ *    a *confident* DONE needs the SQL-only RCA chain — the LLM gateway (LLM: planner is STRONG, synth
  *    STRONG, eval/render CHEAP — no graceful degradation, so the stubs must be scripted) + Themis
- *    (resolve) + theseus-mcp (QueryNodes). This is the pythia arc's own "live-LLM RCA run" (plan.md
+ *    (resolve) + query-mcp (QueryNodes). This is the pythia arc's own "live-LLM RCA run" (plan.md
  *    Stage 3.3 T4, deferred here). Author the scripted WireMock stubs + expand the context to the
  *    chain, then flip this on.
  *
@@ -54,7 +54,7 @@ class PythiaRcaIntegrationSpec :
         // contextLive: the edge is up and PD-8 admission holds (robust, LLM-free).
         // investigationLive: the full loop reaches a terminal Status (needs the RCA chain + stubs).
         val contextLive = true
-        // Flip ON once the context is expanded to the SQL-only RCA chain (prometheus+themis+theseus)
+        // Flip ON once the context is expanded to the SQL-only RCA chain (llm-gateway+themis+query)
         // and the scripted LLM WireMock stubs are authored (planner/synth/eval). See plan.md S3.3 T4.
         val investigationLive = false
 

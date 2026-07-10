@@ -7,7 +7,7 @@ import org.tatrman.kallimachos.corpus.NotebookRecord
  * The notebooks (marts) plane (contracts §3 — `notebooks` + `notebook_members`).
  * A notebook is an m:n curated subset of the corpus; membership is what mart-
  * scoped retrieval filters against ([memberSourceIds]). Owner + `visibility_roles`
- * are stored at v1; OBO/Argos enforcement is P4.
+ * are stored at v1; OBO/Validate enforcement is P4.
  */
 interface NotebookPort {
     fun create(notebook: NewNotebook): NotebookRecord

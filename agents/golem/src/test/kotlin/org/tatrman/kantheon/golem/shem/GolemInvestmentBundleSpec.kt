@@ -23,7 +23,7 @@ import java.nio.file.Path
  * `GolemUcetnictviBundleSpec`. Catches drift between the authored bundle and the
  * assembly contract before the pod is deployed (the ahead-of-cluster pattern). The
  * ai-models `investment` area + `q.midas.*` queries (T1/T2) are exercised live against
- * Ariadne in Stream T; here the assembly is proven against fixtures.
+ * Veles in Stream T; here the assembly is proven against fixtures.
  */
 class GolemInvestmentBundleSpec :
     StringSpec({
@@ -93,7 +93,7 @@ class GolemInvestmentBundleSpec :
 
             // template refs + the five overlay-declared midas tool refs
             cap.capabilityRefsList shouldContainAll
-                listOf("theseus.query:v1", "render.table:v1")
+                listOf("query.query:v1", "render.table:v1")
             cap.capabilityRefsList shouldContainAll
                 listOf(
                     "midas.portfolio.performance:v1",
@@ -105,7 +105,7 @@ class GolemInvestmentBundleSpec :
         }
     })
 
-/** An investment-shaped Ariadne model fixture: the five area entities (described) + five queries. */
+/** An investment-shaped Veles model fixture: the five area entities (described) + five queries. */
 private fun investmentModel(): ModelSnapshot =
     ModelSnapshot.from(
         ModelBundle

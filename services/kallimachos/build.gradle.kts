@@ -81,7 +81,7 @@ dependencies {
     implementation(libs.flyway.pgsql)
 
     // Vector plane (P2 Stage 2.1): pgvector helper for the VECTOR plane binding +
-    // a Ktor client for the Prometheus EmbedText embeddings client.
+    // a Ktor client for the LLM-gateway EmbedText embeddings client.
     implementation(libs.pgvector)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -89,7 +89,7 @@ dependencies {
 
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
-    // Wiremock — the Prometheus EmbedText embeddings client spec (EXAMPLES §9).
+    // Wiremock — the LLM-gateway EmbedText embeddings client spec (EXAMPLES §9).
     testImplementation(libs.wiremock)
     testImplementation(libs.ktor.client.mock)
 }

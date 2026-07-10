@@ -124,7 +124,7 @@ data class LoadConceptRefDto(
     val entityType: String,
     val entityId: String,
     val displayLabel: String,
-    val ariadneQname: String = "",
+    val velesQname: String = "",
 )
 
 @Serializable

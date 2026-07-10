@@ -33,7 +33,7 @@ class ShemAssemblySpec :
             cap.serviceEndpoint shouldBe "http://golem-ucetnictvi.kantheon.svc.cluster.local:7420"
             cap.healthCheckPath shouldBe "/health"
             cap.capabilityRefsList shouldContainExactly
-                listOf("theseus.query:v1", "theseus.compile:v1", "render.table:v1", "render.chart:v1")
+                listOf("query.query:v1", "query.compile:v1", "render.table:v1", "render.chart:v1")
             cap.preferredCapabilitiesList shouldContainExactly cap.capabilityRefsList
             cap.typicalLatencyMs shouldBe 0
             cap.typicalCostUsd shouldBe 0.0

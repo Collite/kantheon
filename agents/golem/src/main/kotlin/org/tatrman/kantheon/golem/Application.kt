@@ -54,7 +54,7 @@ fun Application.module(
     }
 
     // Load the model + prompts and register the Shem after the server is up, so a
-    // slow/unreachable Ariadne never blocks the bind; /ready flips once loaded.
+    // slow/unreachable Veles never blocks the bind; /ready flips once loaded.
     monitor.subscribe(ApplicationStarted) {
         launch { components.bootLoad() }
     }

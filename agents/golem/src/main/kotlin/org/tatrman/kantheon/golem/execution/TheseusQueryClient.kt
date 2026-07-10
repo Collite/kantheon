@@ -23,10 +23,10 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import org.slf4j.LoggerFactory
 
-private val log = LoggerFactory.getLogger(TheseusQueryClient::class.java)
+private val log = LoggerFactory.getLogger(QueryQueryClient::class.java)
 
 /**
- * Real [QueryClient] over **theseus-mcp** (MCP streamable-HTTP). Calls the `query`
+ * Real [QueryClient] over **query-mcp** (MCP streamable-HTTP). Calls the `query`
  * and `compile` tools, forwarding the caller's OBO bearer as `Authorization:
  * Bearer` (kantheon-security §2). Rows come back in a `TextContent` (the `query`
  * tool emits JSON rows; `compile` emits the SQL text).
@@ -40,7 +40,7 @@ private val log = LoggerFactory.getLogger(TheseusQueryClient::class.java)
  * client+transport is built per call so the per-user bearer never leaks across
  * turns; connection pooling is a follow-up.
  */
-class TheseusQueryClient(
+class QueryQueryClient(
     private val url: String,
     private val clientName: String = "golem",
     private val clientVersion: String = "v0.1.0",
@@ -106,22 +106,22 @@ class TheseusQueryClient(
     ): CallToolResult {
         // Fail closed: the caller's OBO bearer is mandatory (kantheon-security §2) — a
         // null bearer is a wiring bug, not an anonymous call.
-        if (bearer == null) throw QueryException("theseus-mcp '$tool' requires an OBO bearer (none forwarded)")
+        if (bearer == null) throw QueryException("query-mcp '$tool' requires an OBO bearer (none forwarded)")
         val httpClient = buildHttpClient(bearer)
         try {
             val client = Client(Implementation(name = clientName, version = clientVersion))
             client.connect(StreamableHttpClientTransport(client = httpClient, url = url))
             return try {
                 val result = client.callTool(name = tool, arguments = arguments)
-                (result as? CallToolResult) ?: throw QueryException("theseus-mcp '$tool' returned no usable result")
+                (result as? CallToolResult) ?: throw QueryException("query-mcp '$tool' returned no usable result")
             } finally {
                 client.close()
             }
         } catch (e: QueryException) {
             throw e
         } catch (e: Exception) {
-            log.warn("theseus-mcp '{}' call failed: {}", tool, e.message)
-            throw QueryException("theseus-mcp '$tool' call failed: ${e.message}", e)
+            log.warn("query-mcp '{}' call failed: {}", tool, e.message)
+            throw QueryException("query-mcp '$tool' call failed: ${e.message}", e)
         } finally {
             httpClient.close()
         }
@@ -134,7 +134,7 @@ class TheseusQueryClient(
                 createClientPlugin("GolemObo") {
                     onRequest { request, _ ->
                         request.header("Authorization", "Bearer $bearer")
-                        // Propagate the W3C `traceparent`/`tracestate` so theseus joins this turn's
+                        // Propagate the W3C `traceparent`/`tracestate` so query joins this turn's
                         // trace (the inbound otel-config join only covers the server edge).
                         GlobalOpenTelemetry
                             .getPropagators()

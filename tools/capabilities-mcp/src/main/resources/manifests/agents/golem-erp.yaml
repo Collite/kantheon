@@ -17,8 +17,8 @@ counter_examples:
   - "Proč klesly tržby Castrolu?"                 # RCA → Pythia
   - "What's the wage cost on CC 4902?"            # HR domain → Golem-HR (future)
 capability_refs:
-  - theseus.query:v1
-  - theseus.compile:v1
+  - query.query:v1
+  - query.compile:v1
   - render.table:v1
   - render.chart:v1
 service_endpoint: "http://golem-erp.kantheon.svc.cluster.local:7401"
@@ -30,7 +30,7 @@ hitl_default: INTERACTIVE
 # ─── Shem-specific ───
 area_name: "ERP"
 area_entities:
-  # Bora fills: entity-type IDs from Ariadne (ariadne-mcp) metadata
+  # Bora fills: entity-type IDs from Veles (veles-mcp) metadata
   - customer
   - supplier
   - product
@@ -44,14 +44,14 @@ area_terminology:
     definition: "v ERP může znamenat zákaznickou objednávku (sales_order) NEBO objednávku k dodavateli (purchase_order)"
     synonyms: ["order"]
 preferred_queries:
-  # Bora fills: curated Ariadne (ariadne-mcp) query IDs in scope
+  # Bora fills: curated Veles (veles-mcp) query IDs in scope
   - listUnpaidInvoices
   - listOrdersByCustomer
   - listProductsByCategory
 preferred_capabilities:
   # Bora fills: curated ToolCapability IDs
-  - theseus.query:v1
-  - theseus.compile:v1
+  - query.query:v1
+  - query.compile:v1
 style_addendum: |
   # Bora fills: voice/presentation only. NEVER correctness-affecting knowledge.
   # E.g.: "Czech responses default to plural-formal address; tables show currency in CZK by default."

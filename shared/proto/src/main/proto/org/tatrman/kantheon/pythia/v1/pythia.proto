@@ -332,7 +332,7 @@ message PlanNode {
   string node_id                  = 1;
   repeated string tests_hyp_ids   = 2;
   oneof kind {
-    QueryNode query          = 3;   // theseus-mcp
+    QueryNode query          = 3;   // query-mcp
     DataFrameNode dataframe  = 4;   // Polars worker (Phase 4)
     ModelNode model          = 5;   // Metis (Phase 4)
     ReasoningNode reasoning  = 6;   // LLM reasoning step

@@ -80,6 +80,6 @@ dependencies {
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
     testImplementation(libs.grpc.inprocess)
-    // Wiremock — the Prometheus chat stub for the WikiCompiler spec (S3.2).
+    // Wiremock — the LLM gateway chat stub for the WikiCompiler spec (S3.2).
     testImplementation(libs.wiremock)
 }

@@ -1,7 +1,7 @@
 # Integration tier (testing arc Phase 2 Stage 2.3) — the full constellation on a real cluster.
-# Drives the cross-repo loop for the `theseus-runquery` context:
+# Drives the cross-repo loop for the `query-runquery` context:
 #   olymp infra-up  (scripted, NON-ArgoCD bring-up on the olymp test cluster)
-#     → :tools:theseus-mcp:integrationTest  (kantheon: @RequiresContext gate + the run_query suite)
+#     → :tools:query-mcp:integrationTest  (kantheon: @RequiresContext gate + the run_query suite)
 #   → olymp infra-down  (ALWAYS, via trap — even on test failure)
 #
 # Heavy (cluster + ~15 images + end-to-end wiring), so it is NOT on the PR gate — it runs
@@ -17,7 +17,7 @@ on:
     - cron: "0 3 * * *"          # 03:00 UTC nightly
   push:
     tags:
-      - "*/v*"                    # release tags (per-service, e.g. theseus-mcp/v0.1.0)
+      - "*/v*"                    # release tags (per-service, e.g. query-mcp/v0.1.0)
   workflow_dispatch: {}           # manual trigger for on-demand runs / first green (T5)
 
 concurrency:
@@ -31,7 +31,7 @@ jobs:
     # stand a throwaway k3d cluster before infra-up (test-harness.md §9 — documented fallback).
     runs-on: [self-hosted, olymp-test]
     env:
-      CONTEXT: theseus-runquery
+      CONTEXT: query-runquery
       # The kubectl context name on the runner (the olymp test cluster). Overridable via a repo
       # variable so the same workflow targets bp-olymp01 or a k3d context.
       KUBE_CONTEXT: ${{ vars.OLYMP_KUBE_CONTEXT || 'bp-olymp01' }}
@@ -77,7 +77,7 @@ jobs:
             echo "::group::failure diagnostics — $NS_EXPECTED"
             kubectl --context "$KUBE_CONTEXT" -n "$NS_EXPECTED" get pods -o wide || true
             kubectl --context "$KUBE_CONTEXT" -n "$NS_EXPECTED" get events --sort-by=.lastTimestamp || true
-            for d in theseus-mcp theseus proteus argos kyklop brontes; do
+            for d in query-mcp query translate validate dispatch mssql; do
               echo "--- describe deploy/$d ---"
               kubectl --context "$KUBE_CONTEXT" -n "$NS_EXPECTED" describe deploy "$d" 2>/dev/null | sed -n '/Conditions:/,/Events:/p' || true
               echo "--- logs deploy/$d (tail) ---"
@@ -113,9 +113,9 @@ jobs:
           kubectl config view --raw > "$KCFG"
           KUBECONFIG="$KCFG" kubectl config use-context "$KUBE_CONTEXT" >/dev/null
 
-          # The suite lives in tools/theseus-mcp; -Pcontext makes the integrationTest task run
+          # The suite lives in tools/query-mcp; -Pcontext makes the integrationTest task run
           # (it skips with no context), -Pnamespace hands it the resolved ns for the gate.
-          KUBECONFIG="$KCFG" ./gradlew :tools:theseus-mcp:integrationTest \
+          KUBECONFIG="$KCFG" ./gradlew :tools:query-mcp:integrationTest \
             -Pcontext="$CONTEXT" -Pnamespace="$NS" --no-daemon
           rm -f "$KCFG"
           TEST_DONE=$(date +%s)

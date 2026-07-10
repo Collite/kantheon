@@ -92,14 +92,14 @@ dependencies {
     implementation(libs.tatrman.ttr.llm.client)
     // capabilities-mcp read client — PlanValidator capability-existence checks.
     implementation(project(":shared:libs:kotlin:capabilities-client"))
-    // HTTP (ThemisClient REST) + MCP streamable-HTTP (theseus-mcp query edge, Stage 2.3).
+    // HTTP (ThemisClient REST) + MCP streamable-HTTP (query-mcp query edge, Stage 2.3).
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.kotlin.mcp.sdk)
 
     // Phase 4 — data plane. gRPC-direct clients to Charon (services/charon),
-    // the Polars worker (Steropes), and Metis (services/metis). The coroutine
+    // the Polars worker (Polars), and Metis (services/metis). The coroutine
     // stubs come transitively from :shared:proto; the netty transport is added
     // here. Live transports are integration-deferred (planning-conventions §4);
     // the unit gate runs in-process gRPC fixture-servers + fakes.

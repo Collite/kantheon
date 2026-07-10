@@ -25,7 +25,7 @@ data class SuspicionVerdict(
 /**
  * Flags dodgy step results (Stage 3.1 T2/T3). A **rules checklist** runs first:
  * empty-where-expected, 10× / 0.1× row-count anomalies, high NULL-rate, schema
- * mismatch, and security flags forwarded from theseus-mcp. When the rules find
+ * mismatch, and security flags forwarded from query-mcp. When the rules find
  * nothing but the result feeds a load-bearing hypothesis, a gated **CHEAP-tier**
  * fuzzy check can weigh in (only when an executor is wired).
  */

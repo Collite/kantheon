@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.tatrman.kallimachos.v1.EdgeKind
-import org.tatrman.pinakes.clients.PrometheusClient
+import org.tatrman.pinakes.clients.LlmGatewayClient
 import org.tatrman.pinakes.resolve.ResolvedPage
 
 /**
- * The contradiction-flag pass (P3 Stage 3.3 T1): asks Prometheus whether any
+ * The contradiction-flag pass (P3 Stage 3.3 T1): asks the LLM gateway whether any
  * pages assert conflicting facts and writes `CONTRADICTS` edges (contracts §1).
  * Parse-safe — a malformed/failed detection yields no contradictions (never
  * crashes the run).
  */
 class ContradictionDetector(
-    private val prometheus: PrometheusClient,
+    private val llmGateway: LlmGatewayClient,
     private val systemPrompt: String = SYSTEM,
 ) {
     private val log = LoggerFactory.getLogger(ContradictionDetector::class.java)
@@ -34,7 +34,7 @@ class ContradictionDetector(
             pages.joinToString("\n\n") { "page ${it.localId} (${it.kind}): ${it.title}\n${it.contentMd.take(500)}" }
         val raw =
             try {
-                prometheus.complete(systemPrompt, userPrompt)
+                llmGateway.complete(systemPrompt, userPrompt)
             } catch (e: Exception) {
                 log.warn("contradiction detection failed (no edges): {}", e.message)
                 return emptyList()

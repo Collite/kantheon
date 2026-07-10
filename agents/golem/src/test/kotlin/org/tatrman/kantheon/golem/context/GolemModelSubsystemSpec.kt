@@ -44,7 +44,7 @@ private fun subsystem(client: MetadataGrpcClient): GolemModelSubsystem =
         shem = assembledShemContext(),
         packageContext = PackageContext(client, packages = listOf("erp")),
         promptStore = PromptStore(shemDir = mountedShemDir(), locale = "cs", fallback = { emptyMap() }),
-        ariadneClient = client,
+        velesClient = client,
     )
 
 private fun happyClient(): MetadataGrpcClient {
@@ -80,7 +80,7 @@ class GolemModelSubsystemSpec :
 
         "a Shem-less (skeleton) subsystem is ready on the DB gate alone" {
             val empty =
-                GolemModelSubsystem(shem = null, packageContext = null, promptStore = null, ariadneClient = null)
+                GolemModelSubsystem(shem = null, packageContext = null, promptStore = null, velesClient = null)
             empty.isReady shouldBe true
             GolemReadiness(dbReady = true, model = empty).isReady() shouldBe true
         }
@@ -88,7 +88,7 @@ class GolemModelSubsystemSpec :
         "a failed initial model load leaves the pod not-ready (load is warn-and-continue)" {
             runTest {
                 val client = mockk<MetadataGrpcClient>()
-                coEvery { client.getModel(any(), any(), any(), any(), any()) } throws RuntimeException("ariadne down")
+                coEvery { client.getModel(any(), any(), any(), any(), any()) } throws RuntimeException("veles down")
                 val sub = subsystem(client)
 
                 sub.load() // must not throw

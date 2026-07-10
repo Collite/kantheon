@@ -9,7 +9,7 @@ import org.tatrman.worker.v1.ExecuteRequest
 import org.tatrman.worker.v1.WorkerServiceGrpcKt
 import java.util.concurrent.TimeUnit
 
-/** A DataFrame op dispatched to the Polars worker (Steropes) over a session workspace. */
+/** A DataFrame op dispatched to the Polars worker (Polars) over a session workspace. */
 data class DataFrameOp(
     val sessionId: String,
     val outputDfName: String,
@@ -28,11 +28,11 @@ data class DataFrameOutput(
 )
 
 /**
- * The seam to the Polars worker (Steropes) `org.tatrman.worker.v1.WorkerService`
+ * The seam to the Polars worker (Polars) `org.tatrman.worker.v1.WorkerService`
  * for DataFrame composition (architecture §5, contracts §6). Pythia stages inputs
  * into a worker session via Charon, then chains dfdsl ops on the **same session**
  * (sticky affinity) — each op's output is a new `(session_id, df_name)` workspace
- * DF. **Live Steropes is integration-deferred** (planning-conventions §4); the unit
+ * DF. **Live Polars is integration-deferred** (planning-conventions §4); the unit
  * gate runs a [FakeWorkerClient].
  */
 interface WorkerClient : AutoCloseable {

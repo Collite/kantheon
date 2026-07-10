@@ -14,7 +14,7 @@ import org.tatrman.kantheon.golem.context.ModelSnapshot
  * converged-design sources (golem/contracts §6):
  *
  *  1. the ai-models agent definition (carried in the overlay `source` block),
- *  2. the Ariadne model — `area_entities` / `preferred_queries` / `area_terminology`,
+ *  2. the Veles model — `area_entities` / `preferred_queries` / `area_terminology`,
  *  3. the overlay residue (`visibility_roles`, optional router seed / examples / locales),
  *  4. the Golem-template constants (`agent_kind`, `intent_kinds`, capability refs, hitl, endpoint).
  *
@@ -28,8 +28,8 @@ object ShemAssembler {
     private val INTENT_KINDS = listOf(IntentKind.PROCEDURAL)
     private val CAPABILITY_REFS =
         listOf(
-            "theseus.query:v1",
-            "theseus.compile:v1",
+            "query.query:v1",
+            "query.compile:v1",
             "render.table:v1",
             "render.chart:v1",
         )
@@ -46,7 +46,7 @@ object ShemAssembler {
     /**
      * @param overlay     the parsed `kantheon.shem/v1` overlay (identity + residue).
      * @param areaResults the `ResolveArea` result per `source.areas` entry, in order.
-     * @param model       the loaded Ariadne model (entities + pattern queries) for the area packages.
+     * @param model       the loaded Veles model (entities + pattern queries) for the area packages.
      */
     fun assemble(
         overlay: ShemOverlay,
@@ -75,7 +75,7 @@ object ShemAssembler {
     /**
      * The overlay-only (identity + residue + template constants) capability, with the
      * model-derived fields left empty. Used as the pre-load placeholder so the admission
-     * gate + registration can hold a stable [ShemContext] before Ariadne's model loads;
+     * gate + registration can hold a stable [ShemContext] before Veles's model loads;
      * [assemble] supplies the same fields plus the model-derived ones.
      */
     fun identity(

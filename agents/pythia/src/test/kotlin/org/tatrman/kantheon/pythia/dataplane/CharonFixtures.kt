@@ -143,7 +143,7 @@ fun startInProcess(service: io.grpc.BindableService): Pair<Server, ManagedChanne
 /**
  * A [WorkerClient] fake: returns the configured row output for each DataFrame op,
  * reusing the op's session (sticky affinity). Records every op for chain/session
- * assertions; live Steropes is the integration suite.
+ * assertions; live Polars is the integration suite.
  */
 class FakeWorkerClient(
     private val rows: JsonArray? = null,

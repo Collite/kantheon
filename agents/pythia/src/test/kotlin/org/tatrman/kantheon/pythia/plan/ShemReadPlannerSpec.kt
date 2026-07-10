@@ -18,12 +18,12 @@ internal val TWO_AREAS: JsonObject =
             "area_entities": ["customer", "invoice", "product"],
             "area_terminology": [ { "term": "objednávka", "definition": "sales_order nebo purchase_order" } ],
             "preferred_queries": ["listUnpaidInvoices", "listOrdersByCustomer"],
-            "capability_refs": ["theseus.query:v1"] },
+            "capability_refs": ["query.query:v1"] },
           { "agent_id": "golem-hr", "agent_kind": "AREA_QA", "area_name": "HR",
             "area_entities": ["employee", "wage", "cost_center"],
             "area_terminology": [ { "term": "mzda", "definition": "gross wage cost on a cost center" } ],
             "preferred_queries": ["wageByCostCenter"],
-            "capability_refs": ["theseus.query:v1"] },
+            "capability_refs": ["query.query:v1"] },
           { "agent_id": "pythia", "agent_kind": "INVESTIGATOR", "area_entities": [] }
         ] }
         """.trimIndent(),

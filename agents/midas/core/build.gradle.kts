@@ -68,7 +68,7 @@ dependencies {
     implementation(libs.ktor.opentelemetry)
 
     // Manifest YAML parsing for capabilities registration (Jackson; the
-    // ariadne-mcp pattern — wrappers must not depend on :tools:capabilities-mcp).
+    // veles-mcp pattern — wrappers must not depend on :tools:capabilities-mcp).
     implementation(libs.jackson.databind)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.dataformat.yaml)

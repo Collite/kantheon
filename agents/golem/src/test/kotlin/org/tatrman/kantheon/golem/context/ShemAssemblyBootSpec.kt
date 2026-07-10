@@ -82,7 +82,7 @@ private fun bootClient(): MetadataGrpcClient {
 
 /**
  * T7 — boot the Shem subsystem from a mounted `shem.yaml` + prompts against a mocked
- * Ariadne client, then assert the **assembled** `AgentCapability` (the registration
+ * Veles client, then assert the **assembled** `AgentCapability` (the registration
  * payload) + readiness gate. Drives `fromConfig` via a real config but injects the
  * mocked client through a test-only constructor path so no gRPC is needed.
  */

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 private val log = LoggerFactory.getLogger("org.tatrman.kantheon.golem.context.GolemModelSubsystem")
 
 /**
- * The Shem + Ariadne-fed model/prompt subsystem of a Golem pod, assembled together
+ * The Shem + Veles-fed model/prompt subsystem of a Golem pod, assembled together
  * because `/ready` gates on all of it. Any member is null when not configured
  * (skeleton / local boot without a mounted Shem); a configured Shem implies the model
  * + prompt stores exist and must load before the pod is ready.
@@ -33,7 +33,7 @@ class GolemModelSubsystem(
     val shem: ShemContext?,
     val packageContext: PackageContext?,
     val promptStore: PromptStore?,
-    private val ariadneClient: MetadataGrpcClient?,
+    private val velesClient: MetadataGrpcClient?,
     private val overlay: ShemOverlay? = null,
     private val areaResults: List<ResolveAreaResponse> = emptyList(),
 ) {
@@ -55,7 +55,7 @@ class GolemModelSubsystem(
             reassemble()
         } catch (e: Exception) {
             log.warn(
-                "initial model load from Ariadne failed: {} — pod stays not-ready, retry via /v1/refresh",
+                "initial model load from Veles failed: {} — pod stays not-ready, retry via /v1/refresh",
                 e.message,
             )
         }
@@ -64,7 +64,7 @@ class GolemModelSubsystem(
     }
 
     /**
-     * Re-pull the model from Ariadne, re-assemble the Shem's model-derived fields, and
+     * Re-pull the model from Veles, re-assemble the Shem's model-derived fields, and
      * re-read the prompts from the mounted Shem bundle (ops `/v1/refresh`). Prompts are
      * remount-driven, so this just re-reads whatever is currently mounted (a remount
      * supplies new content); the area resolution is cached from boot.
@@ -83,15 +83,15 @@ class GolemModelSubsystem(
         ctx.update(ShemAssembler.assemble(ov, resolvedAreas.get(), model))
     }
 
-    fun close() = ariadneClient?.close()
+    fun close() = velesClient?.close()
 
     companion object {
         /**
          * Assemble from config. `<golem.shem.dir>/shem.yaml` is the `kantheon.shem/v1`
-         * overlay; the model comes from Ariadne (`golem.ariadne.host`), the prompts from
+         * overlay; the model comes from Veles (`golem.veles.host`), the prompts from
          * the mounted Shem bundle (`golem.shem.dir`, default `/etc/golem/shem`). A mounted
-         * overlay + Ariadne client wire the model store; the prompt store is wired whenever
-         * an overlay is present (prompts are remount-driven, not Ariadne-fed). No `shem.yaml`
+         * overlay + Veles client wire the model store; the prompt store is wired whenever
+         * an overlay is present (prompts are remount-driven, not Veles-fed). No `shem.yaml`
          * → an empty subsystem (skeleton boot stays ready).
          *
          * The Shem's `AgentCapability` is assembled at boot: each `source.areas` entry is
@@ -102,11 +102,11 @@ class GolemModelSubsystem(
         fun fromConfig(config: Config): GolemModelSubsystem {
             val shemDir = Path.of(config.optionalString("golem.shem.dir") ?: "/etc/golem/shem")
             val locale = config.optionalString("golem.locale").orEmpty().ifBlank { "cs" }
-            return build(shemDir, buildAriadneClient(config), locale)
+            return build(shemDir, buildVelesClient(config), locale)
         }
 
         /**
-         * Wire the subsystem from a mounted Shem dir + an (optional) Ariadne client.
+         * Wire the subsystem from a mounted Shem dir + an (optional) Veles client.
          * Shared by [fromConfig] and the boot component spec — the only difference is
          * where the client comes from (config-built gRPC vs an injected mock).
          */
@@ -138,7 +138,7 @@ class GolemModelSubsystem(
 
             if (client == null) {
                 log.warn(
-                    "Shem '{}' loaded but golem.ariadne.host is unset — model will not load (prompts still mounted)",
+                    "Shem '{}' loaded but golem.veles.host is unset — model will not load (prompts still mounted)",
                     shem.golemId,
                 )
                 return GolemModelSubsystem(shem, null, promptStore, null, overlay)
@@ -150,7 +150,7 @@ class GolemModelSubsystem(
                 shem = shem,
                 packageContext = PackageContext(client, packages = packages, locale = locale),
                 promptStore = promptStore,
-                ariadneClient = client,
+                velesClient = client,
                 overlay = overlay,
                 areaResults = areaResults,
             )
@@ -181,10 +181,10 @@ class GolemModelSubsystem(
             return results to packages.toList()
         }
 
-        private fun buildAriadneClient(config: Config): MetadataGrpcClient? {
-            val host = config.optionalString("golem.ariadne.host")?.takeIf { it.isNotBlank() } ?: return null
-            val port = if (config.hasPath("golem.ariadne.port")) config.getInt("golem.ariadne.port") else 7261
-            log.info("Ariadne client → {}:{}", host, port)
+        private fun buildVelesClient(config: Config): MetadataGrpcClient? {
+            val host = config.optionalString("golem.veles.host")?.takeIf { it.isNotBlank() } ?: return null
+            val port = if (config.hasPath("golem.veles.port")) config.getInt("golem.veles.port") else 7261
+            log.info("Veles client → {}:{}", host, port)
             return GrpcMetadataGrpcClient(host = host, port = port)
         }
 

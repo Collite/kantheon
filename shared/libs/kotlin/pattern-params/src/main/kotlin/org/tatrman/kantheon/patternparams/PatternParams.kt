@@ -4,10 +4,10 @@
 //
 // The job: given the **raw args** a plan carried (LLM/Resolver/selection-derived) and a
 // pattern's **declared parameters**, produce the typed `{name: {value, type}}` map the
-// query edge (theseus-mcp `query.parameters`) expects, plus the list of required params
+// query edge (query-mcp `query.parameters`) expects, plus the list of required params
 // that went unbound. Values are coerced to the surface type's shape; keys are normalised
 // onto the declared names (exact → case-insensitive → label-token alias → fuzzy). The
-// pattern's `sql_template` is sent **verbatim** with `{name}` intact — Proteus's
+// pattern's `sql_template` is sent **verbatim** with `{name}` intact — Translate's
 // ParameterBridge rewrites `{name}` → `?` downstream; nothing is inlined here.
 package org.tatrman.kantheon.patternparams
 

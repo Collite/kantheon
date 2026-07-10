@@ -14,7 +14,7 @@ data class GroundedAnswer(
 )
 
 /**
- * Kleio → Prometheus for grounded synthesis. The prompt (in `prompts/`)
+ * Kleio → the LLM gateway for grounded synthesis. The prompt (in `prompts/`)
  * constrains the answer to the retrieved chunks and asks the model to cite the
  * chunk ids it used. The synthesis is grounded — never free-form generation over
  * the model's prior knowledge.

@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicReference
  * The backing capability is swappable: the wiring builds a `ShemContext` from the
  * overlay-only fields (identity + `visibility_roles`, knowable before the model
  * loads) so registration + the admission gate can hold a stable reference, then
- * [update]s it with the model-derived fields once Ariadne's model has loaded (boot
+ * [update]s it with the model-derived fields once Veles's model has loaded (boot
  * `load()` / ops `/v1/refresh`). Admission only reads overlay fields, so it is
  * correct even before the model-derived swap.
  */

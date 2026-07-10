@@ -77,7 +77,7 @@ class ManifestYamlLoaderSpec :
                 description_for_router: "ERP domain Q&A"
                 example_questions: ["Které faktury Shell ještě neuhradil?"]
                 counter_examples: ["Proč klesly tržby Castrolu?"]
-                capability_refs: ["theseus.query:v1", "render.table:v1"]
+                capability_refs: ["query.query:v1", "render.table:v1"]
                 service_endpoint: "http://golem-erp.kantheon.svc.cluster.local:7401"
                 health_check_path: /health
                 typical_latency_ms: 5000
@@ -86,7 +86,7 @@ class ManifestYamlLoaderSpec :
                 area_name: ERP
                 area_entities: [customer, invoice]
                 preferred_queries: [listUnpaidInvoices]
-                preferred_capabilities: [theseus.query:v1]
+                preferred_capabilities: [query.query:v1]
                 style_addendum: "Czech responses default to formal."
                 locale_defaults:
                   - locale: cs-CZ
@@ -105,11 +105,11 @@ class ManifestYamlLoaderSpec :
         "parseTool reads a valid ToolCapability YAML" {
             val yaml =
                 """
-                capability_id: theseus.query:v1
-                category: theseus.*
+                capability_id: query.query:v1
+                category: query.*
                 version: "v1"
                 search_tags: [sql, named-query]
-                service_endpoint: "http://theseus-mcp.kantheon.svc.cluster.local:7307"
+                service_endpoint: "http://query-mcp.kantheon.svc.cluster.local:7307"
                 description: "Executes a parameterised named query."
                 cost_hints:
                   typical_latency_ms: 800
@@ -118,8 +118,8 @@ class ManifestYamlLoaderSpec :
                   max_concurrent: 50
                 """.trimIndent()
             val cap = ManifestYamlLoader.parseTool(yaml)
-            cap.capabilityId shouldBe "theseus.query:v1"
-            cap.category shouldBe "theseus.*"
+            cap.capabilityId shouldBe "query.query:v1"
+            cap.category shouldBe "query.*"
             cap.searchTagsList shouldContain "sql"
             cap.costHints.typicalLatencyMs shouldBe 800.0
             cap.costHints.isIdempotent shouldBe true
@@ -142,10 +142,10 @@ class ManifestYamlLoaderSpec :
                 ?.agent
                 ?.areaName shouldBe "ERP"
             reg
-                .get("theseus.query:v1")
+                .get("query.query:v1")
                 ?.capability
                 ?.tool
-                ?.category shouldBe "theseus.*"
+                ?.category shouldBe "query.*"
         }
 
         "fixture-loaded entries carry no last_heartbeat_at (exempt from TTL pruner)" {

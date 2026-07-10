@@ -27,7 +27,7 @@ import org.tatrman.pinakes.catalog.InMemoryAssetCatalog
 import org.tatrman.pinakes.catalog.LineageStore
 import org.tatrman.pinakes.clients.HttpCorpusPageWriter
 import org.tatrman.pinakes.clients.HttpKallimachosWriteClient
-import org.tatrman.pinakes.clients.HttpPrometheusClient
+import org.tatrman.pinakes.clients.HttpLlmGatewayClient
 import org.tatrman.pinakes.compile.ContradictionDetector
 import org.tatrman.pinakes.compile.Linker
 import org.tatrman.pinakes.compile.WikiCompiler
@@ -99,10 +99,10 @@ fun main() {
             modelVersion = configOr(config, "pinakes.embed.model-version", "1"),
         )
     // The LLM compile tail (S3.2): Prometheus client + page writer + resolver.
-    val prometheusBase =
-        "http://${configOr(config, "pinakes.prometheus.host", "prometheus")}:" +
-            (if (config.hasPath("pinakes.prometheus.port")) config.getInt("pinakes.prometheus.port") else 8080)
-    val prometheus = HttpPrometheusClient(http, prometheusBase)
+    val llmGatewayBase =
+        "http://${configOr(config, "pinakes.llmgateway.host", "llm-gateway")}:" +
+            (if (config.hasPath("pinakes.llmgateway.port")) config.getInt("pinakes.llmgateway.port") else 8080)
+    val llmGateway = HttpLlmGatewayClient(http, llmGatewayBase)
     val pageWriter = HttpCorpusPageWriter(http, kallimachosBase)
     val conceptIndex = InMemoryConceptIndex() // shared by RESOLVE + LINK (compounding)
     val resolver = EntityResolver(conceptIndex)
@@ -123,9 +123,9 @@ fun main() {
                 ClassifyStage(),
                 ChunkStage(),
                 EmbedStage(writeClient),
-                CompileStage(WikiCompiler(prometheus, tokenBudget = tokenBudget), meterRegistry),
+                CompileStage(WikiCompiler(llmGateway, tokenBudget = tokenBudget), meterRegistry),
                 ResolveStage(resolver, meterRegistry),
-                LinkStage(Linker(), pageWriter, conceptIndex, ContradictionDetector(prometheus)),
+                LinkStage(Linker(), pageWriter, conceptIndex, ContradictionDetector(llmGateway)),
                 LoadStage(writeClient),
             ),
         )
@@ -139,7 +139,7 @@ fun main() {
             .forPort(grpcPort)
             .permitKeepAliveTime(20, TimeUnit.SECONDS)
             .permitKeepAliveWithoutCalls(true)
-            .maxInboundMessageSize(33554432) // 32 MiB; matches charon/ariadne
+            .maxInboundMessageSize(33554432) // 32 MiB; matches charon/veles
             .addService(service)
             .build()
     Runtime.getRuntime().addShutdownHook(Thread { grpcServer.shutdownNow() })

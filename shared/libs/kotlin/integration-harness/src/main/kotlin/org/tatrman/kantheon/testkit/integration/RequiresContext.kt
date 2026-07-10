@@ -11,7 +11,7 @@ package org.tatrman.kantheon.testkit.integration
  * (`@AutoScan`), so the gate only runs if you also apply it on the spec:
  *
  * ```
- * @RequiresContext("theseus-runquery")
+ * @RequiresContext("query-runquery")
  * @ApplyExtension(RequiresContextExtension::class)
  * class RunQueryIntegrationSpec : StringSpec({ ... })
  * ```

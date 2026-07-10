@@ -16,7 +16,7 @@ import org.tatrman.kantheon.golem.api.ShemAdmission
 import org.tatrman.kantheon.golem.context.GolemModelSubsystem
 import org.tatrman.kantheon.golem.execution.MiniPlanExecutor
 import org.tatrman.kantheon.golem.execution.SelectionResolver
-import org.tatrman.kantheon.golem.execution.TheseusQueryClient
+import org.tatrman.kantheon.golem.execution.QueryQueryClient
 import org.tatrman.kantheon.golem.format.FormatConfig
 import org.tatrman.kantheon.golem.format.FormatEnricher
 import org.tatrman.kantheon.golem.format.LlmTopupChips
@@ -65,7 +65,7 @@ private class AnswerSurface(
 
 /**
  * Assemble the `/v1/answer/sync` surface — composer (LLM gateway) + validator +
- * executor (theseus-mcp) wired into the graph, plus the Shem admission gate. Null
+ * executor (query-mcp) wired into the graph, plus the Shem admission gate. Null
  * unless a Shem + prompt store are loaded (skeleton boot has no answer surface).
  */
 private fun buildAnswerSurface(
@@ -85,7 +85,7 @@ private fun buildAnswerSurface(
             ),
         )
     val promptExecutor = LlmGatewayPromptExecutor(llmClient)
-    val queryClient = TheseusQueryClient(url = config.getString("golem.theseus.url"))
+    val queryClient = QueryQueryClient(url = config.getString("golem.query.url"))
     val formatConfig =
         FormatConfig(
             chartOnCompare = config.getBoolean("golem.format.chartOnCompare"),

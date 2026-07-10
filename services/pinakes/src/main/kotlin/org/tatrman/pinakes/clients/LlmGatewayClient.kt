@@ -12,11 +12,11 @@ import kotlinx.serialization.Serializable
 
 /**
  * The LLM egress for the compile stage (architecture §7 — the COMPILE stage is
- * Prometheus-driven). A thin chat-completion client; the compile is batch/offline
- * (never on the query path). REST mirror of the Prometheus `Chat` surface,
+ * LLM-gateway-driven). A thin chat-completion client; the compile is batch/offline
+ * (never on the query path). REST mirror of the LLM-gateway Chat surface,
  * Wiremock-tested.
  */
-interface PrometheusClient {
+interface LlmGatewayClient {
     suspend fun complete(
         systemPrompt: String,
         userPrompt: String,
@@ -34,10 +34,10 @@ private data class ChatReply(
     val content: String = "",
 )
 
-class HttpPrometheusClient(
+class HttpLlmGatewayClient(
     private val http: HttpClient,
     private val baseUrl: String,
-) : PrometheusClient {
+) : LlmGatewayClient {
     override suspend fun complete(
         systemPrompt: String,
         userPrompt: String,
@@ -47,7 +47,7 @@ class HttpPrometheusClient(
                 contentType(ContentType.Application.Json)
                 setBody(ChatBody(systemPrompt, userPrompt))
             }
-        require(resp.status.isSuccess()) { "Prometheus chat failed: ${resp.status}" }
+        require(resp.status.isSuccess()) { "LLM-gateway chat failed: ${resp.status}" }
         return resp.body<ChatReply>().content
     }
 }

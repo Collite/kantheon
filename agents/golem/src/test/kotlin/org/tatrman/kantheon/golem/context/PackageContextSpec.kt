@@ -86,7 +86,7 @@ private fun response(hash: String): GetModelResponse {
 /**
  * [PackageContext] over recorded `ModelBundle` fixtures: indexing, hash-keyed
  * no-op refresh, and the not-loaded guard. The gRPC transport itself is the
- * shared ariadne-client's concern; here the client is mocked.
+ * shared veles-client's concern; here the client is mocked.
  */
 class PackageContextSpec :
     StringSpec({

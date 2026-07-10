@@ -46,7 +46,7 @@ object ProtoJson {
  * Runs one turn end-to-end (architecture §4): graph (compose → gate → execute |
  * clarify) → assemble [ConversationalResponse] → persist one `golem_turns` row.
  * `/v1/answer/sync` is a thin wrapper over [answer]. The caller's OBO [bearer] is
- * threaded to the executor (theseus-mcp), never a service identity.
+ * threaded to the executor (query-mcp), never a service identity.
  *
  * Wiring/HTTP tests are deferred to GH #32 (Stage 2.4 decision); the graph, executor,
  * composer, gate, and persistence underneath are unit-tested.

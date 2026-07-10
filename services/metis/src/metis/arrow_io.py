@@ -2,7 +2,7 @@
 Arrow IPC utilities for Metis.
 
 schema_fingerprint: SHA-256 over the **canonical logical-schema string** — the
-  platform-wide cross-engine schema identity (Charon `Integrity` / Steropes).
+  platform-wide cross-engine schema identity (Charon `Integrity` / Polars).
   NOT raw IPC bytes: review-006 R3 (2026-06-15, Bora) established that hashing
   Arrow IPC schema-message bytes is not stable across Arrow implementations
   (Arrow Java vs pyarrow emit different flatbuffer bytes for the same logical
@@ -92,7 +92,7 @@ def _type_children(t: pa.DataType) -> list[pa.Field]:
         return [t.field(i) for i in range(t.num_fields)]
     # map before list (MapType subclasses ListType): the entries-wrapped {key,
     # value} struct — the form Arrow Java exposes via Field.children, so Kotlin
-    # (Charon/Brontes) and Python (Metis/Steropes) agree on the same canonical
+    # (Charon/Mssql) and Python (Metis/Polars) agree on the same canonical
     # bytes. pyarrow flattens it to key_field/item_field; synthesize it back.
     if pa.types.is_map(t):
         return [pa.field("entries", pa.struct([t.key_field, t.item_field]), nullable=False)]
@@ -117,7 +117,7 @@ def schema_fingerprint(schema: pa.Schema) -> str:
     """Return SHA-256 (lowercase hex) of the canonical logical-schema string.
 
     Cross-engine identity: byte-identical to Charon `Integrity.fingerprint` and
-    the Steropes worker. A schema Metis stages must hash equal to what Charon /
+    the Polars worker. A schema Metis stages must hash equal to what Charon /
     a Polars worker computes for the same logical schema — see the module
     docstring and `tests/test_fingerprint_cross_engine.py`.
     """
