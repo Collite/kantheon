@@ -29,9 +29,9 @@ import org.tatrman.kantheon.golem.persistence.TurnsRepository
 import org.tatrman.kantheon.golem.plan.PlanComposer
 import org.tatrman.kantheon.golem.plan.PlanValidator
 import org.tatrman.kantheon.golem.shem.ShemRegistration
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
-import org.tatrman.kantheon.llm.client.LlmGatewayEndpoint
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor
+import org.tatrman.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayEndpoint
+import org.tatrman.llm.client.LlmGatewayPromptExecutor
 
 private val log = LoggerFactory.getLogger("org.tatrman.kantheon.golem.Wiring")
 

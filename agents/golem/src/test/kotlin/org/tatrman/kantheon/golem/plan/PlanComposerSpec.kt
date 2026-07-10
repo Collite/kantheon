@@ -12,8 +12,8 @@ import org.tatrman.kantheon.golem.prompts.PromptStore
 import org.tatrman.kantheon.golem.v1.GolemContext
 import org.tatrman.kantheon.golem.v1.GolemRequest
 import org.tatrman.kantheon.golem.v1.PlanSource
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor
+import org.tatrman.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayPromptExecutor
 import org.tatrman.kantheon.themis.v1.Themis.Resolution
 import java.nio.file.Path
 

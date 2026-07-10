@@ -11,9 +11,9 @@ dependencies {
     implementation(libs.protobuf.java.util)
 
     // Forked shared libs (Phase 1.3 — in-repo project deps).
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.logging.config)
 
     // Ktor server
     implementation(libs.ktor.server.core)

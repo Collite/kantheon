@@ -36,12 +36,12 @@ dependencies {
     implementation(project(":shared:proto"))
 
     // Forked shared libs (Phase 1.3 — in-repo project deps).
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:fuzzy-common"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.fuzzy.common)
+    implementation(libs.tatrman.logging.config)
+    implementation(libs.tatrman.ktor.configurator)
     // Shared LLM-gateway client + Koog executor (extracted from themis, Golem Stage 2.3 T1).
-    implementation(project(":shared:libs:kotlin:llm-gateway-client"))
+    implementation(libs.tatrman.ttr.llm.client)
     // Capabilities read-client — Themis routeToAgent reads the agent registry (Stage 3.3).
     implementation(project(":shared:libs:kotlin:capabilities-client"))
 

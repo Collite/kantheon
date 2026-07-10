@@ -48,12 +48,6 @@ include(":shared:proto")
 include(":tools:_smoke-test")
 include(":tools:capabilities-mcp")
 include(":shared:libs:kotlin:capabilities-client")
-include(":shared:libs:kotlin:otel-config")
-include(":shared:libs:kotlin:logging-config")
-include(":shared:libs:kotlin:ktor-configurator")
-include(":shared:libs:kotlin:fuzzy-common")
-include(":shared:libs:kotlin:db-common")
-include(":shared:libs:kotlin:data-formatter")
 include(":shared:libs:kotlin:envelope-render")
 // Golem S2.4 (parametrization rail) — pure-Kotlin port of `aip_pattern_params`;
 // builds the typed {name:{value,type}} parameters map. Consumed by Golem (and,
@@ -72,15 +66,11 @@ include(":shared:libs:kotlin:integration-harness")
 // iris-bff migrates onto it in a follow-up (deferred — Stage 1.2 audit).
 include(":shared:libs:kotlin:bff-base")
 // Golem Stage 2.2 — shared Ariadne gRPC client (extracted from tools/ariadne-mcp).
-include(":shared:libs:kotlin:ariadne-client")
 // Golem Stage 2.3 — shared LLM-gateway client + Koog executor (extracted from agents/themis).
-include(":shared:libs:kotlin:llm-gateway-client")
 // Fork Phase 5 Stage 5.0 — technical-wave shared libs.
-// whois-common: 3 domain records (UserRecord/UserIdRecord/UserSource), pkg org.tatrman.whois.domain.
+// whois-common: 3 domain records (UserRecord/UserIdRecord/UserSource), pkg org.tatrman.identity.domain.
 // keycloak-auth: generic Keycloak client_credentials token provider, EXTRACTED off
 // erp-sql-common.auth (4 self-contained files) so the legacy ERP-SQL line need not fork.
-include(":shared:libs:kotlin:whois-common")
-include(":shared:libs:kotlin:keycloak-auth")
 include(":agents:themis")
 
 // Iris arc — dispatch BFF (Phase 1 Stage 1.2: skeleton + session persistence).
@@ -93,39 +83,26 @@ include(":agents:golem")
 include(":agents:pythia")
 
 // Phase 2 — first off-data-path service (Stage 2.1).
-include(":services:ariadne")
 // Stage 2.1 T4 — ariadne's MCP wrapper (forked from tools/meta-mcp).
-include(":tools:ariadne-mcp")
 // Stage 2.2 — Echo (lean fuzzy matcher, forked from services/fuzzy-matcher).
-include(":services:echo")
 // Stage 2.2 T4 — Echo's MCP wrapper (forked from tools/fuzzy-mcp).
-include(":tools:echo-mcp")
 // Stage 2.3 T4 — Kadmos's MCP wrapper (forked from tools/nlp-mcp; HTTP, Analyze).
 // (services/kadmos itself is a Python module, not a Gradle subproject.)
-include(":tools:kadmos-mcp")
 // Stage 3.5 T4 — Theseus's MCP wrapper (forked from tools/query-mcp; run_query + IdentityResolver).
-include(":tools:theseus-mcp")
 // Stage 2.4 — Proteus (translator: lang ↔ RelNode ↔ SQL), forked from services/translator.
 // No MCP wrapper — internal pipeline service called by Theseus.
-include(":services:proteus")
 // Stage 2.5 — Prometheus (LLM gateway), forked from infra/llm-gateway.
 // The repo's only Spring Boot module (documented exception).
-include(":services:prometheus")
 // Phase 3 Stage 3.1 — Argos (validator: RLS + TopN + column rules + LLM-judge),
 // forked from services/validator. sql-security folds in at Stage 3.2.
-include(":services:argos")
 // Phase 3 Stage 3.3 — Kyklop (worker dispatcher), forked from services/dispatcher.
-include(":services:kyklop")
 // Phase 3 Stage 3.5 — Theseus (query orchestrator + plan cache), forked from services/query-runner.
-include(":services:theseus")
 
 // workers/ — the Kyklops (fork Phase 3). The _smoke-worker placeholder (Phase 1
 // Stage 1.1 T3) retired at Stage 3.3 when the first real worker landed.
 // Phase 3 Stage 3.3 — Brontes (MSSQL worker), forked from workers/mssql.
-include(":workers:brontes")
 // Stream B — Arges (Postgres worker, arges/plan.md Phase 1 Stage 1.1). Born in-repo by
 // mirroring Brontes; adds the per-tenant RLS `SET LOCAL app.tenant_id` session contract.
-include(":workers:arges")
 // Stream B — Metis (metis/plan.md Phase 1 Stage 1.1).
 // services/metis is a Python module (uv / pyproject.toml), not a Gradle subproject — no include().
 // Stage 3.4 — Metis MCP wrapper (tools/metis-mcp). Mirrors ariadne-mcp in structure and patterns.
@@ -152,9 +129,7 @@ include(":services:report-renderer")
 // Tree introduced in Stage 5.0 (the _smoke placeholder, now retired — superseded by whois,
 // mirroring the workers/_smoke-worker → Brontes retirement).
 // Stage 5.1 — whois (user/role directory + OPA bundle server), forked from infra/whois.
-include(":infra:whois")
 // Stage 5.2 — health (cluster health aggregator), forked from infra/health.
-include(":infra:health")
 // Stage 5.5 — backstage is a Node module (own Yarn build), not a Gradle subproject.
 
 // Stream B — Sysifos (sysifos/plan.md Phase 1 Stage 1.1). The back-office

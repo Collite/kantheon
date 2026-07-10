@@ -5,9 +5,9 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import org.tatrman.charon.v1.Location
-import org.tatrman.charon.v1.SeaweedBlob
-import org.tatrman.charon.v1.WorkerSessionDf
+import org.tatrman.transfer.v1.Location
+import org.tatrman.transfer.v1.SeaweedBlob
+import org.tatrman.transfer.v1.WorkerSessionDf
 
 /**
  * Stage 4.1 T1 — the gRPC `CharonClient` against an in-process Charon

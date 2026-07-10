@@ -9,10 +9,10 @@ import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.tatrman.ariadne.v1.GetModelResponse
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.PackageVersion
-import org.tatrman.kantheon.ariadne.client.MetadataGrpcClient
+import org.tatrman.meta.v1.GetModelResponse
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.PackageVersion
+import org.tatrman.veles.client.MetadataGrpcClient
 import org.tatrman.kantheon.golem.GolemReadiness
 import org.tatrman.kantheon.golem.api.refreshRoutes
 import org.tatrman.kantheon.golem.prompts.PromptStore

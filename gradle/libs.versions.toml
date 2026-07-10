@@ -6,6 +6,10 @@
 tatrman-modeler           = "0.8.6"
 tatrman-ttr-metadata      = "0.8.6"
 tatrman-translator        = "0.8.5"
+# SV-P0: the spine libs + proto stubs moved to tatrman-server and are consumed as
+# org.tatrman:* artifacts from Maven Local (0.0.1-LOCAL) — same mechanism as
+# ttr-metadata. Flips to the 0.9.x public line at SV-P1 gate 3.
+tatrman-server            = "0.0.1-LOCAL"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
@@ -282,6 +286,18 @@ tatrman-ttr-metadata                = { module = "org.tatrman:ttr-metadata",    
 tatrman-ttr-metadata-git            = { module = "org.tatrman:ttr-metadata-git",                          version.ref = "tatrman-ttr-metadata" }
 tatrman-ttr-plan-proto              = { module = "org.tatrman:ttr-plan-proto",                            version.ref = "tatrman-translator" }
 tatrman-ttr-translator              = { module = "org.tatrman:ttr-translator",                            version.ref = "tatrman-translator" }
+# SV-P0 — spine libs + proto stubs moved to tatrman-server (consumed as artifacts).
+tatrman-otel-config                 = { module = "org.tatrman:otel-config",                              version.ref = "tatrman-server" }
+tatrman-logging-config              = { module = "org.tatrman:logging-config",                           version.ref = "tatrman-server" }
+tatrman-ktor-configurator           = { module = "org.tatrman:ktor-configurator",                        version.ref = "tatrman-server" }
+tatrman-db-common                   = { module = "org.tatrman:db-common",                                version.ref = "tatrman-server" }
+tatrman-data-formatter              = { module = "org.tatrman:data-formatter",                           version.ref = "tatrman-server" }
+tatrman-fuzzy-common                = { module = "org.tatrman:fuzzy-common",                             version.ref = "tatrman-server" }
+tatrman-whois-common                = { module = "org.tatrman:whois-common",                             version.ref = "tatrman-server" }
+tatrman-keycloak-auth               = { module = "org.tatrman:keycloak-auth",                            version.ref = "tatrman-server" }
+tatrman-ttr-meta-client             = { module = "org.tatrman:ttr-meta-client",                          version.ref = "tatrman-server" }
+tatrman-ttr-llm-client              = { module = "org.tatrman:ttr-llm-client",                           version.ref = "tatrman-server" }
+tatrman-ttr-server-proto            = { module = "org.tatrman:ttr-server-proto",                         version.ref = "tatrman-server" }
 exposed-core                        = { module = "org.jetbrains.exposed:exposed-core",                    version.ref = "exposed" }
 exposed-jdbc                        = { module = "org.jetbrains.exposed:exposed-jdbc",                    version.ref = "exposed" }
 exposed-java-time                   = { module = "org.jetbrains.exposed:exposed-java-time",               version.ref = "exposed" }

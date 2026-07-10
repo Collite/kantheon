@@ -7,11 +7,11 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.ariadne.v1.ObjectDescriptor
-import org.tatrman.ariadne.v1.QueryDescriptor
-import org.tatrman.ariadne.v1.QueryParameterDef
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ObjectDescriptor
+import org.tatrman.meta.v1.QueryDescriptor
+import org.tatrman.meta.v1.QueryParameterDef
 import org.tatrman.kantheon.envelope.v1.FormatEnvelope
 import org.tatrman.kantheon.golem.context.ModelSnapshot
 import org.tatrman.kantheon.golem.execution.CompileResult

@@ -6,7 +6,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.client.NlpToken
 import org.tatrman.kantheon.themis.v1.Themis
 

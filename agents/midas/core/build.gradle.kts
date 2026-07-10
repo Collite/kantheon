@@ -38,14 +38,14 @@ tasks.test {
 dependencies {
     // Shared libs (in-repo; AGENTS.md §5 — every shared dep is a project ref).
     implementation(project(":shared:proto"))
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.logging.config)
     // Stage 1.4 — MCP tool surface + capabilities registration.
     implementation(project(":shared:libs:kotlin:capabilities-client"))
     // Exposed + HikariCP + Postgres driver (decision #1, 2026-06-21). The
     // operational write/read path is built on db-common in Stage 1.3.
-    implementation(project(":shared:libs:kotlin:db-common"))
+    implementation(libs.tatrman.db.common)
 
     // Kotlin / coroutines / serialization
     implementation(libs.kotlin.stdlib)

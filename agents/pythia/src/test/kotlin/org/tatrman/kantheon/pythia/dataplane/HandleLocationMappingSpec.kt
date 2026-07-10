@@ -3,8 +3,8 @@ package org.tatrman.kantheon.pythia.dataplane
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import org.tatrman.charon.v1.Location
-import org.tatrman.charon.v1.WorkerKind
+import org.tatrman.transfer.v1.Location
+import org.tatrman.transfer.v1.WorkerKind
 import org.tatrman.kantheon.pythia.handles.HandleTable
 
 /**

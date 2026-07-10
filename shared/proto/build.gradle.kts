@@ -36,9 +36,15 @@ dependencies {
     // recompiling them here), so `import "org/tatrman/plan/v1/plan.proto"` in the
     // downstream service protos keeps resolving. FQCNs are identical (org.tatrman.*).
     api(libs.tatrman.ttr.plan.proto)
-    // All other protos are in-repo. The ai-platform Maven dep (cz.dfpartner:shared-proto,
-    // Themis's residual nlp.v1) was removed in fork Stage 2.6 — Themis now imports
-    // org.tatrman.kadmos.v1 + common.v1, both generated here.
+    // SV-P0: the spine protos + gRPC stubs (meta/query/translate/validate/dispatch/
+    // fuzzy/nlp/llm/worker/security/common/capabilities .v1) moved to tatrman-server
+    // and are consumed as the `ttr-server-proto` artifact. Same mechanism as
+    // ttr-plan-proto above — the plugin extracts the bundled `.proto` files onto the
+    // protoc include path so kantheon protos importing e.g. `org/tatrman/nlp/v1/nlp.proto`
+    // resolve, and the generated classes come from the artifact (not regenerated here).
+    api(libs.tatrman.ttr.server.proto)
+    // Agent protos remain in-repo (kantheon/*, metis, pinakes, kallimachos, transfer).
+    // `org.tatrman.kantheon.common.v1` stays kantheon-owned (agent-only, contracts §5).
 
     testImplementation(libs.bundles.kotest)
     // JsonFormat (proto3 JSON ↔ message) for the envelope/v1 golden round-trip

@@ -67,10 +67,10 @@ jib {
 
 dependencies {
     // Shared bootstrap libs (in-repo modules, not Maven).
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:db-common"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.logging.config)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.db.common)
     // envelope/v1 + iris/v1 proto types (session DTOs map to iris/v1; envelope
     // snapshots persist as JSON — wired further in Stage 1.3).
     implementation(project(":shared:proto"))

@@ -2,9 +2,9 @@ package org.tatrman.kantheon.golem.context
 
 import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
-import org.tatrman.ariadne.v1.ResolveAreaResponse
-import org.tatrman.kantheon.ariadne.client.GrpcMetadataGrpcClient
-import org.tatrman.kantheon.ariadne.client.MetadataGrpcClient
+import org.tatrman.meta.v1.ResolveAreaResponse
+import org.tatrman.veles.client.GrpcMetadataGrpcClient
+import org.tatrman.veles.client.MetadataGrpcClient
 import org.tatrman.kantheon.golem.prompts.PromptStore
 import org.tatrman.kantheon.golem.shem.ShemAssembler
 import org.tatrman.kantheon.golem.shem.ShemContext

@@ -8,7 +8,7 @@ import ai.koog.prompt.llm.LLModel
 
 /**
  * Koog [LLModel] constants for the two tiers Themis uses. The id is the only
- * field that matters to [org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor.mapModelToGatewayKey]
+ * field that matters to [org.tatrman.llm.client.LlmGatewayPromptExecutor.mapModelToGatewayKey]
  * — provider is set to Anthropic for honesty since the gateway routes to
  * Claude family models, but the field is informational only.
  */

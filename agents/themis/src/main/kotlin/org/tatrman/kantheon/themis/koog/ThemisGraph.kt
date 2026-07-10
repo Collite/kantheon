@@ -7,9 +7,9 @@ import ai.koog.agents.core.dsl.builder.node
 import ai.koog.agents.core.dsl.builder.strategy
 import org.tatrman.kantheon.capabilities.client.CapabilitiesReadClient
 import org.tatrman.kantheon.themis.client.FuzzyServiceClient
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.config.ResolverAppConfig
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor
+import org.tatrman.llm.client.LlmGatewayPromptExecutor
 import org.tatrman.kantheon.themis.koog.nodes.IntentKindRules
 import org.tatrman.kantheon.themis.koog.nodes.classifyIntentKindStep
 import org.tatrman.kantheon.themis.koog.nodes.routeToAgentStep

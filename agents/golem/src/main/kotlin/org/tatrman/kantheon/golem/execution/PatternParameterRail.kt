@@ -10,7 +10,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
-import org.tatrman.ariadne.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ModelBundleQuery
 import org.tatrman.kantheon.patternparams.ParamSpec
 import org.tatrman.kantheon.patternparams.PatternParams
 import org.tatrman.kantheon.patternparams.TypedParam

@@ -1,10 +1,10 @@
 package org.tatrman.kantheon.golem.context
 
-import org.tatrman.ariadne.v1.DrillMapDetail
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleEntity
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.kantheon.ariadne.client.MetadataGrpcClient
+import org.tatrman.meta.v1.DrillMapDetail
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleEntity
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.veles.client.MetadataGrpcClient
 import org.tatrman.plan.v1.QualifiedName
 import java.util.concurrent.atomic.AtomicReference
 

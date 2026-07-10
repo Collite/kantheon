@@ -30,9 +30,9 @@ tasks.test {
 
 dependencies {
     implementation(project(":shared:proto"))
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.logging.config)
     implementation(project(":shared:libs:kotlin:capabilities-client"))
 
     implementation(libs.kotlin.stdlib)

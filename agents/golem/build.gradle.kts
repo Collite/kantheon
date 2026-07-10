@@ -66,10 +66,10 @@ jib {
 
 dependencies {
     // Shared bootstrap libs (in-repo modules, not Maven).
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:db-common"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.logging.config)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.db.common)
     // golem/v1 + envelope/v1 + themis/v1 proto types; envelope-render for formatting (Phase 3).
     implementation(project(":shared:proto"))
     implementation(project(":shared:libs:kotlin:envelope-render"))
@@ -97,9 +97,9 @@ dependencies {
     implementation(libs.jackson.dataformat.yaml)
 
     // Ariadne model graph client (GetModel) — PackageContext (prompts come from the mounted Shem).
-    implementation(project(":shared:libs:kotlin:ariadne-client"))
+    implementation(libs.tatrman.ttr.meta.client)
     // Shared LLM-gateway client + Koog executor — PlanComposer (Stage 2.3). Brings Koog (api).
-    implementation(project(":shared:libs:kotlin:llm-gateway-client"))
+    implementation(libs.tatrman.ttr.llm.client)
     // theseus-mcp query edge — MCP streamable-HTTP client (Stage 2.4 T3).
     implementation(libs.kotlin.mcp.sdk)
     implementation(libs.ktor.client.core)

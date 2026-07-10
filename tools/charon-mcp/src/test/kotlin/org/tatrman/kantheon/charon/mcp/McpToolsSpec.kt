@@ -15,10 +15,10 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
-import org.tatrman.charon.v1.DescribeResult
-import org.tatrman.charon.v1.EvictResult
-import org.tatrman.charon.v1.MoveResult
-import org.tatrman.charon.v1.WorkerKind
+import org.tatrman.transfer.v1.DescribeResult
+import org.tatrman.transfer.v1.EvictResult
+import org.tatrman.transfer.v1.MoveResult
+import org.tatrman.transfer.v1.WorkerKind
 import org.tatrman.kantheon.charon.mcp.client.CharonGrpcClient
 import org.tatrman.kantheon.common.v1.ResponseMessage
 import org.tatrman.kantheon.common.v1.Severity
@@ -113,7 +113,7 @@ class McpToolsSpec :
                     match {
                         it.target.hasDbTable() &&
                             it.target.dbTable.table == "t" &&
-                            it.options.dbWriteMode == org.tatrman.charon.v1.DbWriteMode.CREATE &&
+                            it.options.dbWriteMode == org.tatrman.transfer.v1.DbWriteMode.CREATE &&
                             it.source.seaweed.retentionTag == "production"
                     },
                 )

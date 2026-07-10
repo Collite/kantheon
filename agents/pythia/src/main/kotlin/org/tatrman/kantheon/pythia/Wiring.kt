@@ -19,9 +19,9 @@ import org.tatrman.kantheon.pythia.events.EventEmitter
 import org.tatrman.kantheon.pythia.events.LoggingNatsPublisher
 import org.tatrman.kantheon.pythia.events.NatsPublisher
 import org.tatrman.kantheon.capabilities.client.CapabilitiesReadClient
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
-import org.tatrman.kantheon.llm.client.LlmGatewayEndpoint
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor
+import org.tatrman.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayEndpoint
+import org.tatrman.llm.client.LlmGatewayPromptExecutor
 import org.tatrman.kantheon.pythia.evaluate.HypothesisEvaluator
 import org.tatrman.kantheon.pythia.executor.CompositeNodeExecutor
 import org.tatrman.kantheon.pythia.executor.DagExecutor

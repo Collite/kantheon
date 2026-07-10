@@ -2,7 +2,7 @@ package org.tatrman.kantheon.themis.koog
 
 import org.tatrman.kantheon.capabilities.client.CapabilitiesReadClient
 import org.tatrman.kantheon.themis.client.FuzzyServiceClient
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.config.CacheConfig
 import org.tatrman.kantheon.themis.config.EndpointConfig
 import org.tatrman.kantheon.themis.config.EvalConfig

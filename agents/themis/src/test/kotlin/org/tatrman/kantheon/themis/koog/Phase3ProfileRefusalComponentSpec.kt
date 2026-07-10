@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.tatrman.kantheon.capabilities.client.CapabilitiesReadClient
 import org.tatrman.kantheon.common.v1.AgentId
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.client.FuzzyServiceClient
 import org.tatrman.kantheon.themis.client.NlpAnalyzeResult
 import org.tatrman.kantheon.themis.client.NlpSpan

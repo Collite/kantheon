@@ -7,7 +7,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
 import io.mockk.mockk
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.koog.DomainSpan
 import org.tatrman.kantheon.themis.v1.Themis
 

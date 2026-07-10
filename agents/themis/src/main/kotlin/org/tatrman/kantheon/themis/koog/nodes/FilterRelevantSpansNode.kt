@@ -2,7 +2,7 @@ package org.tatrman.kantheon.themis.koog.nodes
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.koog.DomainSpan
 import org.tatrman.kantheon.themis.koog.FilterIndexEntry
 import org.tatrman.kantheon.themis.koog.ResolverContext

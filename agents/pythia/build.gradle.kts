@@ -65,10 +65,10 @@ jib {
 
 dependencies {
     // Shared bootstrap libs (in-repo modules, not Maven).
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:db-common"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.logging.config)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.db.common)
     // pythia/v1 + envelope/v1 + themis/v1 + common/v1 proto types.
     implementation(project(":shared:proto"))
 
@@ -89,7 +89,7 @@ dependencies {
 
     // Phase 2 — resolution + planner + query edge.
     // LLM gateway client + Koog PromptExecutor (planner/synth). Brings Koog (api).
-    implementation(project(":shared:libs:kotlin:llm-gateway-client"))
+    implementation(libs.tatrman.ttr.llm.client)
     // capabilities-mcp read client — PlanValidator capability-existence checks.
     implementation(project(":shared:libs:kotlin:capabilities-client"))
     // HTTP (ThemisClient REST) + MCP streamable-HTTP (theseus-mcp query edge, Stage 2.3).

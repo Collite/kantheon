@@ -11,9 +11,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.mockk
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor.Companion.mapModelToGatewayKey
+import org.tatrman.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayPromptExecutor
+import org.tatrman.llm.client.LlmGatewayPromptExecutor.Companion.mapModelToGatewayKey
 
 /**
  * Stage 2.3 T2 smoke spec — proves the skeleton compiles and the executor

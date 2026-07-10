@@ -3,17 +3,17 @@ package org.tatrman.kantheon.charon.mcp.client
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import java.util.concurrent.TimeUnit
-import org.tatrman.charon.v1.CharonServiceGrpcKt
-import org.tatrman.charon.v1.CopyRequest
-import org.tatrman.charon.v1.DescribeRequest
-import org.tatrman.charon.v1.DescribeResult
-import org.tatrman.charon.v1.EvictRequest
-import org.tatrman.charon.v1.EvictResult
-import org.tatrman.charon.v1.MaterializeRequest
-import org.tatrman.charon.v1.MoveResult
-import org.tatrman.charon.v1.StageRequest
+import org.tatrman.transfer.v1.CharonServiceGrpcKt
+import org.tatrman.transfer.v1.CopyRequest
+import org.tatrman.transfer.v1.DescribeRequest
+import org.tatrman.transfer.v1.DescribeResult
+import org.tatrman.transfer.v1.EvictRequest
+import org.tatrman.transfer.v1.EvictResult
+import org.tatrman.transfer.v1.MaterializeRequest
+import org.tatrman.transfer.v1.MoveResult
+import org.tatrman.transfer.v1.StageRequest
 
-/** The gRPC seam to `org.tatrman.charon.v1.CharonService` (coroutine stub). */
+/** The gRPC seam to `org.tatrman.transfer.v1.CharonService` (coroutine stub). */
 interface CharonGrpcClient : AutoCloseable {
     suspend fun materialize(req: MaterializeRequest): MoveResult
 

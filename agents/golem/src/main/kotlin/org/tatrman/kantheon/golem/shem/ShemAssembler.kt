@@ -1,6 +1,6 @@
 package org.tatrman.kantheon.golem.shem
 
-import org.tatrman.ariadne.v1.ResolveAreaResponse
+import org.tatrman.meta.v1.ResolveAreaResponse
 import org.tatrman.kantheon.capabilities.v1.AgentCapability
 import org.tatrman.kantheon.capabilities.v1.AgentKind
 import org.tatrman.kantheon.capabilities.v1.HitlProfile
