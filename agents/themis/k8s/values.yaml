@@ -45,13 +45,13 @@ extraEnv:
   - { name: CAPABILITIES_MCP_HOST, value: "capabilities-mcp" }
   - { name: CAPABILITIES_MCP_PORT, value: "7501" }
   - { name: CAPABILITIES_MCP_URL, value: "http://capabilities-mcp:7501" }
-  - { name: NLP_MCP_HOST, value: "nlp" }
+  - { name: NLP_MCP_HOST, value: "nlp.ttr-server" }
   - { name: NLP_MCP_PORT, value: "7270" }
   - { name: NLP_MCP_URL, value: "http://nlp:7270" }
-  - { name: FUZZY_MCP_HOST, value: "fuzzy" }
+  - { name: FUZZY_MCP_HOST, value: "fuzzy.ttr-server" }
   - { name: FUZZY_MCP_PORT, value: "7265" }
   - { name: FUZZY_MCP_URL, value: "http://fuzzy:7265" }
-  - { name: LLM_GATEWAY_HOST, value: "llm-gateway" }
+  - { name: LLM_GATEWAY_HOST, value: "llm-gateway.ttr-server" }
   - { name: LLM_GATEWAY_PORT, value: "7280" }
   - { name: LLM_GATEWAY_URL, value: "http://llm-gateway:7280" }
 
