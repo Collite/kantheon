@@ -1,4 +1,20 @@
 ---
+# Source: hebe/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hebe-config
+  labels:
+    app.kubernetes.io/name: hebe
+    app.kubernetes.io/instance: hebe
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "dev"
+    helm.sh/chart: hebe-0.1.0
+data:
+  config.toml: |
+    profile = "k8s"
+    instance_id = "dev"
+---
 # Source: hebe/templates/service.yaml
 apiVersion: v1
 kind: Service
@@ -51,6 +67,9 @@ spec:
             - name: http
               containerPort: 8765
           env:
+            
+            - name: HOME # pin user.home so RunCommand's $HOME/.hebe/config.toml matches the mount path
+              value: "/root"
             - name: HEBE_PROFILE
               value: "k8s"
             - name: HEBE_INSTANCE_ID
@@ -63,14 +82,14 @@ spec:
               value: "false"
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /health
               port: 8765
             initialDelaySeconds: 3
             periodSeconds: 3
             failureThreshold: 30
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: 8765
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -81,3 +100,12 @@ spec:
             requests:
               cpu: 250m
               memory: 512Mi
+          volumeMounts:
+            - name: hebe-config
+              mountPath: "/root/.hebe/config.toml"
+              subPath: config.toml
+              readOnly: true
+      volumes:
+        - name: hebe-config
+          configMap:
+            name: hebe-config

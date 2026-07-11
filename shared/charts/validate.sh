@@ -21,7 +21,9 @@ mkdir -p "$GOLDEN_DIR"
 
 # Discover every module chart. shared/charts/* are library charts (type: library),
 # not deployables — exclude them (they render nothing on their own).
-mapfile -t CHARTS < <(find agents services workers tools infra frontends -type f -name Chart.yaml \
+# NB: `workers` and `infra` moved to tatrman-server in SV-P0 (the spine fork) —
+# their charts are validated there now. kantheon keeps agents/services/tools/frontends.
+mapfile -t CHARTS < <(find agents services tools frontends -type f -name Chart.yaml \
   -path '*/k8s/Chart.yaml' | sort)
 
 chart_name() { awk '/^name:/{print $2; exit}' "$1/Chart.yaml"; }

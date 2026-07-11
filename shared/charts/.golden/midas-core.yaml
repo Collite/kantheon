@@ -76,7 +76,7 @@ spec:
             - name: OTEL_ENABLED_MIDAS_CORE
               value: "false"
             - name: CAPABILITIES_MCP_URL
-              value: http://capabilities-mcp:7099
+              value: http://capabilities-mcp:7501
           readinessProbe:
             httpGet:
               path: /ready
