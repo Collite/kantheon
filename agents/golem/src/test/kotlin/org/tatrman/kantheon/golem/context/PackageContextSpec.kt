@@ -9,14 +9,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.tatrman.ariadne.v1.DrillMapDetail
-import org.tatrman.ariadne.v1.GetModelResponse
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleEntity
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.ariadne.v1.ObjectDescriptor
-import org.tatrman.ariadne.v1.PackageVersion
-import org.tatrman.kantheon.ariadne.client.MetadataGrpcClient
+import org.tatrman.meta.v1.DrillMapDetail
+import org.tatrman.meta.v1.GetModelResponse
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleEntity
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ObjectDescriptor
+import org.tatrman.meta.v1.PackageVersion
+import org.tatrman.veles.client.MetadataGrpcClient
 import org.tatrman.plan.v1.QualifiedName
 
 private fun qname(
@@ -86,7 +86,7 @@ private fun response(hash: String): GetModelResponse {
 /**
  * [PackageContext] over recorded `ModelBundle` fixtures: indexing, hash-keyed
  * no-op refresh, and the not-loaded guard. The gRPC transport itself is the
- * shared ariadne-client's concern; here the client is mocked.
+ * shared veles-client's concern; here the client is mocked.
  */
 class PackageContextSpec :
     StringSpec({

@@ -11,7 +11,7 @@ resources:
 
 # Local-only SA password. This is disposable local-infra; the secret never
 # leaves the dev cluster. Production MSSQL credentials arrive via sealed
-# secrets in the named-connection idiom (Brontes never carries them in-repo).
+# secrets in the named-connection idiom (Mssql never carries them in-repo).
 secretGenerator:
   - name: mssql-sa-secret
     literals:

@@ -129,7 +129,7 @@ class MiniPlanExecutor(
                 paramFill = ParamFillNeed(e.paramName, e.label)
                 failed = true // stop the loop; the turn becomes a clarification upstream
             } catch (e: PatternParamUnfilledException) {
-                // Fail-closed guard (T9): the under-bound query was never forwarded to theseus.
+                // Fail-closed guard (T9): the under-bound query was never forwarded to query.
                 log.info("node '{}' aborted: {} — {} not forwarded", node.nodeId, e.message, e.errorCode)
                 steps += step(node, "FAILED", startedAt, error = e.message)
                 failed = true
@@ -174,7 +174,7 @@ class MiniPlanExecutor(
         bearer: String?,
     ): RanQuery {
         // A PATTERN node carries the pattern id: send the `sql_template` VERBATIM ({name} intact)
-        // + the typed parameters the rail builds from the declared params; Proteus's restored
+        // + the typed parameters the rail builds from the declared params; Translate's restored
         // ParameterBridge rewrites {name} → ? downstream (T7). The rail's guard fails closed on an
         // under-bound template (PATTERN_PARAM_UNFILLED, T9) — the query is never forwarded.
         if (q.hasPatternId() && model != null) {

@@ -105,7 +105,7 @@ class OpenAiCompatProvider(
                     try {
                         val usageObj = json.parseToJsonElement(payload).safeAsJsonObject()["usage"] as? JsonObject
                         if (usageObj != null) {
-                            // The Kantheon llm-gateway (Prometheus) returns a per-call
+                            // The Kantheon llm-gateway returns a per-call
                             // `usage.cost` in **USD** (e.g. 1.0E-4 = $0.0001). Convert to
                             // micro-USD for CostGuard. BYOK/local providers omit `cost`
                             // entirely ⇒ null ⇒ recorded as 0 (cap unenforceable, by design).

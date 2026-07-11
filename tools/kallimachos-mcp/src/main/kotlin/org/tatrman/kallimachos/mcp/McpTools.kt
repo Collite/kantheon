@@ -17,7 +17,7 @@ import kotlinx.serialization.json.putJsonObject
  * [LibraryForwarder] issues the call carrying the caller bearer. Zero logic.
  *
  * The OBO bearer is read from the `bearer` arg at S4.1 (the caller forwards it);
- * extraction from the MCP HTTP edge + the Argos RLS predicate land in S4.2.
+ * extraction from the MCP HTTP edge + the Validate RLS predicate land in S4.2.
  */
 class McpTools(
     private val forwarder: LibraryForwarder,

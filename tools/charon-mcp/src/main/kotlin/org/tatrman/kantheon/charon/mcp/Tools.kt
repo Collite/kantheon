@@ -17,28 +17,28 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import org.slf4j.LoggerFactory
-import org.tatrman.charon.v1.CopyRequest
-import org.tatrman.charon.v1.DbTable
-import org.tatrman.charon.v1.DbWriteMode
-import org.tatrman.charon.v1.DescribeRequest
-import org.tatrman.charon.v1.DescribeResult
-import org.tatrman.charon.v1.EvictRequest
-import org.tatrman.charon.v1.EvictResult
-import org.tatrman.charon.v1.Location
-import org.tatrman.charon.v1.MaterializeRequest
-import org.tatrman.charon.v1.MoveOptions
-import org.tatrman.charon.v1.MoveResult
-import org.tatrman.charon.v1.RedisEntry
-import org.tatrman.charon.v1.SeaweedBlob
-import org.tatrman.charon.v1.StageRequest
-import org.tatrman.charon.v1.WorkerKind
-import org.tatrman.charon.v1.WorkerSessionDf
+import org.tatrman.transfer.v1.CopyRequest
+import org.tatrman.transfer.v1.DbTable
+import org.tatrman.transfer.v1.DbWriteMode
+import org.tatrman.transfer.v1.DescribeRequest
+import org.tatrman.transfer.v1.DescribeResult
+import org.tatrman.transfer.v1.EvictRequest
+import org.tatrman.transfer.v1.EvictResult
+import org.tatrman.transfer.v1.Location
+import org.tatrman.transfer.v1.MaterializeRequest
+import org.tatrman.transfer.v1.MoveOptions
+import org.tatrman.transfer.v1.MoveResult
+import org.tatrman.transfer.v1.RedisEntry
+import org.tatrman.transfer.v1.SeaweedBlob
+import org.tatrman.transfer.v1.StageRequest
+import org.tatrman.transfer.v1.WorkerKind
+import org.tatrman.transfer.v1.WorkerSessionDf
 import org.tatrman.kantheon.charon.mcp.client.CharonGrpcClient
 import org.tatrman.kantheon.common.v1.ResponseMessage
 
 /**
  * The five `move.*` MCP tools — a **zero-logic** wrapper over
- * `org.tatrman.charon.v1.CharonService` (charon/contracts.md §3): validate JSON
+ * `org.tatrman.transfer.v1.CharonService` (charon/contracts.md §3): validate JSON
  * → proto, one gRPC call, proto → JSON (incl. the Rule-6 `messages` channel).
  * No move logic, no endpoint knowledge. Locations ride as structured JSON
  * objects (a `kind` discriminator), never stringified (Rule 7 spirit).

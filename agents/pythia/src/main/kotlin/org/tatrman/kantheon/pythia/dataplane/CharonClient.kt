@@ -4,17 +4,17 @@ import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
-import org.tatrman.charon.v1.CharonServiceGrpcKt
-import org.tatrman.charon.v1.CopyRequest
-import org.tatrman.charon.v1.DescribeRequest
-import org.tatrman.charon.v1.DescribeResult
-import org.tatrman.charon.v1.EvictRequest
-import org.tatrman.charon.v1.EvictResult
-import org.tatrman.charon.v1.Location
-import org.tatrman.charon.v1.MaterializeRequest
-import org.tatrman.charon.v1.MoveResult
-import org.tatrman.charon.v1.StageRequest
-import org.tatrman.charon.v1.WorkerSessionDf
+import org.tatrman.transfer.v1.CharonServiceGrpcKt
+import org.tatrman.transfer.v1.CopyRequest
+import org.tatrman.transfer.v1.DescribeRequest
+import org.tatrman.transfer.v1.DescribeResult
+import org.tatrman.transfer.v1.EvictRequest
+import org.tatrman.transfer.v1.EvictResult
+import org.tatrman.transfer.v1.Location
+import org.tatrman.transfer.v1.MaterializeRequest
+import org.tatrman.transfer.v1.MoveResult
+import org.tatrman.transfer.v1.StageRequest
+import org.tatrman.transfer.v1.WorkerSessionDf
 import java.util.concurrent.TimeUnit
 
 /**
@@ -29,7 +29,7 @@ class CharonException(
 ) : RuntimeException(message, cause)
 
 /**
- * The gRPC seam to `org.tatrman.charon.v1.CharonService` (contracts §6 — Pythia
+ * The gRPC seam to `org.tatrman.transfer.v1.CharonService` (contracts §6 — Pythia
  * calls Charon **gRPC-direct**; the MCP wrapper is not on Pythia's path). The five
  * RPCs Pythia uses: `Materialize` (persist to a durable tier), `Stage` (load into a
  * worker session DF — the make-it-hot verb), `Copy` (generic legal pair), `Evict`

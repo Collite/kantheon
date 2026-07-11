@@ -3,7 +3,7 @@
 //
 // Kleio/DocWH arc, P1 Stage 1.1. Source of truth: docs/architecture/kleio/contracts.md §2.
 // Platform-service convention: proto root `org.tatrman.pinakes.v1` (AGENTS.md §4).
-// Fourth non-`kantheon.*` proto root after ariadne/charon/kallimachos; the Kotlin
+// Fourth non-`kantheon.*` proto root after veles/charon/kallimachos; the Kotlin
 // source root mirrors it (`org.tatrman.pinakes.*`).
 //
 // The WRITE path — stage raw assets, run pipelines, track lineage. Operator/

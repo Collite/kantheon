@@ -68,23 +68,23 @@ spec:
             - name: CAPABILITIES_MCP_URL
               value: http://capabilities-mcp:7501
             - name: NLP_MCP_HOST
-              value: kadmos
+              value: nlp
             - name: NLP_MCP_PORT
               value: "7270"
             - name: NLP_MCP_URL
-              value: http://kadmos:7270
+              value: http://nlp:7270
             - name: FUZZY_MCP_HOST
-              value: echo
+              value: fuzzy
             - name: FUZZY_MCP_PORT
               value: "7265"
             - name: FUZZY_MCP_URL
-              value: http://echo:7265
+              value: http://fuzzy:7265
             - name: LLM_GATEWAY_HOST
-              value: prometheus
+              value: llm-gateway
             - name: LLM_GATEWAY_PORT
               value: "7280"
             - name: LLM_GATEWAY_URL
-              value: http://prometheus:7280
+              value: http://llm-gateway:7280
           readinessProbe:
             httpGet:
               path: /ready

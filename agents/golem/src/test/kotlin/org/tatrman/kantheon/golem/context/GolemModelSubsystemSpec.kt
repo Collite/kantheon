@@ -9,10 +9,10 @@ import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.tatrman.ariadne.v1.GetModelResponse
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.PackageVersion
-import org.tatrman.kantheon.ariadne.client.MetadataGrpcClient
+import org.tatrman.meta.v1.GetModelResponse
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.PackageVersion
+import org.tatrman.veles.client.MetadataGrpcClient
 import org.tatrman.kantheon.golem.GolemReadiness
 import org.tatrman.kantheon.golem.api.refreshRoutes
 import org.tatrman.kantheon.golem.prompts.PromptStore
@@ -44,7 +44,7 @@ private fun subsystem(client: MetadataGrpcClient): GolemModelSubsystem =
         shem = assembledShemContext(),
         packageContext = PackageContext(client, packages = listOf("erp")),
         promptStore = PromptStore(shemDir = mountedShemDir(), locale = "cs", fallback = { emptyMap() }),
-        ariadneClient = client,
+        velesClient = client,
     )
 
 private fun happyClient(): MetadataGrpcClient {
@@ -80,7 +80,7 @@ class GolemModelSubsystemSpec :
 
         "a Shem-less (skeleton) subsystem is ready on the DB gate alone" {
             val empty =
-                GolemModelSubsystem(shem = null, packageContext = null, promptStore = null, ariadneClient = null)
+                GolemModelSubsystem(shem = null, packageContext = null, promptStore = null, velesClient = null)
             empty.isReady shouldBe true
             GolemReadiness(dbReady = true, model = empty).isReady() shouldBe true
         }
@@ -88,7 +88,7 @@ class GolemModelSubsystemSpec :
         "a failed initial model load leaves the pod not-ready (load is warn-and-continue)" {
             runTest {
                 val client = mockk<MetadataGrpcClient>()
-                coEvery { client.getModel(any(), any(), any(), any(), any()) } throws RuntimeException("ariadne down")
+                coEvery { client.getModel(any(), any(), any(), any(), any()) } throws RuntimeException("veles down")
                 val sub = subsystem(client)
 
                 sub.load() // must not throw

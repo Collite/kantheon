@@ -6,7 +6,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import org.tatrman.charon.v1.DescribeResult
+import org.tatrman.transfer.v1.DescribeResult
 import org.tatrman.kantheon.pythia.handles.HandleTable
 import org.tatrman.kantheon.pythia.persistence.HandleRecipe
 

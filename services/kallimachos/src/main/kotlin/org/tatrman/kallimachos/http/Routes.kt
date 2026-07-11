@@ -228,7 +228,7 @@ fun Route.loadRoutes(
                                 derivedFromParts = p.derivedFromParts,
                                 conceptRef =
                                     p.conceptRef?.let {
-                                        ConceptRefInput(it.entityType, it.entityId, it.displayLabel, it.ariadneQname)
+                                        ConceptRefInput(it.entityType, it.entityId, it.displayLabel, it.velesQname)
                                     },
                             )
                         },

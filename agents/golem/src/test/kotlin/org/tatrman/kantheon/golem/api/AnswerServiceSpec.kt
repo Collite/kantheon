@@ -15,10 +15,10 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.ariadne.v1.ObjectDescriptor
-import org.tatrman.ariadne.v1.QueryParameterDef
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ObjectDescriptor
+import org.tatrman.meta.v1.QueryParameterDef
 import org.tatrman.kantheon.golem.context.ModelSnapshot
 import org.tatrman.kantheon.golem.context.PackageContext
 import org.tatrman.kantheon.golem.execution.CompileResult
@@ -42,8 +42,8 @@ import org.tatrman.kantheon.golem.prompts.PromptStore
 import org.tatrman.kantheon.golem.v1.GolemRequest
 import org.tatrman.kantheon.golem.v1.RowSelection
 import org.tatrman.kantheon.golem.v1.Status
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor
+import org.tatrman.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayPromptExecutor
 import java.nio.file.Path
 import java.time.Instant
 import java.util.UUID

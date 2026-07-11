@@ -2,7 +2,7 @@
 
 The schema fingerprint is the platform-wide cross-engine schema identity:
 a schema Metis stages must hash *equal* to what Charon (Kotlin `Integrity`)
-and the Steropes worker compute for the same logical schema. review-006 R3
+and the Polars worker compute for the same logical schema. review-006 R3
 (2026-06-15) pinned the canonical algorithm and a reference digest; this test
 asserts Metis's `schema_fingerprint` reproduces it byte-identically.
 
@@ -24,7 +24,7 @@ from metis.arrow_io import canonical_schema_string, schema_fingerprint
 _FIXTURES = Path(__file__).parent / "fixtures" / "integrity"
 
 # The platform-wide cross-engine fixture set (fork Stage 3.4 T2): the SAME
-# *.arrow bytes Charon (Kotlin), Brontes, and Steropes hash, with pinned digests
+# *.arrow bytes Charon (Kotlin), Mssql, and Polars hash, with pinned digests
 # in fingerprints.json. Metis must reproduce every one — including the list and
 # map fixtures that exercise the nested-type child recursion (the entries-wrapped
 # map is where pyarrow's flattened key/value would silently diverge from Arrow
@@ -98,7 +98,7 @@ def test_fingerprint_is_nullability_sensitive():
 
 @pytest.mark.parametrize("fname,digest", _shared_fixtures())
 def test_metis_agrees_with_shared_cross_engine_fixtures(fname: str, digest: str):
-    """Metis hashes every shared *.arrow byte-identically to Charon/Brontes/Steropes.
+    """Metis hashes every shared *.arrow byte-identically to Charon/Mssql/Polars.
 
     Reads the canonical fixture bytes (not a Metis-local copy) and recomputes the
     digest with Metis's own algorithm — the "same algorithm, many implementations,

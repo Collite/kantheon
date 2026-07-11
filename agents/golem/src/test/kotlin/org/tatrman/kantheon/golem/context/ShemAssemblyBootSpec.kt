@@ -7,15 +7,15 @@ import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.tatrman.ariadne.v1.EntityDetail
-import org.tatrman.ariadne.v1.GetModelResponse
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleEntity
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.ariadne.v1.ObjectDescriptor
-import org.tatrman.ariadne.v1.PackageVersion
-import org.tatrman.ariadne.v1.ResolveAreaResponse
-import org.tatrman.kantheon.ariadne.client.MetadataGrpcClient
+import org.tatrman.meta.v1.EntityDetail
+import org.tatrman.meta.v1.GetModelResponse
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleEntity
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ObjectDescriptor
+import org.tatrman.meta.v1.PackageVersion
+import org.tatrman.meta.v1.ResolveAreaResponse
+import org.tatrman.veles.client.MetadataGrpcClient
 import org.tatrman.kantheon.capabilities.v1.AgentKind
 import org.tatrman.kantheon.capabilities.v1.IntentKind
 import java.nio.file.Files
@@ -82,7 +82,7 @@ private fun bootClient(): MetadataGrpcClient {
 
 /**
  * T7 — boot the Shem subsystem from a mounted `shem.yaml` + prompts against a mocked
- * Ariadne client, then assert the **assembled** `AgentCapability` (the registration
+ * Veles client, then assert the **assembled** `AgentCapability` (the registration
  * payload) + readiness gate. Drives `fromConfig` via a real config but injects the
  * mocked client through a test-only constructor path so no gRPC is needed.
  */

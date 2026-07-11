@@ -4,7 +4,7 @@ import org.tatrman.kantheon.themis.cache.ResolverCache
 import org.tatrman.kantheon.themis.client.FuzzyServiceClient
 import org.tatrman.kantheon.themis.config.toLlmGatewayEndpoint
 import org.tatrman.kantheon.capabilities.client.CapabilitiesReadClient
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.config.ResolverAppConfig
 import org.tatrman.kantheon.themis.config.resolverConfigFrom
 import org.tatrman.kantheon.themis.koog.ParseState
@@ -15,11 +15,13 @@ import org.tatrman.kantheon.themis.koog.NodeResult
 import org.tatrman.kantheon.themis.token.HmacTokenManager
 import org.tatrman.kantheon.themis.client.NlpAnalyzeResult
 import com.typesafe.config.ConfigFactory
-import org.tatrman.kantheon.common.v1.ResponseMessage
-import org.tatrman.kantheon.common.v1.Severity
-import org.tatrman.kadmos.v1.NerEntity
-import org.tatrman.kadmos.v1.Span
-import org.tatrman.kadmos.v1.Token
+// SV-P0: these back a SPINE (nlp) response, whose messages use the relocated
+// org.tatrman.common.v1.ResponseMessage (contracts §5) — not the agent common.
+import org.tatrman.common.v1.ResponseMessage
+import org.tatrman.common.v1.Severity
+import org.tatrman.nlp.v1.NerEntity
+import org.tatrman.nlp.v1.Span
+import org.tatrman.nlp.v1.Token
 import org.tatrman.kantheon.themis.v1.Themis
 import io.opentelemetry.api.common.AttributeKey
 import org.tatrman.kantheon.themis.v1.freshOrNull
@@ -467,7 +469,7 @@ private suspend fun handleRestResolve(
     val nlp = ctx.parseState.nlpResponse
 
     val parseResponse =
-        org.tatrman.kadmos.v1.AnalyzeResponse
+        org.tatrman.nlp.v1.AnalyzeResponse
             .newBuilder()
             .setLanguage(nlp.language)
             .setLanguageConfidence(nlp.languageConfidence)

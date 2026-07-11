@@ -1,15 +1,15 @@
 package org.tatrman.kantheon.golem.context
 
-import org.tatrman.ariadne.v1.DrillMapDetail
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleEntity
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.kantheon.ariadne.client.MetadataGrpcClient
+import org.tatrman.meta.v1.DrillMapDetail
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleEntity
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.veles.client.MetadataGrpcClient
 import org.tatrman.plan.v1.QualifiedName
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * An immutable index over one Ariadne `ModelBundle` — entities/queries by qname or
+ * An immutable index over one Veles `ModelBundle` — entities/queries by qname or
  * id, drill maps by their "from" pattern. Rebuilt only when the bundle's package
  * hashes change; [hash] is the concatenated `package_versions[].content_hash`.
  */
@@ -59,7 +59,7 @@ internal fun canonicalQname(qn: QualifiedName): String {
 }
 
 /**
- * The pod's view of its domain model, fetched from Ariadne `GetModel` for the
+ * The pod's view of its domain model, fetched from Veles `GetModel` for the
  * Shem's packages and held in memory. `/ready` gates on a populated context; the
  * model is **required** (no offline fallback — unlike prompts). `refresh()` re-pulls
  * and atomically swaps, skipping the rebuild when the package hashes are unchanged.
@@ -79,7 +79,7 @@ class PackageContext(
     fun current(): ModelSnapshot = snapshot.get() ?: error("PackageContext not loaded — call refresh() first")
 
     /**
-     * Pull the model from Ariadne and swap it in. When the new bundle's package
+     * Pull the model from Veles and swap it in. When the new bundle's package
      * hashes match the held snapshot, the existing snapshot is kept (no rebuild)
      * and returned unchanged.
      */

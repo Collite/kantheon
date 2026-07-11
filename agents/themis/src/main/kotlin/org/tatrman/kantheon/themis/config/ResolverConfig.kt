@@ -2,7 +2,7 @@ package org.tatrman.kantheon.themis.config
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import org.tatrman.kantheon.llm.client.LlmGatewayEndpoint
+import org.tatrman.llm.client.LlmGatewayEndpoint
 
 /** Adapt a generic [EndpointConfig] to the shared llm-gateway-client's endpoint type. */
 fun EndpointConfig.toLlmGatewayEndpoint(): LlmGatewayEndpoint =

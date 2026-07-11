@@ -5,13 +5,13 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import org.tatrman.ariadne.v1.EntityDetail
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleEntity
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.ariadne.v1.ObjectDescriptor
-import org.tatrman.ariadne.v1.PackageVersion
-import org.tatrman.ariadne.v1.ResolveAreaResponse
+import org.tatrman.meta.v1.EntityDetail
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleEntity
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ObjectDescriptor
+import org.tatrman.meta.v1.PackageVersion
+import org.tatrman.meta.v1.ResolveAreaResponse
 import org.tatrman.kantheon.capabilities.v1.AgentKind
 import org.tatrman.kantheon.golem.context.ModelSnapshot
 import java.nio.file.Files
@@ -23,7 +23,7 @@ import java.nio.file.Path
  * `GolemUcetnictviBundleSpec`. Catches drift between the authored bundle and the
  * assembly contract before the pod is deployed (the ahead-of-cluster pattern). The
  * ai-models `investment` area + `q.midas.*` queries (T1/T2) are exercised live against
- * Ariadne in Stream T; here the assembly is proven against fixtures.
+ * Veles in Stream T; here the assembly is proven against fixtures.
  */
 class GolemInvestmentBundleSpec :
     StringSpec({
@@ -93,7 +93,7 @@ class GolemInvestmentBundleSpec :
 
             // template refs + the five overlay-declared midas tool refs
             cap.capabilityRefsList shouldContainAll
-                listOf("theseus.query:v1", "render.table:v1")
+                listOf("query.query:v1", "render.table:v1")
             cap.capabilityRefsList shouldContainAll
                 listOf(
                     "midas.portfolio.performance:v1",
@@ -105,7 +105,7 @@ class GolemInvestmentBundleSpec :
         }
     })
 
-/** An investment-shaped Ariadne model fixture: the five area entities (described) + five queries. */
+/** An investment-shaped Veles model fixture: the five area entities (described) + five queries. */
 private fun investmentModel(): ModelSnapshot =
     ModelSnapshot.from(
         ModelBundle

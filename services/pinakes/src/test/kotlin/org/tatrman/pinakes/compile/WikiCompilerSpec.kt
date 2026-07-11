@@ -14,10 +14,10 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
 import org.tatrman.kallimachos.v1.PageKind
-import org.tatrman.pinakes.clients.HttpPrometheusClient
+import org.tatrman.pinakes.clients.HttpLlmGatewayClient
 
 /**
- * P3 Stage 3.2 T1 — the WikiCompiler against a Wiremock'd Prometheus. Source
+ * P3 Stage 3.2 T1 — the WikiCompiler against a Wiremock'd LLM gateway. Source
  * parts → ENTITY/CONCEPT/SUMMARY page drafts with `derivedFromParts` provenance;
  * a malformed/failed LLM response degrades to a mechanical SUMMARY (never crashes
  * the run — architecture §14).
@@ -28,7 +28,7 @@ class WikiCompilerSpec :
 
         fun compilerFor(wm: WireMockServer): WikiCompiler {
             val http = HttpClient(CIO) { install(ContentNegotiation) { json() } }
-            return WikiCompiler(HttpPrometheusClient(http, "http://localhost:${wm.port()}"))
+            return WikiCompiler(HttpLlmGatewayClient(http, "http://localhost:${wm.port()}"))
         }
 
         fun wiremock() = WireMockServer(WireMockConfiguration.options().dynamicPort()).also { it.start() }
@@ -49,7 +49,7 @@ class WikiCompilerSpec :
                 entity.derivedFromParts shouldContainExactly listOf(8L, 9L)
                 entity.conceptRef!!.displayLabel shouldBe "Kaufland"
                 entity.conceptRef!!.entityId shouldBe "wiki:kaufland"
-                entity.conceptRef!!.ariadneQname shouldBe "" // §6 seam — empty at v1
+                entity.conceptRef!!.velesQname shouldBe "" // §6 seam — empty at v1
             } finally {
                 wm.stop()
             }

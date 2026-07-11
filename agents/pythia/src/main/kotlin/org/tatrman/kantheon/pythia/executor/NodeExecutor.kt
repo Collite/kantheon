@@ -44,12 +44,12 @@ data class NodeResult(
 )
 
 /**
- * Executes a single plan node. Stage 2.3 lands the QueryNode executor (theseus-mcp);
+ * Executes a single plan node. Stage 2.3 lands the QueryNode executor (query-mcp);
  * DataFrame/Model at P4. Throws [NodeExecutionException] (classified) or
  * [TokenExpiredException] on a bearer rejection.
  */
 interface NodeExecutor {
-    /** The provider this node hits (for per-provider cap accounting): "theseus" / "metis" / "worker" / "llm". */
+    /** The provider this node hits (for per-provider cap accounting): "query" / "metis" / "worker" / "llm". */
     fun providerOf(node: PlanNode): String = "default"
 
     suspend fun execute(

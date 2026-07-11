@@ -35,9 +35,9 @@ tasks.test {
 
 dependencies {
     implementation(project(":shared:proto"))
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.logging.config)
 
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.coroutines.core)
@@ -63,7 +63,7 @@ dependencies {
     // Apache POI — the XLSX parser (Stage 1.5 T2).
     implementation(libs.apache.poi.ooxml)
 
-    // Broker template configs are YAML on the classpath (Jackson; the ariadne-mcp
+    // Broker template configs are YAML on the classpath (Jackson; the veles-mcp
     // ManifestLoader pattern reused for brokers/*.yaml).
     implementation(libs.jackson.databind)
     implementation(libs.jackson.module.kotlin)

@@ -19,7 +19,7 @@ dependencyResolutionManagement {
         mavenLocal()
         // The ai-platform GitHub Packages repo (DFPartner/ai-platform, group
         // cz.dfpartner) was removed in fork Stage 2.6 — Themis retargeted off
-        // cz.dfpartner:shared-proto (nlp.v1 → in-repo kadmos.v1). No ai-platform
+        // cz.dfpartner:shared-proto (nlp.v1 → in-repo nlp.v1). No ai-platform
         // Maven coupling remains. The Collite/tatrman repo below stays (third-
         // party TTR toolchain, org.tatrman:* — permanent, see CLAUDE.md §7.3).
         maven {
@@ -27,7 +27,7 @@ dependencyResolutionManagement {
             // The `org.tatrman:ttr-{parser,writer,semantics}:0.8.4` artifacts are NOT
             // published to Maven Central; they live in this GitHub Packages repo. The
             // same `gpr.*` PAT works (GitHub Packages auth is per-user, per-package-visibility).
-            // Stage 2.1 (Ariadne) and 2.4 (Proteus) consume these.
+            // Stage 2.1 (Veles) and 2.4 (Translate) consume these.
             name = "Tatrman"
             url = uri("https://maven.pkg.github.com/Collite/tatrman")
             credentials {
@@ -48,12 +48,6 @@ include(":shared:proto")
 include(":tools:_smoke-test")
 include(":tools:capabilities-mcp")
 include(":shared:libs:kotlin:capabilities-client")
-include(":shared:libs:kotlin:otel-config")
-include(":shared:libs:kotlin:logging-config")
-include(":shared:libs:kotlin:ktor-configurator")
-include(":shared:libs:kotlin:fuzzy-common")
-include(":shared:libs:kotlin:db-common")
-include(":shared:libs:kotlin:data-formatter")
 include(":shared:libs:kotlin:envelope-render")
 // Golem S2.4 (parametrization rail) — pure-Kotlin port of `aip_pattern_params`;
 // builds the typed {name:{value,type}} parameters map. Consumed by Golem (and,
@@ -71,16 +65,12 @@ include(":shared:libs:kotlin:integration-harness")
 // tenant-header forwarding, health/ready routes). Consumed by sysifos-bff;
 // iris-bff migrates onto it in a follow-up (deferred — Stage 1.2 audit).
 include(":shared:libs:kotlin:bff-base")
-// Golem Stage 2.2 — shared Ariadne gRPC client (extracted from tools/ariadne-mcp).
-include(":shared:libs:kotlin:ariadne-client")
+// Golem Stage 2.2 — shared Veles gRPC client (extracted from tools/veles-mcp).
 // Golem Stage 2.3 — shared LLM-gateway client + Koog executor (extracted from agents/themis).
-include(":shared:libs:kotlin:llm-gateway-client")
 // Fork Phase 5 Stage 5.0 — technical-wave shared libs.
-// whois-common: 3 domain records (UserRecord/UserIdRecord/UserSource), pkg org.tatrman.whois.domain.
+// whois-common: 3 domain records (UserRecord/UserIdRecord/UserSource), pkg org.tatrman.identity.domain.
 // keycloak-auth: generic Keycloak client_credentials token provider, EXTRACTED off
 // erp-sql-common.auth (4 self-contained files) so the legacy ERP-SQL line need not fork.
-include(":shared:libs:kotlin:whois-common")
-include(":shared:libs:kotlin:keycloak-auth")
 include(":agents:themis")
 
 // Iris arc — dispatch BFF (Phase 1 Stage 1.2: skeleton + session persistence).
@@ -93,42 +83,29 @@ include(":agents:golem")
 include(":agents:pythia")
 
 // Phase 2 — first off-data-path service (Stage 2.1).
-include(":services:ariadne")
-// Stage 2.1 T4 — ariadne's MCP wrapper (forked from tools/meta-mcp).
-include(":tools:ariadne-mcp")
-// Stage 2.2 — Echo (lean fuzzy matcher, forked from services/fuzzy-matcher).
-include(":services:echo")
-// Stage 2.2 T4 — Echo's MCP wrapper (forked from tools/fuzzy-mcp).
-include(":tools:echo-mcp")
-// Stage 2.3 T4 — Kadmos's MCP wrapper (forked from tools/nlp-mcp; HTTP, Analyze).
-// (services/kadmos itself is a Python module, not a Gradle subproject.)
-include(":tools:kadmos-mcp")
-// Stage 3.5 T4 — Theseus's MCP wrapper (forked from tools/query-mcp; run_query + IdentityResolver).
-include(":tools:theseus-mcp")
-// Stage 2.4 — Proteus (translator: lang ↔ RelNode ↔ SQL), forked from services/translator.
-// No MCP wrapper — internal pipeline service called by Theseus.
-include(":services:proteus")
-// Stage 2.5 — Prometheus (LLM gateway), forked from infra/llm-gateway.
+// Stage 2.1 T4 — veles's MCP wrapper (forked from tools/meta-mcp).
+// Stage 2.2 — the fuzzy matcher (moved to tatrman-server).
+// Stage 2.2 T4 — the fuzzy MCP wrapper (moved to tatrman-server).
+// Stage 2.3 T4 — Nlp's MCP wrapper (forked from tools/nlp-mcp; HTTP, Analyze).
+// (services/nlp itself is a Python module, not a Gradle subproject.)
+// Stage 3.5 T4 — Query's MCP wrapper (forked from tools/query-mcp; run_query + IdentityResolver).
+// Stage 2.4 — Translate (translator: lang ↔ RelNode ↔ SQL), forked from services/translator.
+// No MCP wrapper — internal pipeline service called by Query.
+// Stage 2.5 — the LLM gateway (moved to tatrman-server).
 // The repo's only Spring Boot module (documented exception).
-include(":services:prometheus")
-// Phase 3 Stage 3.1 — Argos (validator: RLS + TopN + column rules + LLM-judge),
+// Phase 3 Stage 3.1 — Validate (validator: RLS + TopN + column rules + LLM-judge),
 // forked from services/validator. sql-security folds in at Stage 3.2.
-include(":services:argos")
-// Phase 3 Stage 3.3 — Kyklop (worker dispatcher), forked from services/dispatcher.
-include(":services:kyklop")
-// Phase 3 Stage 3.5 — Theseus (query orchestrator + plan cache), forked from services/query-runner.
-include(":services:theseus")
+// Phase 3 Stage 3.3 — Dispatch (worker dispatcher), forked from services/dispatcher.
+// Phase 3 Stage 3.5 — Query (query orchestrator + plan cache), forked from services/query-runner.
 
-// workers/ — the Kyklops (fork Phase 3). The _smoke-worker placeholder (Phase 1
+// workers/ — the Dispatchs (fork Phase 3). The _smoke-worker placeholder (Phase 1
 // Stage 1.1 T3) retired at Stage 3.3 when the first real worker landed.
-// Phase 3 Stage 3.3 — Brontes (MSSQL worker), forked from workers/mssql.
-include(":workers:brontes")
-// Stream B — Arges (Postgres worker, arges/plan.md Phase 1 Stage 1.1). Born in-repo by
-// mirroring Brontes; adds the per-tenant RLS `SET LOCAL app.tenant_id` session contract.
-include(":workers:arges")
+// Phase 3 Stage 3.3 — Mssql (MSSQL worker), forked from workers/mssql.
+// Stream B — Postgres (Postgres worker, postgres/plan.md Phase 1 Stage 1.1). Born in-repo by
+// mirroring Mssql; adds the per-tenant RLS `SET LOCAL app.tenant_id` session contract.
 // Stream B — Metis (metis/plan.md Phase 1 Stage 1.1).
 // services/metis is a Python module (uv / pyproject.toml), not a Gradle subproject — no include().
-// Stage 3.4 — Metis MCP wrapper (tools/metis-mcp). Mirrors ariadne-mcp in structure and patterns.
+// Stage 3.4 — Metis MCP wrapper (tools/metis-mcp). Mirrors veles-mcp in structure and patterns.
 include(":tools:metis-mcp")
 
 // Charon MCP wrapper (tools/charon-mcp; charon/plan.md Phase 3 Stage 3.2). Mirrors metis-mcp.
@@ -150,11 +127,9 @@ include(":services:report-renderer")
 
 // infra/ — off-constellation technical-wave infrastructure (fork Phase 5, no personas).
 // Tree introduced in Stage 5.0 (the _smoke placeholder, now retired — superseded by whois,
-// mirroring the workers/_smoke-worker → Brontes retirement).
+// mirroring the workers/_smoke-worker → Mssql retirement).
 // Stage 5.1 — whois (user/role directory + OPA bundle server), forked from infra/whois.
-include(":infra:whois")
 // Stage 5.2 — health (cluster health aggregator), forked from infra/health.
-include(":infra:health")
 // Stage 5.5 — backstage is a Node module (own Yarn build), not a Gradle subproject.
 
 // Stream B — Sysifos (sysifos/plan.md Phase 1 Stage 1.1). The back-office

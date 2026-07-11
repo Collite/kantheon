@@ -5,7 +5,7 @@ import org.tatrman.kantheon.pythia.dataplane.InListMaterialiser
 import org.tatrman.kantheon.pythia.v1.PlanNode
 
 /**
- * Executes a `QueryNode` against theseus-mcp (Stage 2.3 T2). Resolves `HandleRef`
+ * Executes a `QueryNode` against query-mcp (Stage 2.3 T2). Resolves `HandleRef`
  * params from the handle table, enforces the IN-list ≤ 500 rule, compiles a composed
  * stack before running it, stores the result as a `PgResultSnapshot` (small) or
  * `LiveQueryRef`, and forwards `pipeline_warnings` (Rule-6). A bearer rejection
@@ -25,7 +25,7 @@ class QueryNodeExecutor(
     private val rowLimit: Int? = 5_000,
     private val inListMaterialiser: InListMaterialiser? = null,
 ) : NodeExecutor {
-    override fun providerOf(node: PlanNode): String = "theseus"
+    override fun providerOf(node: PlanNode): String = "query"
 
     override suspend fun execute(
         node: PlanNode,

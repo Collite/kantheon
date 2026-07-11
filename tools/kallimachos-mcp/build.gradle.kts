@@ -30,9 +30,9 @@ tasks.test {
 
 dependencies {
     // Shared libs — the shared MCP/Ktor base + capabilities registration client.
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.logging.config)
     implementation(project(":shared:libs:kotlin:capabilities-client"))
     implementation(project(":shared:proto"))
 

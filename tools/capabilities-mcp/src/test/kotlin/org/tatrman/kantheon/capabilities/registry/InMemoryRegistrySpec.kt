@@ -72,13 +72,13 @@ class InMemoryRegistrySpec :
         }
 
         "fixture-registered entries carry no last_heartbeat_at" {
-            val rid = reg.register(toolCapability("theseus.query:v1").asCapability(), fromFixture = true)
+            val rid = reg.register(toolCapability("query.query:v1").asCapability(), fromFixture = true)
             rid.shouldNotBeBlank()
-            reg.get("theseus.query:v1")?.lastHeartbeatAt shouldBe null
+            reg.get("query.query:v1")?.lastHeartbeatAt shouldBe null
         }
 
         "runtime-registered entries carry last_heartbeat_at == clock now" {
-            reg.register(toolCapability("theseus.query:v1").asCapability())
-            reg.get("theseus.query:v1")?.lastHeartbeatAt shouldBe Instant.parse("2026-05-28T12:00:00Z")
+            reg.register(toolCapability("query.query:v1").asCapability())
+            reg.get("query.query:v1")?.lastHeartbeatAt shouldBe Instant.parse("2026-05-28T12:00:00Z")
         }
     })

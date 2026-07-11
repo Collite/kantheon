@@ -61,9 +61,9 @@ jib {
 
 dependencies {
     // Shared bootstrap libs (in-repo modules, not Maven).
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.logging.config)
+    implementation(libs.tatrman.otel.config)
     // bff-base — Keycloak JWT verify + tenant forwarding + health routes (Stage 1.2).
     implementation(project(":shared:libs:kotlin:bff-base"))
     // envelope-render reuse (block rendering lands in Phase 2; dep wired now).

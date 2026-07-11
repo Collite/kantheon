@@ -21,8 +21,8 @@ import org.tatrman.kantheon.golem.v1.MiniPlan
 import org.tatrman.kantheon.golem.v1.MiniPlanNode
 import org.tatrman.kantheon.golem.v1.PlanSource
 import org.tatrman.kantheon.golem.v1.QueryNode
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
-import org.tatrman.kantheon.llm.client.LlmGatewayPromptExecutor
+import org.tatrman.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayPromptExecutor
 import java.nio.file.Path
 
 private const val PROMPT = "system: \"x\"\nuser: \"{{ question }}\""

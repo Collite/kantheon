@@ -14,32 +14,32 @@ import org.tatrman.kantheon.testkit.integration.contextHandle
 
 /**
  * WS-C2 T4 — the **`golem-erp`** agent-showcase context. A domain Q&A turn through a **real**
- * Golem-ERP pod: Golem `/v1/answer/sync` → `ShemAdmission` (PD-8) → Ariadne (model via `GetModel`,
- * the bundled `accounting` area) → `PlanComposer` (LLM, WireMock-stubbed via Prometheus) →
+ * Golem-ERP pod: Golem `/v1/answer/sync` → `ShemAdmission` (PD-8) → Veles (model via `GetModel`,
+ * the bundled `accounting` area) → `PlanComposer` (LLM, WireMock-stubbed via the LLM gateway) →
  * `MiniPlanExecutor` → an `envelope/v1` `ConversationalResponse`. Gated by
  * `@RequiresContext("golem-erp")` — compiles + skips until olymp stands the context up.
  *
  * ## Fixture agent-showcase (Bora, 2026-07-08)
  * This context proves the **Golem agent turn**, NOT real query data — the `tpcds-query` showcase
- * owns the real-data proof. The query leg is fixture-only (`theseus-runquery` returns
- * `detection_failed`, not rows — Proteus' fixture model has no seed table). So there are two
+ * owns the real-data proof. The query leg is fixture-only (`query-runquery` returns
+ * `detection_failed`, not rows — Translate' fixture model has no seed table). So there are two
  * fidelity tiers, gated separately:
  *
  *  - **`contextLive` (ACTIVE)** — PD-8 Shem admission at the `/v1` edge, before any model/LLM/query
  *    work: a **missing bearer** fails closed (401), an **outsider role** is forbidden (403). Needs
- *    only golem (with the `golem-erp` Shem) + ariadne (Shem's `accounting` area → model load →
+ *    only golem (with the `golem-erp` Shem) + veles (Shem's `accounting` area → model load →
  *    Ready). Robust; no LLM, no query. This is the deploy-test deliverable that lands green first.
  *
  *  - **`answerTurnLive` (GATED)** — the LLM-planned agent turn: admission → `PlanComposer`
- *    (Prometheus → WireMock stub) → `MiniPlanExecutor` renders a **RENDER-ONLY** MiniPlan (a single
+ *    (LLM gateway → WireMock stub) → `MiniPlanExecutor` renders a **RENDER-ONLY** MiniPlan (a single
  *    render node, no query node → an empty TABLE envelope) → `STATUS_DONE`. The rendered table is
  *    **data-less** by design (real rows are the `tpcds-query` path). Flip once the first bp-dsk run
- *    confirms the golem→prometheus→WireMock LLM roundtrip (Spring AI 2.0.0-M2 Anthropic wire shape).
+ *    confirms the golem→llm-gateway→WireMock LLM roundtrip (Spring AI 2.0.0-M2 Anthropic wire shape).
  *
  * ## Context requirements (reconciled with olymp `test-contexts/golem-erp/context.yaml`)
- *  - Services (real): golem (loaded with the `golem-erp` Shem via ConfigMap), ariadne (bundled
- *    `accounting` model — no image change), prometheus (Spring `test` profile → H2, LLM base-url'd
- *    at WireMock). Platform: `wiremock` (LLM upstream stub). No theseus chain / mssql — the
+ *  - Services (real): golem (loaded with the `golem-erp` Shem via ConfigMap), veles (bundled
+ *    `accounting` model — no image change), llm-gateway (Spring `test` profile → H2, LLM base-url'd
+ *    at WireMock). Platform: `wiremock` (LLM upstream stub). No query chain / mssql — the
  *    render-only turn never queries.
  *  - Identity: golem `/v1` enforces PD-8 admission — the bearer's `realm_access.roles` must
  *    intersect the Shem's `visibility_roles` (`kantheon-area-accounting`); a missing bearer fails
@@ -54,14 +54,14 @@ class GolemErpIntegrationSpec :
     StringSpec({
 
         // ── Fidelity gates (WS-C2 T4) ────────────────────────────────────────────────────────
-        // contextLive: the context stands up (golem+ariadne+prometheus+wiremock) and PD-8 admission
-        // is exercised. answerTurnLive: the LLM-planned render turn (needs the live golem→prometheus
+        // contextLive: the context stands up (golem+veles+llm-gateway+wiremock) and PD-8 admission
+        // is exercised. answerTurnLive: the LLM-planned render turn (needs the live golem→llm-gateway
         // →WireMock roundtrip confirmed). Flip answerTurnLive after the first bp-dsk run.
         val contextLive = true
-        // Flipped ON 2026-07-08: the golem→prometheus→WireMock LLM roundtrip is unblocked by two
-        // prometheus fixes (a `/v1/chat/completions` controller alias + `haiku`/`claude-haiku`/
-        // `sonnet` model aliases in models.yaml → the Anthropic provider). Needs prometheus:testing
-        // rebuilt with those. If the live wire shape still bites, the prometheus log names the link.
+        // Flipped ON 2026-07-08: the golem→llm-gateway→WireMock LLM roundtrip is unblocked by two
+        // llm-gateway fixes (a `/v1/chat/completions` controller alias + `haiku`/`claude-haiku`/
+        // `sonnet` model aliases in models.yaml → the Anthropic provider). Needs llm-gateway:testing
+        // rebuilt with those. If the live wire shape still bites, the llm-gateway log names the link.
         val answerTurnLive = true
 
         // The Shem's visibility role — matches the deployed golem-erp Shem manifest's
@@ -118,11 +118,11 @@ class GolemErpIntegrationSpec :
         // T1 — the LLM-planned agent turn: an admitted domain question yields a DONE turn with a
         // rendered envelope. The WireMock-stubbed MiniPlan is render-only, so the turn completes
         // without the query chain (the envelope is a data-less TABLE). GATED (answerTurnLive) until
-        // the live golem→prometheus→WireMock roundtrip is confirmed on bp-dsk.
+        // the live golem→llm-gateway→WireMock roundtrip is confirmed on bp-dsk.
         "an admitted domain question returns a STATUS_DONE turn with a rendered envelope"
             .config(enabled = answerTurnLive) {
                 val handle = contextHandle()
-                // The in-cluster WireMock starts EMPTY — push the LLM stub so Prometheus's Anthropic
+                // The in-cluster WireMock starts EMPTY — push the LLM stub so LLM gateway's Anthropic
                 // call to wiremock:8080/v1/messages returns the render-only MiniPlan (else it 404s
                 // and PlanComposer gets an empty reply → clarification, not STATUS_DONE).
                 WireMockAdmin(handle.wireMockAdmin).apply {

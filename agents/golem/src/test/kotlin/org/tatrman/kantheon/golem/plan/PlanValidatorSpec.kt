@@ -3,10 +3,10 @@ package org.tatrman.kantheon.golem.plan
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.ariadne.v1.ObjectDescriptor
-import org.tatrman.ariadne.v1.QueryParameterDef
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ObjectDescriptor
+import org.tatrman.meta.v1.QueryParameterDef
 import org.tatrman.kantheon.golem.context.ModelSnapshot
 import org.tatrman.kantheon.golem.v1.MiniPlan
 import org.tatrman.kantheon.golem.v1.MiniPlanNode

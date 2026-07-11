@@ -16,9 +16,9 @@ private val log = LoggerFactory.getLogger("org.tatrman.kantheon.golem.api.Refres
 
 /**
  * `POST /v1/refresh` (contracts §2) — re-pull PackageContext **and** prompts from
- * Ariadne. Ops/cluster-internal: deliberately **not** behind [ShemAdmission] (it's
+ * Veles. Ops/cluster-internal: deliberately **not** behind [ShemAdmission] (it's
  * an operational reload, not a domain turn). Responds 200 on success, 503 when the
- * reload fails (e.g. Ariadne unreachable) so callers can retry.
+ * reload fails (e.g. Veles unreachable) so callers can retry.
  */
 fun Route.refreshRoutes(model: GolemModelSubsystem) {
     post("/v1/refresh") {

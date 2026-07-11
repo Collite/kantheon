@@ -23,14 +23,14 @@ data class CompileResult(
     val appliedSecurity: Boolean,
 )
 
-/** A theseus-mcp call failed (transport, pipeline error, or fail-closed RLS denial). */
+/** A query-mcp call failed (transport, pipeline error, or fail-closed RLS denial). */
 class QueryException(
     message: String,
     cause: Throwable? = null,
 ) : RuntimeException(message, cause)
 
 /**
- * Golem's edge to the forked query path (**theseus-mcp**). The caller's OBO
+ * Golem's edge to the forked query path (**query-mcp**). The caller's OBO
  * [bearer] is forwarded on every call — never a service identity (PD-8,
  * kantheon-security §2); a null bearer is a misconfiguration, not "anonymous".
  * The interface is the boundary; tests drive a fake, the real impl is the MCP

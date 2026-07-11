@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
  * Kleio/DocWH P1 Stage 1.1 T2 — `kallimachos/v1` shape guard. Proves the platform-
  * service proto root compiles to Kotlin and that the corpus + retrieval types
  * round-trip on the wire (contracts §1). Third non-`kantheon.*` proto root after
- * ariadne/charon.
+ * veles/charon.
  */
 class KallimachosProtoSpec :
     StringSpec({
@@ -32,7 +32,7 @@ class KallimachosProtoSpec :
             val back = Page.parseFrom(page.toByteArray())
             back.kind shouldBe PageKind.ENTITY
             back.conceptRef.entityType shouldBe "customer"
-            back.conceptRef.ariadneQname shouldBe "" // empty in v1 — §6 seam
+            back.conceptRef.velesQname shouldBe "" // empty in v1 — §6 seam
             back.derivedFromPartsList shouldBe listOf(7L, 8L)
         }
 

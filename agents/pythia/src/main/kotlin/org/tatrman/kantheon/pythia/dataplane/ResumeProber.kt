@@ -3,10 +3,10 @@ package org.tatrman.kantheon.pythia.dataplane
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
-import org.tatrman.charon.v1.DbTable
-import org.tatrman.charon.v1.Location
-import org.tatrman.charon.v1.SeaweedBlob
-import org.tatrman.charon.v1.WorkerSessionDf
+import org.tatrman.transfer.v1.DbTable
+import org.tatrman.transfer.v1.Location
+import org.tatrman.transfer.v1.SeaweedBlob
+import org.tatrman.transfer.v1.WorkerSessionDf
 import org.tatrman.kantheon.pythia.handles.HandleTable
 import org.tatrman.kantheon.pythia.persistence.HandleRecipe
 import org.tatrman.kantheon.pythia.v1.Handle

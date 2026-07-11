@@ -5,7 +5,7 @@
 // Platform-service convention: proto root `org.tatrman.kallimachos.v1` (AGENTS.md §4 —
 // `org.tatrman.<service>.v1` for platform-grade services; `org.tatrman.kantheon.*.v1`
 // stays reserved for constellation/agent contracts). Third non-`kantheon.*` proto
-// root after ariadne/charon; the Kotlin source root mirrors it (`org.tatrman.kallimachos.*`).
+// root after veles/charon; the Kotlin source root mirrors it (`org.tatrman.kallimachos.*`).
 //
 // The store speaks REST+JSON at its HTTP surface (ported from doc-store); these
 // messages are the proto truth those JSON shapes are tested against (Wire policy).
@@ -49,7 +49,7 @@ message Page {                           // an LLM-authored wiki page (Pinakes c
   PageKind kind      = 2;                // ENTITY | CONCEPT | SUMMARY | OVERVIEW
   string title       = 3;
   string content_md  = 4;                // markdown body
-  optional ConceptRef concept_ref = 5;  // §6 — Ariadne bridge seam (null in v1)
+  optional ConceptRef concept_ref = 5;  // §6 — Veles bridge seam (null in v1)
   repeated int64 derived_from_parts = 6; // provenance: source parts this page compiled from
   string updated_at  = 7;
 }
@@ -57,12 +57,12 @@ enum PageKind { PAGE_KIND_UNSPECIFIED = 0; ENTITY = 1; CONCEPT = 2; SUMMARY = 3;
 enum EmbeddingStatus { EMBEDDING_STATUS_UNSPECIFIED = 0; OK = 1; PENDING = 2; }
 
 // Bridge currency (§6). Shaped to align with common/v1.EntityBinding; able to
-// hold an Ariadne qname later. v1: type+label local to the wiki; ariadne_qname empty.
+// hold an Veles qname later. v1: type+label local to the wiki; veles_qname empty.
 message ConceptRef {
   string entity_type   = 1;             // "customer", "concept", ...
   string entity_id     = 2;             // wiki-local id at v1
   string display_label = 3;
-  string ariadne_qname = 4;             // FILLED by the bridge (v1.x); empty in v1
+  string veles_qname = 4;             // FILLED by the bridge (v1.x); empty in v1
 }
 
 // ── Wiki edges (AGE) ────────────────────────────────────────────────────────

@@ -27,7 +27,7 @@ class TtlPrunerSpec :
                     override fun instant() = current
                 }
             val reg = InMemoryRegistry(clock = clock)
-            reg.register(toolCapability("theseus.query:v1").asCapability())
+            reg.register(toolCapability("query.query:v1").asCapability())
             val pruner = TtlPruner(reg, ttl = Duration.ofSeconds(300), clock = clock)
             current = t0.plusSeconds(301)
             pruner.prune() shouldBe 1
@@ -46,12 +46,12 @@ class TtlPrunerSpec :
                     override fun instant() = current
                 }
             val reg = InMemoryRegistry(clock = clock)
-            reg.register(toolCapability("theseus.query:v1").asCapability())
+            reg.register(toolCapability("query.query:v1").asCapability())
             val pruner = TtlPruner(reg, ttl = Duration.ofSeconds(60), clock = clock)
             current = t0.plusSeconds(61)
             pruner.prune() shouldBe 1
             reg.list() shouldHaveSize 0
-            reg.get("theseus.query:v1").shouldNotBeNull().pruned shouldBe true
+            reg.get("query.query:v1").shouldNotBeNull().pruned shouldBe true
         }
 
         "fixtures (last_heartbeat_at == null) are never pruned" {
@@ -66,11 +66,11 @@ class TtlPrunerSpec :
                     override fun instant() = current
                 }
             val reg = InMemoryRegistry(clock = clock)
-            reg.register(toolCapability("theseus.query:v1").asCapability(), fromFixture = true)
+            reg.register(toolCapability("query.query:v1").asCapability(), fromFixture = true)
             val pruner = TtlPruner(reg, ttl = Duration.ofSeconds(1), clock = clock)
             current = t0.plusSeconds(3600)
             pruner.prune() shouldBe 0
-            reg.list().map { it.capability.tool.capabilityId } shouldContain "theseus.query:v1"
+            reg.list().map { it.capability.tool.capabilityId } shouldContain "query.query:v1"
         }
 
         "a re-register or heartbeat un-prunes a previously stale entry" {
@@ -85,14 +85,14 @@ class TtlPrunerSpec :
                     override fun instant() = current
                 }
             val reg = InMemoryRegistry(clock = clock)
-            reg.register(toolCapability("theseus.query:v1").asCapability())
+            reg.register(toolCapability("query.query:v1").asCapability())
             val pruner = TtlPruner(reg, ttl = Duration.ofSeconds(60), clock = clock)
             current = t0.plusSeconds(61)
             pruner.prune() shouldBe 1
             reg.list() shouldHaveSize 0
             // Re-register at later wall-clock; should re-appear and un-prune.
-            reg.register(toolCapability("theseus.query:v1").asCapability())
+            reg.register(toolCapability("query.query:v1").asCapability())
             reg.list() shouldHaveSize 1
-            reg.get("theseus.query:v1")?.pruned shouldBe false
+            reg.get("query.query:v1")?.pruned shouldBe false
         }
     })

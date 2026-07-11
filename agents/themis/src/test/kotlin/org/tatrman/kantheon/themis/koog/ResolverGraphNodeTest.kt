@@ -7,7 +7,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.tatrman.kantheon.capabilities.client.CapabilitiesReadClient
-import org.tatrman.kantheon.llm.client.LlmGatewayClient
+import org.tatrman.llm.client.LlmGatewayClient
 import org.tatrman.kantheon.themis.client.FuzzyServiceClient
 import org.tatrman.kantheon.themis.client.NlpAnalyzeResult
 import org.tatrman.kantheon.themis.client.NlpEntity

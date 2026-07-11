@@ -1,5 +1,5 @@
-capability_id: theseus.query:v1
-category: theseus.*
+capability_id: query.query:v1
+category: query.*
 version: "v1"
 preconditions:
   - expression: "registry.entity_types includes the named-query's bound entities"
@@ -13,5 +13,5 @@ search_tags:
   - sql
   - named-query
   - parametric
-service_endpoint: "http://theseus-mcp.kantheon.svc.cluster.local:7307"
-description: "Run a query against the kantheon platform (orchestrated by Theseus)."
+service_endpoint: "http://query-mcp.kantheon.svc.cluster.local:7307"
+description: "Run a query against the kantheon platform (orchestrated by Query)."

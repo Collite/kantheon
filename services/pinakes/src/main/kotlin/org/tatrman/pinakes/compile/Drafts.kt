@@ -12,7 +12,7 @@ data class PartInput(
 /**
  * A draft wiki page (pre-write). `localId` is a within-run handle the LINK stage
  * uses to wire page↔page edges before the LoadApi assigns real ids. `conceptRef`
- * is the §6 Ariadne seam — wiki-local at v1 (`ariadneQname` empty).
+ * is the §6 Veles seam — wiki-local at v1 (`velesQname` empty).
  */
 data class PageDraft(
     val localId: Int,
@@ -27,7 +27,7 @@ data class ConceptRefDraft(
     val entityType: String,
     val entityId: String,
     val displayLabel: String,
-    val ariadneQname: String = "",
+    val velesQname: String = "",
 )
 
 /** A page↔page / page↔entity content edge, referencing pages by `localId`. */

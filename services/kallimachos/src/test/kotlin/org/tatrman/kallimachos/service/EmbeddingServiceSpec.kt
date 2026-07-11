@@ -25,7 +25,7 @@ class EmbeddingServiceSpec :
             val failing: Boolean = false,
         ) : EmbeddingsPort {
             override suspend fun embed(texts: List<String>): EmbedResult {
-                if (failing) throw RuntimeException("prometheus down")
+                if (failing) throw RuntimeException("llm-gateway down")
                 return EmbedResult(texts.map { floatArrayOf(1f, 0f, 0f) }, "bge-m3", "1", 3)
             }
         }

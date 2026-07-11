@@ -22,7 +22,7 @@ import org.tatrman.kallimachos.retrieval.VectorRecall
  * from the seed nodes) → BOOST (the recall scores) → FUSE ([HybridFusion]). Mart
  * scope is mandatory; `"*"` is admin-only whole-corpus.
  *
- * Vector recall is best-effort: if Prometheus is unreachable (no embeddings yet),
+ * Vector recall is best-effort: if the LLM gateway is unreachable (no embeddings yet),
  * it degrades to graph + keyword rather than failing the query (the "thin wiki"
  * resilience, architecture §14).
  */
@@ -51,7 +51,7 @@ class ContextService(
 
         val expand = maxOf(k * EXPANSION, k)
         // The two recall planes are independent — run them concurrently (vector
-        // recall includes a Prometheus embed round-trip; keyword is a separate
+        // recall includes an LLM-gateway embed round-trip; keyword is a separate
         // tsquery). Latency collapses to the slower plane rather than their sum.
         val (keywordHits, vectorHits) =
             coroutineScope {

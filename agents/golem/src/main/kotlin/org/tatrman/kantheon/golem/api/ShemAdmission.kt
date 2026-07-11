@@ -53,7 +53,7 @@ sealed interface AdmissionResult {
  * realm roles. This guards the Themis-bypass path (direct callers) — Themis already
  * filters its routing view by roles, but agents must not trust that.
  *
- * **Bearer handling mirrors iris-bff/theseus-mcp: decode-only at v1.** The JWT
+ * **Bearer handling mirrors iris-bff/query-mcp: decode-only at v1.** The JWT
  * payload is decoded for `sub`/`preferred_username`, `exp` (fail-closed), tenant,
  * and `realm_access.roles`; JWKS signature verification terminates at the edge.
  */

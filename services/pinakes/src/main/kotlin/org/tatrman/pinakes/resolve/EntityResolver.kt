@@ -44,7 +44,7 @@ data class ResolvedPage(
  * page), otherwise it is NEW. Non-entity pages (SUMMARY/OVERVIEW) are always new.
  *
  * `concept_ref` is populated WIKI-LOCAL (`entity_type`+`entity_id`+label;
- * `ariadne_qname` empty) — the §6/§12 Ariadne seam, reserved, not yet bridged.
+ * `veles_qname` empty) — the §6/§12 Veles seam, reserved, not yet bridged.
  * Outcomes feed `pinakes_entities_resolved_total{outcome}` (emitted by the stage).
  */
 class EntityResolver(

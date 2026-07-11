@@ -7,16 +7,16 @@ import io.grpc.StatusException
 import io.grpc.inprocess.InProcessChannelBuilder
 import io.grpc.inprocess.InProcessServerBuilder
 import kotlinx.serialization.json.JsonArray
-import org.tatrman.charon.v1.CharonServiceGrpcKt
-import org.tatrman.charon.v1.CopyRequest
-import org.tatrman.charon.v1.DescribeRequest
-import org.tatrman.charon.v1.DescribeResult
-import org.tatrman.charon.v1.EvictRequest
-import org.tatrman.charon.v1.EvictResult
-import org.tatrman.charon.v1.Location
-import org.tatrman.charon.v1.MaterializeRequest
-import org.tatrman.charon.v1.MoveResult
-import org.tatrman.charon.v1.StageRequest
+import org.tatrman.transfer.v1.CharonServiceGrpcKt
+import org.tatrman.transfer.v1.CopyRequest
+import org.tatrman.transfer.v1.DescribeRequest
+import org.tatrman.transfer.v1.DescribeResult
+import org.tatrman.transfer.v1.EvictRequest
+import org.tatrman.transfer.v1.EvictResult
+import org.tatrman.transfer.v1.Location
+import org.tatrman.transfer.v1.MaterializeRequest
+import org.tatrman.transfer.v1.MoveResult
+import org.tatrman.transfer.v1.StageRequest
 import org.tatrman.kantheon.pythia.dataplane.DataFrameOp
 import org.tatrman.kantheon.pythia.dataplane.DataFrameOutput
 import org.tatrman.kantheon.pythia.dataplane.WorkerClient
@@ -112,7 +112,7 @@ class NoopCharonClient : CharonClient {
 
     override suspend fun stage(
         source: Location,
-        target: org.tatrman.charon.v1.WorkerSessionDf,
+        target: org.tatrman.transfer.v1.WorkerSessionDf,
         expectedFingerprint: String?,
     ) = MoveResult.getDefaultInstance()
 
@@ -143,7 +143,7 @@ fun startInProcess(service: io.grpc.BindableService): Pair<Server, ManagedChanne
 /**
  * A [WorkerClient] fake: returns the configured row output for each DataFrame op,
  * reusing the op's session (sticky affinity). Records every op for chain/session
- * assertions; live Steropes is the integration suite.
+ * assertions; live Polars is the integration suite.
  */
 class FakeWorkerClient(
     private val rows: JsonArray? = null,

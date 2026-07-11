@@ -92,7 +92,7 @@ fun Route.controlRoutes(
                     }
             // Stamp the caller identity from the validated bearer (never trust the body).
             parsed.callerBuilder.setUserId(principal.userId)
-            // Forward the OBO bearer so downstream Themis/theseus calls carry the user's identity (PD-8).
+            // Forward the OBO bearer so downstream Themis/query calls carry the user's identity (PD-8).
             val id = orchestrator.submit(parsed.build(), call.bearer())
             call.respond(
                 HttpStatusCode.Accepted,

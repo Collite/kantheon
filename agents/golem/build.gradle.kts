@@ -1,6 +1,6 @@
 // Golem — per-domain Q&A template (one pod per Shem). Phase 2 Stage 2.1:
 // Ktor skeleton + golem_turns persistence (Postgres via Exposed + Flyway). The
-// Koog graph, platform clients (theseus-mcp / ariadne-mcp / llm-gateway) and
+// Koog graph, platform clients (query-mcp / veles-mcp / llm-gateway) and
 // Shem/PackageContext land in Stages 2.2–2.4.
 plugins {
     application
@@ -66,10 +66,10 @@ jib {
 
 dependencies {
     // Shared bootstrap libs (in-repo modules, not Maven).
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:db-common"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.logging.config)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.db.common)
     // golem/v1 + envelope/v1 + themis/v1 proto types; envelope-render for formatting (Phase 3).
     implementation(project(":shared:proto"))
     implementation(project(":shared:libs:kotlin:envelope-render"))
@@ -91,16 +91,16 @@ dependencies {
     // JsonFormat — golem/v1 + envelope/v1 proto ↔ JSON (persistence + SSE wire).
     implementation(libs.protobuf.java.util)
 
-    // Shem YAML → AgentCapability (Stage 2.2). Jackson YAML, mirrors ariadne-mcp's manifest parser.
+    // Shem YAML → AgentCapability (Stage 2.2). Jackson YAML, mirrors veles-mcp's manifest parser.
     implementation(libs.jackson.databind)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.dataformat.yaml)
 
-    // Ariadne model graph client (GetModel) — PackageContext (prompts come from the mounted Shem).
-    implementation(project(":shared:libs:kotlin:ariadne-client"))
+    // Veles model graph client (GetModel) — PackageContext (prompts come from the mounted Shem).
+    implementation(libs.tatrman.ttr.meta.client)
     // Shared LLM-gateway client + Koog executor — PlanComposer (Stage 2.3). Brings Koog (api).
-    implementation(project(":shared:libs:kotlin:llm-gateway-client"))
-    // theseus-mcp query edge — MCP streamable-HTTP client (Stage 2.4 T3).
+    implementation(libs.tatrman.ttr.llm.client)
+    // query-mcp query edge — MCP streamable-HTTP client (Stage 2.4 T3).
     implementation(libs.kotlin.mcp.sdk)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)

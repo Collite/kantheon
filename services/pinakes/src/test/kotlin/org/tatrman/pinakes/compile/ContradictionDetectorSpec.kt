@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.tatrman.kallimachos.v1.EdgeKind
 import org.tatrman.kallimachos.v1.PageKind
-import org.tatrman.pinakes.clients.PrometheusClient
+import org.tatrman.pinakes.clients.LlmGatewayClient
 import org.tatrman.pinakes.resolve.ResolveOutcome
 import org.tatrman.pinakes.resolve.ResolvedPage
 
@@ -22,7 +22,7 @@ class ContradictionDetectorSpec :
         ) = ResolvedPage(PageDraft(localId, PageKind.ENTITY, "Kaufland", content, listOf(1)), ResolveOutcome.NEW)
 
         fun client(reply: String) =
-            object : PrometheusClient {
+            object : LlmGatewayClient {
                 override suspend fun complete(
                     systemPrompt: String,
                     userPrompt: String,

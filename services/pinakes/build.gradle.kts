@@ -37,9 +37,9 @@ tasks.test {
 dependencies {
     // Shared libs (in-repo; AGENTS.md §5 — every shared dep is a project ref).
     implementation(project(":shared:proto"))
-    implementation(project(":shared:libs:kotlin:ktor-configurator"))
-    implementation(project(":shared:libs:kotlin:otel-config"))
-    implementation(project(":shared:libs:kotlin:logging-config"))
+    implementation(libs.tatrman.ktor.configurator)
+    implementation(libs.tatrman.otel.config)
+    implementation(libs.tatrman.logging.config)
 
     // Kotlin / coroutines / serialization
     implementation(libs.kotlin.stdlib)
@@ -80,6 +80,6 @@ dependencies {
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
     testImplementation(libs.grpc.inprocess)
-    // Wiremock — the Prometheus chat stub for the WikiCompiler spec (S3.2).
+    // Wiremock — the LLM gateway chat stub for the WikiCompiler spec (S3.2).
     testImplementation(libs.wiremock)
 }

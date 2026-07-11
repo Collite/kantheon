@@ -1,7 +1,7 @@
 package org.tatrman.kallimachos.mcp.rls
 
 /**
- * The caller identity resolved from the forwarded OBO bearer (Argos `bearer`
+ * The caller identity resolved from the forwarded OBO bearer (Validate `bearer`
  * source, security §3.6 — never service identity). Roles drive the mart RLS
  * predicate.
  */

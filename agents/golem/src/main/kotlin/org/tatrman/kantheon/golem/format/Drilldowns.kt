@@ -1,7 +1,7 @@
 package org.tatrman.kantheon.golem.format
 
 import kotlinx.serialization.json.JsonArray
-import org.tatrman.ariadne.v1.DrillMapDetail
+import org.tatrman.meta.v1.DrillMapDetail
 import org.tatrman.kantheon.envelope.v1.Drilldown
 import org.tatrman.kantheon.golem.context.ModelSnapshot
 

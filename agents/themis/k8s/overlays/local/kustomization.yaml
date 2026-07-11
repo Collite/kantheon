@@ -35,23 +35,23 @@ patches:
           # *_HOST + *_PORT pairs feed HOCON ${?VAR} substitutions in
           # application.conf. fork Stage 2.6 switch-over: these now target the
           # in-repo kantheon services — Themis calls the engine REST APIs
-          # directly (Kadmos /v1/analyze, Echo /match), not the MCP wrappers.
+          # directly (Nlp /v1/analyze, Fuzzy /match), not the MCP wrappers.
           # NLP_*/FUZZY_* var names kept for the stable HOCON contract.
           - name: NLP_MCP_HOST
-            value: kadmos.kantheon.svc.cluster.local
+            value: nlp.kantheon.svc.cluster.local
           - name: NLP_MCP_PORT
             value: "7270"
           - name: NLP_MCP_URL
-            value: http://kadmos.kantheon.svc.cluster.local:7270
+            value: http://nlp.kantheon.svc.cluster.local:7270
           - name: FUZZY_MCP_HOST
-            value: echo.kantheon.svc.cluster.local
+            value: fuzzy.kantheon.svc.cluster.local
           - name: FUZZY_MCP_PORT
             value: "7265"
           - name: FUZZY_MCP_URL
-            value: http://echo.kantheon.svc.cluster.local:7265
+            value: http://fuzzy.kantheon.svc.cluster.local:7265
           - name: LLM_GATEWAY_HOST
-            value: prometheus.kantheon.svc.cluster.local
+            value: llm-gateway.kantheon.svc.cluster.local
           - name: LLM_GATEWAY_PORT
             value: "7280"
           - name: LLM_GATEWAY_URL
-            value: http://prometheus.kantheon.svc.cluster.local:7280
+            value: http://llm-gateway.kantheon.svc.cluster.local:7280

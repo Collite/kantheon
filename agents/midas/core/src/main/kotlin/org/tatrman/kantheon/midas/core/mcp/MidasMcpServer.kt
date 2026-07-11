@@ -23,7 +23,7 @@ private const val TOOL_TIMEOUT_MS = 30_000L
 /**
  * Builds the Midas-core MCP [Server] and registers the five tools (Stage 1.4). The
  * per-tool handler is wrapped by [safeMcpTool] (timeout + structured error envelope).
- * Mirrors the thin `-mcp` wrappers' wiring (ariadne-mcp), but embedded in midas-core: the
+ * Mirrors the thin `-mcp` wrappers' wiring (veles-mcp), but embedded in midas-core: the
  * server runs as a second CIO listener so the REST (Netty) error-envelope stack and
  * the MCP base stack stay independent.
  */

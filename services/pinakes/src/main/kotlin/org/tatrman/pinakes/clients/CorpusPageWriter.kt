@@ -33,7 +33,7 @@ private data class ConceptRefDto(
     val entityType: String,
     val entityId: String,
     val displayLabel: String,
-    val ariadneQname: String = "",
+    val velesQname: String = "",
 )
 
 @Serializable
@@ -92,7 +92,7 @@ class HttpCorpusPageWriter(
                             derivedFromParts = d.derivedFromParts,
                             conceptRef =
                                 d.conceptRef?.let {
-                                    ConceptRefDto(it.entityType, it.entityId, it.displayLabel, it.ariadneQname)
+                                    ConceptRefDto(it.entityType, it.entityId, it.displayLabel, it.velesQname)
                                 },
                         )
                     },

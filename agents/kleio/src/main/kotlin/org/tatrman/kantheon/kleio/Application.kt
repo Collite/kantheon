@@ -38,7 +38,7 @@ private val log = LoggerFactory.getLogger("org.tatrman.kantheon.kleio.Applicatio
 
 /**
  * Bootstrap. The NotebookLM agent (architecture §4): a grounded mart turn over
- * `library.getContext` + Prometheus synthesis, emitting `envelope/v1` with the
+ * `library.getContext` + LLM-gateway synthesis, emitting `envelope/v1` with the
  * §5 grounding contract. Mirrors the Golem bootstrap (trusts Themis upstream).
  */
 fun main() {
@@ -50,13 +50,13 @@ fun main() {
     val mcpBase = "http://${config.getString(
         "kleio.kallimachos-mcp.host",
     )}:${config.getInt("kleio.kallimachos-mcp.port")}"
-    val promBase = "http://${config.getString("kleio.prometheus.host")}:${config.getInt("kleio.prometheus.port")}"
+    val promBase = "http://${config.getString("kleio.llmgateway.host")}:${config.getInt("kleio.llmgateway.port")}"
     val grounded =
         KleioStrategy::class.java.classLoader
             .getResource("prompts/grounded-answer.md")!!
             .readText()
 
-    val promModel = config.getString("kleio.prometheus.model")
+    val promModel = config.getString("kleio.llmgateway.model")
     val retriever = HttpKallimachosMcpClient(http, mcpBase)
     val llm = HttpKleioLlmClient(http, promBase, grounded, promModel)
     val turnService =

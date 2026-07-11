@@ -63,8 +63,8 @@ spec:
               value: kallimachos-mcp
             - name: KLEIO_KALLIMACHOS_MCP_PORT
               value: "7262"
-            - name: KLEIO_PROMETHEUS_HOST
-              value: prometheus
+            - name: KLEIO_LLM_GATEWAY_HOST
+              value: llm-gateway
           readinessProbe:
             httpGet:
               path: /ready

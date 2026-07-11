@@ -36,9 +36,15 @@ dependencies {
     // recompiling them here), so `import "org/tatrman/plan/v1/plan.proto"` in the
     // downstream service protos keeps resolving. FQCNs are identical (org.tatrman.*).
     api(libs.tatrman.ttr.plan.proto)
-    // All other protos are in-repo. The ai-platform Maven dep (cz.dfpartner:shared-proto,
-    // Themis's residual nlp.v1) was removed in fork Stage 2.6 — Themis now imports
-    // org.tatrman.kadmos.v1 + common.v1, both generated here.
+    // SV-P0: the spine protos + gRPC stubs (meta/query/translate/validate/dispatch/
+    // fuzzy/nlp/llm/worker/security/common/capabilities .v1) moved to tatrman-server
+    // and are consumed as the `ttr-server-proto` artifact. Same mechanism as
+    // ttr-plan-proto above — the plugin extracts the bundled `.proto` files onto the
+    // protoc include path so kantheon protos importing e.g. `org/tatrman/nlp/v1/nlp.proto`
+    // resolve, and the generated classes come from the artifact (not regenerated here).
+    api(libs.tatrman.ttr.server.proto)
+    // Agent protos remain in-repo (kantheon/*, metis, pinakes, kallimachos, transfer).
+    // `org.tatrman.kantheon.common.v1` stays kantheon-owned (agent-only, contracts §5).
 
     testImplementation(libs.bundles.kotest)
     // JsonFormat (proto3 JSON ↔ message) for the envelope/v1 golden round-trip
@@ -51,7 +57,7 @@ protobuf {
         artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
     plugins {
-        // Phase 2.1 — gRPC Java + Kotlin codegen so service modules (ariadne, dispatcher,
+        // Phase 2.1 — gRPC Java + Kotlin codegen so service modules (veles, dispatcher,
         // worker, etc.) get `*ServiceGrpcKt` base classes from the in-repo protos. Aligned
         // to ai-platform's protoc-gen-grpc-java 1.78.0 / protoc-gen-grpc-kotlin 1.5.0.
         id("grpc") {
@@ -66,7 +72,7 @@ protobuf {
             task.builtins {
                 id("kotlin") { }
                 // Phase 1.2 T4 — Python codegen for the shared-proto tree so the
-                // Python lane (Kadmos, Steropes, Metis) can `import` generated
+                // Python lane (Nlp, Polars, Metis) can `import` generated
                 // `org.tatrman.*` types. See `AGENTS.md` §4.1 ("Imports come
                 // from the generated shared-proto package only").
                 id("python") { }

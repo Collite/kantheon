@@ -6,7 +6,7 @@ import org.tatrman.kantheon.pythia.v1.Handle
 import org.tatrman.kantheon.pythia.v1.PlanNode
 
 /**
- * Executes a `DataFrameNode` (Phase 4) on the Polars worker (Steropes) via
+ * Executes a `DataFrameNode` (Phase 4) on the Polars worker (Polars) via
  * [WorkerClient]. The node's `source_handle_id` must resolve to a `WorkerSessionDF`
  * handle — staged there by the materialisation policy engine when the upstream was
  * SQL/blob (cross-engine staging). **Sticky affinity** (architecture §5): the output

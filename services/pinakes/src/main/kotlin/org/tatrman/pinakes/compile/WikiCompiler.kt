@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.tatrman.kallimachos.v1.PageKind
-import org.tatrman.pinakes.clients.PrometheusClient
+import org.tatrman.pinakes.clients.LlmGatewayClient
 
 /**
  * The compile outcome — the drafts + whether the LLM ran. `degraded = true` means
@@ -19,7 +19,7 @@ data class CompileResult(
 
 /**
  * The COMPILE stage (architecture §7 — the DocWH differentiator): source parts →
- * LLM-authored ENTITY/CONCEPT/SUMMARY wiki pages (Prometheus). Prompt in
+ * LLM-authored ENTITY/CONCEPT/SUMMARY wiki pages (LLM gateway). Prompt in
  * `prompts/compile-system.md`. Batch/offline — never on the query path.
  *
  * Parse-safe: a malformed LLM response does NOT crash the run — it degrades to a
@@ -27,7 +27,7 @@ data class CompileResult(
  * architecture §14: degrade to mechanical, the corpus stays queryable on parts).
  */
 class WikiCompiler(
-    private val prometheus: PrometheusClient,
+    private val llmGateway: LlmGatewayClient,
     private val systemPrompt: String = loadPrompt(),
     // Per-run token budget (rough char/4 estimate). 0 = unbounded. Over budget →
     // degrade to mechanical (never blow the cost ceiling — architecture §14).
@@ -58,7 +58,7 @@ class WikiCompiler(
 
         val raw =
             try {
-                prometheus.complete(systemPrompt, userPrompt)
+                llmGateway.complete(systemPrompt, userPrompt)
             } catch (e: Exception) {
                 log.warn("compile LLM call failed, degrading to mechanical summary: {}", e.message)
                 return CompileResult(listOf(mechanicalSummary(parts)), degraded = true, llmCalled = true)

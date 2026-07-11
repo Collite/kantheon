@@ -11,7 +11,7 @@ private val log = LoggerFactory.getLogger(ShemRegistration::class.java)
 /**
  * Registers the pod's loaded Shem (an `AgentCapability`, incl. `visibility_roles`)
  * into capabilities-mcp at boot via the shared [CapabilitiesClient] — the
- * theseus-mcp warn-and-continue pattern: registration runs in the background with
+ * query-mcp warn-and-continue pattern: registration runs in the background with
  * backoff, so a missing/unreachable registry never blocks Golem from serving.
  *
  * Endpoint comes from `CAPABILITIES_MCP_URL` or `golem.capabilities.url`; blank →

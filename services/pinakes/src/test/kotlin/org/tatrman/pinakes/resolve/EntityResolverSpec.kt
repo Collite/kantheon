@@ -9,7 +9,7 @@ import org.tatrman.pinakes.compile.PageDraft
 /**
  * P3 Stage 3.2 T5 — global entity resolution (architecture §7): resolution
  * against the WHOLE corpus so "Kaufland" is one node across feeds; new vs merged;
- * `concept_ref` wiki-local (`ariadne_qname` empty — the §6/§12 seam).
+ * `concept_ref` wiki-local (`veles_qname` empty — the §6/§12 seam).
  */
 class EntityResolverSpec :
     StringSpec({
@@ -42,7 +42,7 @@ class EntityResolverSpec :
             feed2
                 .first()
                 .draft.conceptRef!!
-                .ariadneQname shouldBe "" // not yet bridged (§12)
+                .velesQname shouldBe "" // not yet bridged (§12)
         }
 
         "non-entity pages (SUMMARY) are always new" {

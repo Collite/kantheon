@@ -10,7 +10,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
-import org.tatrman.ariadne.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ModelBundleQuery
 import org.tatrman.kantheon.patternparams.ParamSpec
 import org.tatrman.kantheon.patternparams.PatternParams
 import org.tatrman.kantheon.patternparams.TypedParam
@@ -19,7 +19,7 @@ import org.tatrman.kantheon.patternparams.TypedParam
  * The pattern-parametrization rail (Golem S2.4 §10 Δ1). Given a pattern query's
  * declared parameters and the raw args a plan carried, it produces the typed
  * `{name: {value, type}}` JSON the query edge expects — and the pattern's
- * `sql_template` travels **verbatim** with `{name}` intact (Proteus's now-restored
+ * `sql_template` travels **verbatim** with `{name}` intact (Translate's now-restored
  * ParameterBridge rewrites `{name}` → `?` downstream; T7). Nothing is inlined.
  *
  * Two pre-execution gates, both **fail-closed** (never forward an under-bound query):
@@ -48,7 +48,7 @@ sealed interface RailResult {
 /**
  * A pattern query reached the execution boundary under-bound — a residual `{name}` with no typed
  * binding ([RailResult.Unfilled]) or a missing required param ([RailResult.MissingRequired]). Thrown
- * **before** any query is forwarded to theseus, so an unbound token never reaches the edge. The
+ * **before** any query is forwarded to query, so an unbound token never reaches the edge. The
  * executor turns it into a `STATUS_FAILED` turn carrying [errorCode]. (S3.2 intercepts the
  * missing-required case earlier and asks the user via param_fill instead of failing.)
  */
@@ -86,7 +86,7 @@ object PatternParameterRail {
         val specs =
             pq.parametersList.map {
                 // A param is omittable when it's flagged `optional` OR carries a `default_value`
-                // (the proto admits both as optionality markers — Ariadne may emit either). Keying
+                // (the proto admits both as optionality markers — Veles may emit either). Keying
                 // off only `optional` would mis-classify a defaulted param as missing-required and
                 // trigger a spurious param_fill.
                 ParamSpec(

@@ -21,7 +21,7 @@ name: Release Image (GHCR)
 #                            default, for reading the Collite/modeler TTR packages.
 #   MODELER_PKG_USER/TOKEN  - optional; set these if GITHUB_TOKEN cannot read the
 #                            Collite/modeler GitHub Packages (org.tatrman:ttr-*,
-#                            needed by Ariadne + Proteus). See CLAUDE.md s7.3.
+#                            needed by Veles + Translate). See CLAUDE.md s7.3.
 
 on:
   push:
@@ -70,24 +70,24 @@ jobs:
             [iris]=frontends/iris
             [health]=infra/health
             [whois]=infra/whois
-            [argos]=services/argos
-            [ariadne]=services/ariadne
+            [validate]=services/validate
+            [veles]=services/veles
             [charon]=services/charon
             [echo]=services/echo
-            [kadmos]=services/kadmos
+            [nlp]=services/nlp
             [kallimachos]=services/kallimachos
-            [kyklop]=services/kyklop
+            [dispatch]=services/dispatch
             [metis]=services/metis
             [pinakes]=services/pinakes
             [prometheus]=services/prometheus
-            [proteus]=services/proteus
+            [translate]=services/translate
             [report-renderer]=services/report-renderer
-            [theseus]=services/theseus
-            [arges]=workers/arges
-            [brontes]=workers/brontes
-            [steropes]=workers/steropes
+            [query]=services/query
+            [postgres]=workers/postgres
+            [mssql]=workers/mssql
+            [polars]=workers/polars
           )
-          ALL="golem hebe iris-bff midas pythia sysifos-bff themis iris health whois argos ariadne charon echo kadmos kallimachos kyklop metis pinakes prometheus proteus report-renderer theseus arges brontes steropes"
+          ALL="golem hebe iris-bff midas pythia sysifos-bff themis iris health whois validate veles charon echo nlp kallimachos dispatch metis pinakes prometheus translate report-renderer query postgres mssql polars"
 
           declare -a NAMES
           if [ "${{ github.event_name }}" = "push" ]; then
@@ -165,7 +165,7 @@ jobs:
       # lane (build-py -> proto-py -> `:shared:proto:preparePythonPackage` resolves the
       # tatrman proto artifacts) need auth to the Collite/tatrman GitHub Packages repo.
       # GITHUB_TOKEN is NOT auto-exported to env, so without this the Python builds hit
-      # the repo anonymously -> deterministic 401 (kadmos/metis/steropes).
+      # the repo anonymously -> deterministic 401 (nlp/metis/polars).
       - name: Gradle auth for Collite/tatrman (TTR toolchain)
         if: steps.lane.outputs.lane == 'kotlin' || steps.lane.outputs.lane == 'python'
         env:

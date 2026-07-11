@@ -3,7 +3,7 @@ package org.tatrman.kantheon.pythia.executor
 import org.tatrman.kantheon.pythia.v1.PlanNode
 
 /**
- * Routes each plan node to its kind-specific [NodeExecutor] (QueryNode → theseus,
+ * Routes each plan node to its kind-specific [NodeExecutor] (QueryNode → query,
  * ReasoningNode → LLM, RenderNode → envelope blocks; Phase 4 adds DataFrameNode →
  * Polars worker and ModelNode → Metis). A node kind whose executor is not wired
  * fails closed (PERMANENT) so a stray node never passes silently — e.g. a

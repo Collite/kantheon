@@ -28,7 +28,7 @@ import org.tatrman.kallimachos.adapters.vector.InMemoryVectorAdapter
 import org.tatrman.kallimachos.adapters.vector.VectorPort
 import org.tatrman.kallimachos.embeddings.EmbedConfig
 import org.tatrman.kallimachos.embeddings.EmbeddingsPort
-import org.tatrman.kallimachos.embeddings.PrometheusEmbeddingsClient
+import org.tatrman.kallimachos.embeddings.LlmGatewayEmbeddingsClient
 import org.tatrman.kallimachos.tx.SnapshotTransactor
 import org.tatrman.kallimachos.tx.Transactor
 
@@ -39,7 +39,7 @@ import org.tatrman.kallimachos.tx.Transactor
  *  - `memory` (P1 default): in-memory adapters + a snapshot transactor.
  *  - `postgres` (deploy): Hikari pool + Flyway migrate + the Exposed/PG adapters.
  *
- * The vector plane + the Prometheus embeddings client (P2 Stage 2.1) join here;
+ * The vector plane + the LLM-gateway embeddings client (P2 Stage 2.1) join here;
  * the embedding model is a conformed corpus dimension ([EmbedConfig]).
  */
 class CorpusStores(
@@ -83,26 +83,26 @@ class CorpusStores(
             embedConfig: EmbedConfig,
         ): EmbeddingsPort {
             val base =
-                if (config.hasPath("kallimachos.prometheus.base-url")) {
-                    config.getString("kallimachos.prometheus.base-url")
+                if (config.hasPath("kallimachos.llmgateway.base-url")) {
+                    config.getString("kallimachos.llmgateway.base-url")
                 } else {
-                    "http://${configOr(config, "kallimachos.prometheus.host", "prometheus")}:" +
+                    "http://${configOr(config, "kallimachos.llmgateway.host", "llm-gateway")}:" +
                         (
                             if (config.hasPath(
-                                    "kallimachos.prometheus.port",
+                                    "kallimachos.llmgateway.port",
                                 )
                             ) {
-                                config.getInt("kallimachos.prometheus.port")
+                                config.getInt("kallimachos.llmgateway.port")
                             } else {
                                 8080
                             }
                         )
                 }
-            // Lenient: the OpenAI-shaped Prometheus reply carries extra keys
+            // Lenient: the OpenAI-shaped LLM-gateway reply carries extra keys
             // (`object`, `usage`, …) the client does not model.
             val http =
                 HttpClient(CIO) { install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) } }
-            return PrometheusEmbeddingsClient(http, base, embedConfig)
+            return LlmGatewayEmbeddingsClient(http, base, embedConfig)
         }
 
         private fun configOr(

@@ -5,7 +5,7 @@ description: |
   Env-agnostic Helm chart: image, replicas, resources, telemetry endpoint and the downstream wiring
   to Kallimachos (plus optional capabilities-mcp registration) are all values. Per-environment
   values live in the deploying repo. Converted from the kustomize base/overlays, mirroring
-  theseus-mcp (D2).
+  query-mcp (D2).
 type: application
 # Chart version: the packaging. appVersion tracks the default image tag.
 version: 0.1.0

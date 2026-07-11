@@ -1,9 +1,9 @@
 package org.tatrman.kantheon.pythia.dataplane
 
-import org.tatrman.charon.v1.Location
-import org.tatrman.charon.v1.SeaweedBlob
-import org.tatrman.charon.v1.WorkerKind
-import org.tatrman.charon.v1.WorkerSessionDf
+import org.tatrman.transfer.v1.Location
+import org.tatrman.transfer.v1.SeaweedBlob
+import org.tatrman.transfer.v1.WorkerKind
+import org.tatrman.transfer.v1.WorkerSessionDf
 import org.tatrman.kantheon.pythia.handles.HandleTable
 import org.tatrman.kantheon.pythia.v1.DepthBudget
 import org.tatrman.kantheon.pythia.v1.Handle

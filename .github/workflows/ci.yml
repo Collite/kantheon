@@ -13,7 +13,7 @@ jobs:
       contents: read
       # `packages: read` (+ the GITHUB_TOKEN env below) is PERMANENT: it
       # authenticates to the `Collite/modeler` GitHub Packages repo for the TTR
-      # toolchain (org.tatrman:ttr-*; Ariadne/Proteus) — a standing third-party
+      # toolchain (org.tatrman:ttr-*; Veles/Translate) — a standing third-party
       # dep, NOT ai-platform coupling (CLAUDE.md §7.3). The ai-platform
       # cz.dfpartner coupling was fully removed in fork Stage 2.6.
       packages: read
@@ -59,10 +59,10 @@ jobs:
 
       # Cross-engine schema-fingerprint regen+diff guard (Charon P1 S1.4 T3 /
       # review-006 T3.4). Regenerates shared/testdata/fingerprints/ with the
-      # SAME pinned pyarrow (18.0.0) the Steropes worker uses, then fails the
+      # SAME pinned pyarrow (18.0.0) the Polars worker uses, then fails the
       # build on ANY drift in the checked-in fingerprints.json / canonical.txt.
-      # This locks the Kotlin (Charon Integrity.kt + Brontes) ↔ Python
-      # (Steropes) canonical-fingerprint identity in CI — the guarantee Pythia's
+      # This locks the Kotlin (Charon Integrity.kt + Mssql) ↔ Python
+      # (Polars) canonical-fingerprint identity in CI — the guarantee Pythia's
       # PD-5 drift detection relies on (pythia/contracts.md §3a). A conscious
       # algorithm change must regenerate the fixtures and commit them.
       - name: setup python (fingerprint guard)

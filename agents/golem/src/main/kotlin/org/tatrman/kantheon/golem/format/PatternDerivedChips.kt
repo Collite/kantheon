@@ -1,6 +1,6 @@
 package org.tatrman.kantheon.golem.format
 
-import org.tatrman.ariadne.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ModelBundleQuery
 import org.tatrman.kantheon.envelope.v1.PromptChip
 import org.tatrman.kantheon.golem.context.ModelSnapshot
 import org.tatrman.kantheon.themis.v1.Themis.EntityBinding

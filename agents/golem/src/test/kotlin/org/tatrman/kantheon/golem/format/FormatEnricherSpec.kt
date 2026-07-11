@@ -8,10 +8,10 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.put
-import org.tatrman.ariadne.v1.ModelBundle
-import org.tatrman.ariadne.v1.ModelBundleQuery
-import org.tatrman.ariadne.v1.ObjectDescriptor
-import org.tatrman.ariadne.v1.QueryDescriptor
+import org.tatrman.meta.v1.ModelBundle
+import org.tatrman.meta.v1.ModelBundleQuery
+import org.tatrman.meta.v1.ObjectDescriptor
+import org.tatrman.meta.v1.QueryDescriptor
 import org.tatrman.kantheon.envelope.v1.FormatEnvelope
 import org.tatrman.kantheon.envelope.v1.FormatKind
 import org.tatrman.kantheon.envelope.v1.FormatSpec
