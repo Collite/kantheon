@@ -1,5 +1,16 @@
 # deployment/local — owned local infra + one-command fork bring-up
 
+> **Read spine extracted to `tatrman-server` (2026-07, SV-P0/P1).** The forked
+> query path this doc brings up — Prometheus/Kadmos/Echo/Ariadne/Proteus/Kyklop/
+> Argos/Theseus + the MSSQL/Polars/Postgres workers, and the technical-wave
+> `whois`/`health`/`backstage` — **no longer live in kantheon**; they moved to the
+> [`tatrman-server`](https://github.com/Collite/tatrman-server) repo under functional
+> names (Ariadne→Veles, Theseus→ttr-query, …, whois→ttr-identity) and deploy from
+> there. The `deploy-fork` / technical-wave sections below are retained as the
+> **fork-era bring-up record**; from kantheon, `local-infra-up` now stands up only the
+> shared infra + the surviving services/agents (Charon, Metis, Kallimachos, Pinakes,
+> report-renderer + the agent constellation).
+
 The single entry point for standing the forked kantheon constellation up on a
 local K3s cluster (kantheon-architecture §7.1). Two commands.
 

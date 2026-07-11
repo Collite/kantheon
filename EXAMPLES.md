@@ -32,7 +32,7 @@ Every Kotlin service has an `App.kt` that does only bootstrap. Business logic li
 
 ### 1a. Minimal Ktor + OTel + logging — production shape
 
-> **Forked shared libs use `shared.*` package roots, not `cz.dfpartner.*`** (renamed one-shot at fork landing; CLAUDE.md §4). `shared.ktor` = `ktor-configurator`, `shared.otel` = `otel-config`, `shared.logging` = `logging-config`. They are **in-repo Gradle modules** consumed as `project(":shared:libs:kotlin:<lib>")`, not Maven artifacts. The canonical live reference for the bootstrap below is any forked service `Application.kt` (e.g. `services/theseus/.../Application.kt`).
+> **Forked shared libs use `shared.*` package roots, not `cz.dfpartner.*`** (renamed one-shot at fork landing; CLAUDE.md §4). `shared.ktor` = `ktor-configurator`, `shared.otel` = `otel-config`, `shared.logging` = `logging-config`. They are **in-repo Gradle modules** consumed as `project(":shared:libs:kotlin:<lib>")`, not Maven artifacts. The canonical live reference for the bootstrap below is any forked service `Application.kt` (e.g. `services/charon/.../Application.kt`).
 
 ```kotlin
 // services/<svc>/src/main/kotlin/org/tatrman/kantheon/<svc>/Application.kt
@@ -467,25 +467,25 @@ fun envelopeOf(vararg blocks: Block): FormatEnvelope =
 
 ## 7. Kotlin MCP client — calling an in-repo MCP tool
 
-Post-fork, kantheon services call **in-repo** MCPs — `kadmos-mcp` (NLP), `echo-mcp` (fuzzy), `theseus-mcp` (`run_query`), `ariadne-mcp` (model graph) — never ai-platform's old `nlp-mcp`/`fuzzy-mcp`/`query-mcp`/`metadata-mcp`. Protos are the renamed in-repo packages (`org.tatrman.kadmos.v1`, …). Use the SDK client through a thin wrapper that enforces traceparent propagation and adds OTel spans.
+Post-fork, kantheon agents call the read-spine MCPs — `ttr-nlp-mcp` (NLP), `ttr-fuzzy-mcp` (fuzzy), `ttr-query-mcp` (`run_query`, capability id `query.run:v1`), `ttr-meta-mcp` (model graph) — never ai-platform's old `nlp-mcp`/`fuzzy-mcp`/`query-mcp`/`metadata-mcp`. These services were extracted from kantheon to the open-source **tatrman-server** repo (SV-P0/P1, 2026-07), so the call is now cross-repo; the consumer (Themis) stays in kantheon. Protos are the extracted packages (`org.tatrman.nlp.v1`, `org.tatrman.fuzzy.v1`, `org.tatrman.query.v1`, `org.tatrman.meta.v1`). Use the SDK client through a thin wrapper that enforces traceparent propagation and adds OTel spans.
 
 ```kotlin
-// agents/themis/src/main/kotlin/org/tatrman/kantheon/themis/infra/KadmosMcpClient.kt
+// agents/themis/src/main/kotlin/org/tatrman/kantheon/themis/infra/NlpMcpClient.kt
 package org.tatrman.kantheon.themis.infra
 
-import org.tatrman.kadmos.v1.AnalyzeRequest
-import org.tatrman.kadmos.v1.AnalyzeResponse
+import org.tatrman.nlp.v1.AnalyzeRequest
+import org.tatrman.nlp.v1.AnalyzeResponse
 import io.modelcontextprotocol.kotlin.sdk.client.McpClient
 import io.opentelemetry.api.OpenTelemetry
 
-class KadmosMcpClient(private val mcp: McpClient, otel: OpenTelemetry) {
-    private val tracer = otel.getTracer("themis.kadmos")
+class NlpMcpClient(private val mcp: McpClient, otel: OpenTelemetry) {
+    private val tracer = otel.getTracer("themis.nlp")
 
     suspend fun analyze(req: AnalyzeRequest): AnalyzeResponse {
-        val span = tracer.spanBuilder("kadmos-mcp.analyze").startSpan()
+        val span = tracer.spanBuilder("ttr-nlp-mcp.analyze").startSpan()
         return try {
             val result = mcp.callTool(
-                name = "kadmos.analyze",
+                name = "nlp.analyze",
                 args = mapOf("request" to req.toJson()),    // generated proto-JSON
             )
             AnalyzeResponse.parseFromJson(result.structuredContent)
@@ -498,7 +498,7 @@ class KadmosMcpClient(private val mcp: McpClient, otel: OpenTelemetry) {
 
 **Hardened patterns:**
 
-- Read `ops` from `result.structuredContent["ops"]` as a **JsonArray**, not a JsonObject — `kadmos.analyze`'s shape is `repeated Op ops = ...`. (The G4 bug carried over from ai-platform's nlp-mcp had the *server* getting this wrong; clients have always read it as an array. See `aip_v1_gap_closure` memory.)
+- Read `ops` from `result.structuredContent["ops"]` as a **JsonArray**, not a JsonObject — `nlp.analyze`'s shape is `repeated Op ops = ...`. (The G4 bug carried over from ai-platform's nlp-mcp had the *server* getting this wrong; clients have always read it as an array. See `aip_v1_gap_closure` memory.)
 - Always propagate `traceparent` — the SDK client does this automatically when the surrounding span is active.
 
 ---
@@ -513,8 +513,8 @@ import shared.otel.createOpenTelemetrySdk
 
 val otel = createOpenTelemetrySdk(
     OtelEndpointConfig(
-        serviceName = "theseus",                  // bare persona — NOT "kantheon-theseus"
-        protocol = System.getenv("THESEUS_OTEL_PROTOCOL") ?: "grpc",
+        serviceName = "ttr-query",                // bare service name — NOT "kantheon-ttr-query"
+        protocol = System.getenv("TTR_QUERY_OTEL_PROTOCOL") ?: "grpc",
     ),
     // enabled = config.getBoolean("telemetry.enabled")   // optional gate
 )
@@ -532,11 +532,11 @@ This wires:
 import shared.otel.withSpan
 import shared.otel.tracedFlow
 
-suspend fun translate(req: R): T = tracer.withSpan("theseus.translate", SpanKind.CLIENT) { client.translate(req) }
-fun run(req: R): Flow<E> = inner.tracedFlow(tracer, "theseus.run")     // NOT withContext around emit
+suspend fun translate(req: R): T = tracer.withSpan("ttr-query.translate", SpanKind.CLIENT) { client.translate(req) }
+fun run(req: R): Flow<E> = inner.tracedFlow(tracer, "ttr-query.run")     // NOT withContext around emit
 ```
 
-Leaf gRPC services rely on auto-instrumentation; add manual spans only at orchestration seams (theseus-mcp tool boundary + Theseus). Don't roll your own SDK init. See [`docs/architecture/fork/observability.md`](./docs/architecture/fork/observability.md).
+Leaf gRPC services rely on auto-instrumentation; add manual spans only at orchestration seams (ttr-query-mcp tool boundary + ttr-query). Don't roll your own SDK init. See [`docs/architecture/fork/observability.md`](./docs/architecture/fork/observability.md).
 
 ---
 

@@ -22,7 +22,9 @@
 
 ## 1. Vision
 
-Kantheon ("Kotlin pantheon") is the agent constellation **and — since the 2026-06-12 fork — the self-contained platform that succeeds `ai-platform`**. It hosts the user-facing frontend (Iris), the routing/understanding service (Themis), the analytical investigator (Pythia), the per-domain Q&A agents (Golem instances), the personal agent (Hebe), the brokerage domain (Midas + Sysifos), the forked platform line (Ariadne, Theseus, Echo, Kadmos, Proteus, Kyklop, Argos, Prometheus + the Kyklops workers), the off-constellation infrastructure (whois, health, landing, backstage), and the agent/capability registry (`capabilities-mcp`). Iris talks to Themis to route turns; the chosen agent answers with a structured artifact; Iris renders.
+Kantheon ("Kotlin pantheon") is the agent constellation **and — since the 2026-06-12 fork — the self-contained platform that succeeds `ai-platform`**. It hosts the user-facing frontend (Iris), the routing/understanding service (Themis), the analytical investigator (Pythia), the per-domain Q&A agents (Golem instances), the personal agent (Hebe), the brokerage domain (Midas + Sysifos), the surviving platform services (Charon, Metis, report-renderer), the `landing` page, and the agent/capability registry (`capabilities-mcp`). Iris talks to Themis to route turns; the chosen agent answers with a structured artifact; Iris renders.
+
+> **Read spine extracted to `tatrman-server` (2026-07, SV-P0/P1).** The forked platform line — Ariadne, Theseus, Echo, Kadmos, Proteus, Kyklop, Argos, Prometheus + the Kyklops workers (Brontes/Steropes/Arges) — together with the off-constellation infrastructure `whois`/`health`/`backstage`, was **moved out of kantheon** into the open-source [`tatrman-server`](https://github.com/Collite/tatrman-server) repo and renamed to functional names (see §2 for the full map). Only `landing` of the technical wave stays in kantheon. The mythology and the dated fork narrative below are kept as kantheon's build history; the services themselves now live in tatrman-server.
 
 > **The split below is historical.** It describes the pre-fork boundary between kantheon and ai-platform. The **fork (decided 2026-06-12, §10) dissolves it**: ai-platform's intelligent + technical services are copied into kantheon and renamed into the pantheon; ai-platform goes maintenance-only and, after fork Phase 5, can be switched off entirely. The end-state coupling to ai-platform is zero. Read §2 (full constellation) and §3 (full repo tree) for the post-fork shape; read this split only for context on where the modules came from.
 
@@ -57,16 +59,18 @@ The full kantheon, grouped by tier. **Personas** (the speaking gods + the chthon
 
 Logic lives in `services/`; thin MCP wrappers in `tools/`. Proto root `org.tatrman.<service>.v1`; Kotlin source roots `org.tatrman.kantheon.<service>` (fork Stage 2.1 lock). All **forked** into kantheon (copy-paste, decided 2026-06-12, §10; Phases 1–4 complete 2026-06-17); ai-platform stays untouched. Old ai-platform names in parentheses.
 
+> **The "read spine" was extracted to `tatrman-server` (2026-07, SV-P0/P1).** The eight forked query-path services in the table below — Ariadne, Theseus, Echo, Kadmos, Proteus, Kyklop, Argos, Prometheus — were **moved out of kantheon** into the open-source [`tatrman-server`](https://github.com/Collite/tatrman-server) repo and renamed to functional names (`services/ariadne` and its dirs no longer exist here). Mapping — including the wire packages and MCP edges: Ariadne→**Veles** (`ariadne.v1`→`meta.v1`, `ariadne-mcp`→`ttr-meta-mcp`); Theseus→**ttr-query** (`theseus.v1`→`query.v1`, `theseus-mcp`→`ttr-query-mcp`); Echo→**ttr-fuzzy** (`echo.v1`→`fuzzy.v1`, `echo-mcp`→`ttr-fuzzy-mcp`); Kadmos→**ttr-nlp** (`kadmos.v1`→`nlp.v1`, `kadmos-mcp`→`ttr-nlp-mcp`); Proteus→**ttr-translate** (`proteus.v1`→`translate.v1`); Kyklop→**ttr-dispatch** (`kyklop.v1`→`dispatch.v1`); Argos→**ttr-validate** (`argos.v1`→`validate.v1`); Prometheus→**ttr-llm-gateway** (`prometheus.v1`→`llm.v1`). **Charon, Metis, report-renderer, and `capabilities-mcp` stay in kantheon.** The rows below are kept with their fork-era detail as history; the persona names and `fork:`-origin annotations are naming history, not a current-location claim.
+
 | Module | Role | Stack |
 |---|---|---|
-| `services/ariadne` (+ `tools/ariadne-mcp`) | Model graph / metadata; serves Shem **model + prompts** (`GetModel` / `GetPrompts`) from the `ai-models` repo (fork: `infra/metadata`) | Kotlin + Ktor + gRPC |
-| `services/theseus` (+ `tools/theseus-mcp`) | Query orchestrator + plan cache; the data-path edge (`theseus-mcp`) agents call under OBO (fork: `services/query-runner`) | Kotlin + Ktor + gRPC |
-| `services/echo` (+ `tools/echo-mcp`) | Czech-aware fuzzy matcher (fork: `services/fuzzy-matcher`) | Kotlin + Ktor + gRPC |
-| `services/kadmos` (+ `tools/kadmos-mcp`) | NLP foundation — Stanza / spaCy / NameTag / MorphoDiTa (fork: `infra/nlp`) | **Python** + gRPC |
-| `services/proteus` | Translator: lang ↔ RelNode ↔ SQL; consumes the `Collite/modeler` TTR toolchain (fork: `services/translator`) | Kotlin + gRPC |
-| `services/kyklop` | Worker dispatcher — routes plans to the Kyklops workers (fork: `services/dispatcher`) | Kotlin + Ktor + gRPC |
-| `services/argos` | Validator + RLS policy; **sql-security folded in**; reads roles from the forwarded bearer (`argos.roleSource = bearer \| whois`, default bearer) (fork: `services/validator` + `infra/sql-security`) | Kotlin + Ktor |
-| `services/prometheus` | LLM gateway (fork: `infra/llm-gateway`, forked as-is) | **Spring Boot** |
+| `services/ariadne` (+ `tools/ariadne-mcp`) — **→ `tatrman-server`: Veles (+ `ttr-meta-mcp`)** | Model graph / metadata; serves Shem **model + prompts** (`GetModel` / `GetPrompts`) from the `ai-models` repo (fork: `infra/metadata`) | Kotlin + Ktor + gRPC |
+| `services/theseus` (+ `tools/theseus-mcp`) — **→ `tatrman-server`: ttr-query (+ `ttr-query-mcp`)** | Query orchestrator + plan cache; the data-path edge (`theseus-mcp`) agents call under OBO (fork: `services/query-runner`) | Kotlin + Ktor + gRPC |
+| `services/echo` (+ `tools/echo-mcp`) — **→ `tatrman-server`: ttr-fuzzy (+ `ttr-fuzzy-mcp`)** | Czech-aware fuzzy matcher (fork: `services/fuzzy-matcher`) | Kotlin + Ktor + gRPC |
+| `services/kadmos` (+ `tools/kadmos-mcp`) — **→ `tatrman-server`: ttr-nlp (+ `ttr-nlp-mcp`)** | NLP foundation — Stanza / spaCy / NameTag / MorphoDiTa (fork: `infra/nlp`) | **Python** + gRPC |
+| `services/proteus` — **→ `tatrman-server`: ttr-translate** | Translator: lang ↔ RelNode ↔ SQL; consumes the `Collite/modeler` TTR toolchain (fork: `services/translator`) | Kotlin + gRPC |
+| `services/kyklop` — **→ `tatrman-server`: ttr-dispatch** | Worker dispatcher — routes plans to the Kyklops workers (fork: `services/dispatcher`) | Kotlin + Ktor + gRPC |
+| `services/argos` — **→ `tatrman-server`: ttr-validate** | Validator + RLS policy; **sql-security folded in**; reads roles from the forwarded bearer (`argos.roleSource = bearer \| whois`, default bearer) (fork: `services/validator` + `infra/sql-security`) | Kotlin + Ktor |
+| `services/prometheus` — **→ `tatrman-server`: ttr-llm-gateway** | LLM gateway (fork: `infra/llm-gateway`, forked as-is). *(Distinct from the Prometheus monitoring stack / Micrometer / `/metrics`, which stays.)* | **Spring Boot** |
 | `services/charon` (+ `tools/charon-mcp`) | Arrow data mover — Seaweed / Redis / worker sessions / DB tables via named connections; registers `move.*`. **First migrated platform-grade service.** Arc: [`charon/architecture.md`](./charon/architecture.md) + [`charon/contracts.md`](./charon/contracts.md) + [`../implementation/v1/charon/plan.md`](../implementation/v1/charon/plan.md); `charon/v0.3.0` gates Pythia Phase 4. | Kotlin + Ktor + gRPC + ADBC |
 | `services/metis` (+ `tools/metis-mcp`) | Model estimation — SARIMAX / Prophet / linear; diagnose / project / simulate; session workspace; registers `model.*`. **Second migrated service; library-moat Python.** Arc: [`metis/architecture.md`](./metis/architecture.md) + [`metis/contracts.md`](./metis/contracts.md) + [`../implementation/v1/metis/plan.md`](../implementation/v1/metis/plan.md); `metis/v0.3.0` gates Pythia Phase 4 Stage 4.2. | **Python** + statsmodels + prophet + gRPC |
 | `services/report-renderer` | Standalone XLSX/PPTX/PDF/HTML report rendering from repo-bundled templates (Midas arc) | Kotlin + Ktor + Apache POI + Playwright |
@@ -74,20 +78,24 @@ Logic lives in `services/`; thin MCP wrappers in `tools/`. Proto root `org.tatrm
 
 #### 2.c Workers — the Kyklops
 
+> **All three workers extracted to `tatrman-server` (2026-07)** as `ttr-worker-{mssql,polars,postgres}` (Brontes→ttr-worker-mssql, Steropes→ttr-worker-polars, Arges→ttr-worker-postgres). Kept here as naming history.
+
 | Module | Role | Stack |
 |---|---|---|
-| `workers/brontes` | MSSQL worker — DB → Arrow extract / Arrow → DB ingest (fork: `workers/mssql`) | Kotlin + gRPC |
-| `workers/steropes` | Polars DataFrame worker — scan plans, materialisation, read-out (fork: `workers/polars`) | **Python** + Polars + gRPC |
-| `workers/arges` *(reserved)* | Postgres worker — re-homes ai-platform `workers/postgres` (needed by Midas P3.2); not yet built | Kotlin + gRPC |
+| `workers/brontes` — **→ `tatrman-server`: ttr-worker-mssql** | MSSQL worker — DB → Arrow extract / Arrow → DB ingest (fork: `workers/mssql`) | Kotlin + gRPC |
+| `workers/steropes` — **→ `tatrman-server`: ttr-worker-polars** | Polars DataFrame worker — scan plans, materialisation, read-out (fork: `workers/polars`) | **Python** + Polars + gRPC |
+| `workers/arges` — **→ `tatrman-server`: ttr-worker-postgres** | Postgres worker — re-homes ai-platform `workers/postgres` (needed by Midas P3.2) | Kotlin + gRPC |
 
 #### 2.d Infrastructure — the technical wave (no personas, fork Phase 5)
 
+> **`whois`, `health`, `backstage` extracted to `tatrman-server` (2026-07)** — whois→**ttr-identity** (the `roleSource: bearer|whois` config vocabulary and the `whois-common` lib name are retained). **`landing` stays in kantheon.**
+
 | Module | Role | Stack |
 |---|---|---|
-| `infra/whois` | User/role directory + OPA bundle server; own Postgres; optional Argos role-enrichment source (fork: `infra/whois`) | Kotlin + Ktor + Postgres |
-| `infra/health` | Cluster health aggregator (fork: `infra/health`) | Kotlin + Ktor |
-| `infra/backstage` | Developer portal (fork: `infra/backstage`) | Backstage / Node |
-| `frontends/landing` | Multilingual landing page / service dispatcher, rebranded (fork: `frontends/landing`) | Vue 3 + Nginx |
+| `infra/whois` — **→ `tatrman-server`: ttr-identity** | User/role directory + OPA bundle server; own Postgres; optional Argos role-enrichment source (fork: `infra/whois`) | Kotlin + Ktor + Postgres |
+| `infra/health` — **→ `tatrman-server`** | Cluster health aggregator (fork: `infra/health`) | Kotlin + Ktor |
+| `infra/backstage` — **→ `tatrman-server`** | Developer portal (fork: `infra/backstage`) | Backstage / Node |
+| `frontends/landing` *(stays in kantheon)* | Multilingual landing page / service dispatcher, rebranded (fork: `frontends/landing`) | Vue 3 + Nginx |
 
 #### 2.e Domain — Midas (brokerage) + Sysifos (data entry)
 
@@ -99,7 +107,7 @@ Logic lives in `services/`; thin MCP wrappers in `tools/`. Proto root `org.tatrm
 | `agents/sysifos-bff` | Data-entry BFF for the Sysifos frontend; forms-shaped sibling to Iris-BFF (own arc, split 2026-06-13) | Kotlin + Ktor |
 | `frontends/sysifos` | Vue SPA for data entry — clients, portfolios, transactions, balance entry, import, reconciliation | Vue 3 + TypeScript + PrimeVue + Pinia |
 
-Naming follows the **two-tier mythology rule** (§13): **agents** are the speaking gods (Iris = messenger, Themis = divine order, Pythia = the Delphic oracle, Hebe = cup-bearer; Golem is the one non-Greek persona — Hebrew/Yiddish, kept for the inscription/Shem metaphor); **platform services** are the older chthonic/heroic figures who serve them (Charon, Metis, Ariadne, Theseus, Echo, Kadmos, Proteus, Kyklop, Argos, Prometheus), with the workers as the individually-named Kyklops (Brontes, Steropes, Arges — Arges the Postgres worker became an active arc 2026-06-23). The domain personas: Midas (the golden touch — investment) and Sysifos (the eternal toiler — data entry). **Infrastructure** (whois, health, landing, backstage) keeps functional names — infra is not a constellation citizen.
+Naming follows the **two-tier mythology rule** (§13): **agents** are the speaking gods (Iris = messenger, Themis = divine order, Pythia = the Delphic oracle, Hebe = cup-bearer; Golem is the one non-Greek persona — Hebrew/Yiddish, kept for the inscription/Shem metaphor); **platform services** are the older chthonic/heroic figures who serve them (Charon, Metis, Ariadne, Theseus, Echo, Kadmos, Proteus, Kyklop, Argos, Prometheus), with the workers as the individually-named Kyklops (Brontes, Steropes, Arges — Arges the Postgres worker became an active arc 2026-06-23). The domain personas: Midas (the golden touch — investment) and Sysifos (the eternal toiler — data entry). **Infrastructure** (whois, health, landing, backstage) keeps functional names — infra is not a constellation citizen. *(This naming rule is retained as kantheon's naming history: the read-spine personas — Ariadne, Theseus, Echo, Kadmos, Proteus, Kyklop, Argos, Prometheus, and the Brontes/Steropes/Arges workers — were extracted to `tatrman-server` in 2026-07 and renamed to functional names, and whois/health/backstage moved with them; see §2.b–§2.d.)*
 
 Adding a new domain means a new ShemManifest YAML + a new pod with the Golem template image and that Shem mounted. No code change. Golem-Investment (Phase 3 of the Midas arc) is the third such instance — adds zero lines of Golem template code.
 
@@ -108,6 +116,8 @@ The Midas arc is the first kantheon-side work that **owns its own operational, m
 ## 3. Top-level layout
 
 The full post-fork target layout. Mirrors [`CLAUDE.md`](../../CLAUDE.md) §3 and [`fork/architecture.md`](./fork/architecture.md) §2–§2.1, with proto packages and domain modules expanded.
+
+> **Stale as of the 2026-07 extraction.** The tree below is the fork-era target layout. Since then the **read spine** (`services/{ariadne,theseus,echo,kadmos,proteus,kyklop,argos,prometheus}` + their `tools/*-mcp` wrappers), the **workers** (`workers/{brontes,steropes,arges}`), and the **technical-wave infra** `infra/{whois,health,backstage}` were extracted to the open-source [`tatrman-server`](https://github.com/Collite/tatrman-server) repo and renamed to functional names (Veles / ttr-{query,fuzzy,nlp,translate,dispatch,validate,llm-gateway} + ttr-worker-{mssql,polars,postgres}; whois→ttr-identity). **Those directories no longer exist in kantheon.** What remains under `services/` is `charon`, `metis`, `report-renderer`; `frontends/landing` stays; the agents, `tools/capabilities-mcp`, `shared/`, and the domain modules are unaffected. The annotations below mark the moved subtrees.
 
 ```
 kantheon/
@@ -122,33 +132,34 @@ kantheon/
 │       ├── core/                        # Kotlin + Ktor + Postgres + jOOQ — brokerage operational service
 │       ├── loaders/                     # excel/ · google-finance/ · (yahoo·sftp·rest = v1.x)
 │       └── shem/                        # shem-investment.yaml → Golem-Investment
-├── services/                            # the chthonic/heroic figures (forked platform line + migrated)
+├── services/                            # survivors: charon · metis · report-renderer  (read spine EXTRACTED → tatrman-server, 2026-07)
 │   ├── charon/                          # Arrow data mover (migrated)         + tools/charon-mcp
 │   ├── metis/                           # model estimation (Python; migrated) + tools/metis-mcp
-│   ├── ariadne/                         # model graph / metadata              + tools/ariadne-mcp
-│   ├── theseus/                         # query orchestrator + plan cache     + tools/theseus-mcp
-│   ├── echo/                            # Czech-aware fuzzy matcher           + tools/echo-mcp
-│   ├── kadmos/                          # NLP foundation (Python)             + tools/kadmos-mcp
-│   ├── proteus/                         # lang ↔ RelNode ↔ SQL translator
-│   ├── kyklop/                          # worker dispatcher
-│   ├── argos/                           # validator + RLS policy (sql-security folded in)
-│   ├── prometheus/                      # LLM gateway (Spring Boot)
-│   └── report-renderer/                 # XLSX/PPTX/PDF/HTML rendering (POI + Playwright)
-├── workers/                             # the Kyklops (individually named)
-│   ├── brontes/                         # MSSQL worker
-│   ├── steropes/                        # Polars worker (Python)
-│   └── arges/                           # postgres worker (reserved — re-homes ai-platform workers/postgres)
-├── infra/                               # off-constellation infrastructure (fork Phase 5; no personas)
-│   ├── whois/                           # user/role directory + OPA bundle server (own Postgres)
-│   ├── health/                          # cluster health aggregator
-│   └── backstage/                       # developer portal (Node/Backstage)
+│   │   # ── read spine below EXTRACTED to tatrman-server (2026-07) — dirs no longer here ──
+│   ├── ariadne/                         # → tatrman-server: Veles             + tools/ttr-meta-mcp
+│   ├── theseus/                         # → tatrman-server: ttr-query         + tools/ttr-query-mcp
+│   ├── echo/                            # → tatrman-server: ttr-fuzzy         + tools/ttr-fuzzy-mcp
+│   ├── kadmos/                          # → tatrman-server: ttr-nlp (Python)  + tools/ttr-nlp-mcp
+│   ├── proteus/                         # → tatrman-server: ttr-translate
+│   ├── kyklop/                          # → tatrman-server: ttr-dispatch
+│   ├── argos/                           # → tatrman-server: ttr-validate
+│   ├── prometheus/                      # → tatrman-server: ttr-llm-gateway (Spring Boot)
+│   └── report-renderer/                 # XLSX/PPTX/PDF/HTML rendering (POI + Playwright)  [stays]
+├── workers/                             # the Kyklops — ALL EXTRACTED → tatrman-server (2026-07)
+│   ├── brontes/                         # → tatrman-server: ttr-worker-mssql
+│   ├── steropes/                        # → tatrman-server: ttr-worker-polars (Python)
+│   └── arges/                           # → tatrman-server: ttr-worker-postgres
+├── infra/                               # technical wave — whois/health/backstage EXTRACTED → tatrman-server (2026-07)
+│   ├── whois/                           # → tatrman-server: ttr-identity (user/role directory + OPA bundles)
+│   ├── health/                          # → tatrman-server (cluster health aggregator)
+│   └── backstage/                       # → tatrman-server (developer portal)
 ├── frontends/
 │   ├── iris/                            # Vue 3 SPA — chat (extracted from agents-fe)
 │   ├── sysifos/                         # Vue 3 SPA — data entry
 │   └── landing/                         # Vue 3 + Nginx — multilingual landing / dispatcher
 ├── tools/
 │   ├── capabilities-mcp/                # Kotlin + Ktor + MCP SDK — unified registry
-│   └── {charon,metis,ariadne,theseus,echo,kadmos}-mcp/   # thin MCP wrappers (live beside their service above)
+│   └── {charon,metis}-mcp/              # thin MCP wrappers (ariadne/theseus/echo/kadmos-mcp extracted → tatrman-server as ttr-{meta,query,fuzzy,nlp}-mcp)
 ├── shared/
 │   ├── proto/
 │   │   └── src/main/proto/
@@ -161,8 +172,9 @@ kantheon/
 │   │       │   ├── sysifos/v1/          # data-entry surface (Sysifos arc)
 │   │       │   └── report/v1/           # report-renderer I/O
 │   │       └── org/tatrman/             # platform-service + pipeline protos
-│   │           ├── {charon,metis,ariadne,theseus,echo,kadmos,proteus,kyklop,argos,prometheus}/v1/
-│   │           └── {plan,worker,transdsl,dfdsl}/v1/      # cross-service pipeline packages
+│   │           ├── {charon,metis}/v1/                    # survivors
+│   │           ├── {ariadne,theseus,echo,kadmos,proteus,kyklop,argos,prometheus}/v1/  # EXTRACTED → tatrman-server, renamed {meta,query,fuzzy,nlp,translate,dispatch,validate,llm}.v1
+│   │           └── {plan,worker,transdsl,dfdsl}/v1/      # cross-service pipeline packages (moved with the read spine)
 │   └── libs/
 │       ├── kotlin/
 │       │   ├── capabilities-client/     # client for capabilities-mcp
@@ -187,7 +199,7 @@ kantheon/
 └── .github/workflows/ci.yml             # init → lint-check → test-all
 ```
 
-> **Persona vs proto-root nuance.** Proto package roots are `org.tatrman.<service>.v1` for platform services (not `org.tatrman.kantheon.*`, which is reserved for agent/constellation contracts), but the forked services' **Kotlin source roots** are `org.tatrman.kantheon.<service>` (fork Stage 2.1 lock); the no-proto technical-wave services use `org.tatrman.{whois,health}.*`. See §4 and [`fork/contracts.md`](./fork/contracts.md) §1 for the full old→new package map. The one standing external Maven dependency is the `Collite/modeler` TTR toolchain (consumed by Ariadne + Proteus) — not ai-platform coupling.
+> **Persona vs proto-root nuance.** Proto package roots are `org.tatrman.<service>.v1` for platform services (not `org.tatrman.kantheon.*`, which is reserved for agent/constellation contracts), but the forked services' **Kotlin source roots** are `org.tatrman.kantheon.<service>` (fork Stage 2.1 lock); the no-proto technical-wave services use `org.tatrman.{whois,health}.*`. See §4 and [`fork/contracts.md`](./fork/contracts.md) §1 for the full old→new package map. The one standing external Maven dependency is the `Collite/modeler` TTR toolchain (consumed by Ariadne + Proteus — both since extracted to `tatrman-server` as Veles + ttr-translate) — not ai-platform coupling.
 
 Each Kotlin module follows the standard layout (`src/main/kotlin/`, `src/main/resources/`, `src/test/kotlin/`, `build.gradle.kts`). Each deployable service gets a `k8s/{base,overlays/local}/` directory with Kustomize manifests; `imagePullPolicy: Never` in the local overlay. Each agent gets an `eval/` directory for fixture corpora and a `prompts/` directory for config-driven prompts. Each gets a `README.md` describing API surface, configuration, and how to extend.
 
@@ -259,7 +271,7 @@ TypeScript bindings for `envelope/v1` plus a hand-written `FormatRenderer` helpe
 
 ## 6. Module dependency graph
 
-> **This graph predates the fork.** It shows ai-platform as the Maven publisher and the ai-platform tool services (nlp-mcp / fuzzy-mcp / query-mcp / metadata-mcp / llm-gateway) that Themis/Pythia/Golem called at runtime. Post-fork those are **in-repo** — Kadmos, Echo, Theseus (via theseus-mcp), Ariadne, Prometheus — and the Maven/runtime arrows to ai-platform are gone (§10). The post-fork runtime topology is authoritative in [`fork/architecture.md`](./fork/architecture.md) §2. The kantheon-internal edges below (Iris→BFF→agents, agents→capabilities-mcp, Pythia→Charon/Metis, NATS, Kantheon PG) remain accurate.
+> **This graph predates the fork.** It shows ai-platform as the Maven publisher and the ai-platform tool services (nlp-mcp / fuzzy-mcp / query-mcp / metadata-mcp / llm-gateway) that Themis/Pythia/Golem called at runtime. The fork brought those in-repo (Kadmos, Echo, Theseus via theseus-mcp, Ariadne, Prometheus), dropping the Maven/runtime arrows to ai-platform (§10). **Those forked services have since been extracted to `tatrman-server` (2026-07) and renamed** — ttr-nlp / ttr-fuzzy / ttr-query (via ttr-query-mcp) / Veles / ttr-llm-gateway — so the runtime edges from Themis/Pythia/Golem now point at tatrman-server-hosted services, not in-repo ones. The post-fork runtime topology is authoritative in [`fork/architecture.md`](./fork/architecture.md) §2. The kantheon-internal edges below (Iris→BFF→agents, agents→capabilities-mcp, Pythia→Charon/Metis, NATS, Kantheon PG) remain accurate.
 
 ```mermaid
 flowchart TB
@@ -392,7 +404,7 @@ Kantheon runs **one internal Postgres instance**; each agent gets **its own data
 | `golem` | agents/golem-* | **one database, schema per Shem pod** (`golem_erp`, `golem_hr`, …) — cohesion review D4: mirrors "DB per agent" with Golem-the-template as the agent |
 | `midas` | agents/midas/core | the operational brokerage data — **folded into the Kantheon PG** (cohesion review D5; supersedes the Midas arc's separate `midas-postgres` instance — the CloudNativePG operator runs *this* instance, not a per-arc one) |
 | `hebe` | agents/hebe | **schema-split per instance** (`hebe_<instance_id>`); needs `pgvector` |
-| `whois` | infra/whois | **fork Phase 5** — Keycloak/ERP user+role sync tables (Flyway V1–V5: `users`, `user_identities`, `roles`, `user_roles`, `role_hierarchy`). whois is *infrastructure*, not a constellation agent, so it sits beside the agent DBs without claiming an agent slot; it is the one technical-wave service with persistence (health/landing/backstage are stateless) |
+| `whois` *(since extracted to `tatrman-server` as `ttr-identity` — its DB moved too)* | infra/whois | **fork Phase 5** — Keycloak/ERP user+role sync tables (Flyway V1–V5: `users`, `user_identities`, `roles`, `user_roles`, `role_hierarchy`). whois is *infrastructure*, not a constellation agent, so it sits beside the agent DBs without claiming an agent slot; it is the one technical-wave service with persistence (health/landing/backstage are stateless) |
 
 Operational consequences: `deployment/local` provisions the single PG (with pgvector) + per-agent databases + the Keycloak dev realm (incl. `kantheon-area-<area>` roles) + NATS reachability for the BFF — owned as an infra pre-flight stage (see `implementation/v1/iris/plan.md` pre-flight). Flyway migration sets stay per-module; no cross-database access; `iris_audit`/`receipts` append-only grants per `kantheon-security.md`.
 
@@ -434,6 +446,8 @@ Three response shapes — one per agent kind — all sharing the `envelope/v1` `
 `AgentResponse = ConversationalResponse | InvestigationArtifact` as a sealed type at Iris's consumption surface — Iris renders both via the shared `Block` contract from `envelope/v1`.
 
 ## 10. Cross-repo coupling with ai-platform — dissolved by the fork (decided 2026-06-12; pipeline ACHIEVED 2026-06-17)
+
+> **Read spine since extracted (2026-07, SV-P0/P1).** Everything this section describes as "in-repo" or "forked in" — Themis's kadmos-mcp/echo-mcp/Prometheus edges, and the theseus-mcp → Theseus → Proteus/Argos/Kyklop → Brontes/Steropes data path — was later **moved out of kantheon** into the open-source [`tatrman-server`](https://github.com/Collite/tatrman-server) repo and renamed to functional names (Ariadne→Veles, Theseus→ttr-query, Echo→ttr-fuzzy, Kadmos→ttr-nlp, Proteus→ttr-translate, Kyklop→ttr-dispatch, Argos→ttr-validate, Prometheus→ttr-llm-gateway, workers→ttr-worker-*; whois→ttr-identity, health/backstage too). Read the "in-repo" claims below as fork-era history; those services now run from tatrman-server.
 
 **The platform fork supersedes this section's premise.** ai-platform's intelligent services were forked into kantheon (copy-paste; ai-platform stays untouched, maintenance-only); kantheon is now self-contained on the query pipeline. Authoritative: [`fork/architecture.md`](./fork/architecture.md) §9 (the independence assertion) + [`fork/contracts.md`](./fork/contracts.md) + [`../implementation/v1/fork/plan.md`](../implementation/v1/fork/plan.md).
 

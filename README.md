@@ -35,6 +35,17 @@ deliberately keeps a plain functional name — no forced persona.
 
 ### Platform services — the older, chthonic & heroic figures who serve
 
+> **Read spine extracted to `tatrman-server` (2026-07, SV-P0/P1).** The query
+> path below — **Ariadne, Theseus, Echo, Kadmos, Proteus, Kyklop, Argos,
+> Prometheus** (and the workers **Brontes, Steropes, Arges**) — was moved out of
+> kantheon into the open-source [`tatrman-server`](https://github.com/Collite/tatrman-server)
+> repo and renamed to functional names: Ariadne→**Veles** (survivor name kept),
+> Theseus→**ttr-query**, Echo→**ttr-fuzzy**, Kadmos→**ttr-nlp**, Proteus→**ttr-translate**,
+> Kyklop→**ttr-dispatch**, Argos→**ttr-validate**, Prometheus→**ttr-llm-gateway**,
+> Brontes/Steropes/Arges→**ttr-worker-{mssql,polars,postgres}**. The mythology is kept
+> below as kantheon's naming history; the services themselves now live in tatrman-server.
+> **Charon, Metis, Kallimachos, Pinakes stay in kantheon.**
+
 | Persona | Myth | Role |
 |---|---|---|
 | **Charon** | ferryman of the dead across the Styx | The Arrow data mover — Seaweed / Redis / worker sessions / named DB connections. |
@@ -53,7 +64,8 @@ deliberately keeps a plain functional name — no forced persona.
 ### Workers — the Kyklopes (Cyclops smiths of the forge)
 
 Each engine worker is one of the three Hesiodic Cyclopes; the dispatcher (**Kyklop**, above)
-carries the genus.
+carries the genus. *(All three workers extracted to `tatrman-server` as
+`ttr-worker-{mssql,polars,postgres}` — see the read-spine note above; kept here as naming history.)*
 
 | Persona | Myth | Role |
 |---|---|---|
@@ -70,10 +82,10 @@ does not).
 
 | Module | Role |
 |---|---|
-| `whois` | User / role directory + OPA bundle server. |
-| `health` | Cluster health aggregator. |
+| `whois` | User / role directory + OPA bundle server. **→ extracted to `tatrman-server` as `ttr-identity`.** |
+| `health` | Cluster health aggregator. **→ extracted to `tatrman-server`.** |
 | `landing` | Multilingual landing page / service dispatcher. |
-| `backstage` | Developer portal. |
+| `backstage` | Developer portal. **→ extracted to `tatrman-server`.** |
 | `report-renderer` | Report rendering (XLSX / PPTX / PDF / HTML) for the Midas domain — a functional service, kept functional. |
 
 ### The registry that ties them together
