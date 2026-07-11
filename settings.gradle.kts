@@ -11,12 +11,11 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
-        // TEMPORARY (ttr-metadata adoption, Stage M4.1): consume the tatrman
-        // `org.tatrman:ttr-metadata(+-git)` artifacts from Maven Local while the
-        // swap is validated locally (publishToMavenLocal, 0.0.1-LOCAL). Flip the
-        // `tatrman-ttr-metadata` pin to the released 0.1.x and remove this line
-        // once `kotlin-metadata/v0.1.0` is on GitHub Packages (arc-checklist item 1).
-        mavenLocal()
+        // NB: no `mavenLocal()`. It was the SV-P0 interim for the moved
+        // tatrman-server libs (org.tatrman:*:0.0.1-LOCAL) and, earlier, ttr-metadata
+        // — both now resolve from GitHub Packages (SV-P1 gate 3a: `server-libs/v0.9.0`
+        // on Collite/tatrman-server; ttr-metadata on Collite/tatrman). A clean machine
+        // builds from the registries alone (review-input ⚑5 retired).
         // The ai-platform GitHub Packages repo (DFPartner/ai-platform, group
         // cz.dfpartner) was removed in fork Stage 2.6 — Themis retargeted off
         // cz.dfpartner:shared-proto (nlp.v1 → in-repo nlp.v1). No ai-platform
@@ -30,6 +29,23 @@ dependencyResolutionManagement {
             // Stage 2.1 (Veles) and 2.4 (Translate) consume these.
             name = "Tatrman"
             url = uri("https://maven.pkg.github.com/Collite/tatrman")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull
+                    ?: System.getenv("GITHUB_ACTOR")
+                password = providers.gradleProperty("gpr.token").orNull
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
+            content {
+                includeGroup("org.tatrman")
+            }
+        }
+        // The open spine's moved shared libs + proto stubs (org.tatrman:*), from
+        // the `Collite/tatrman-server` GitHub Packages repo (SV-P1 gate 3a,
+        // `server-libs/v0.9.0`). Same per-user `gpr.*` PAT as the Tatrman feed
+        // above. Gradle falls through the two org.tatrman feeds by content.
+        maven {
+            name = "TatrmanServer"
+            url = uri("https://maven.pkg.github.com/Collite/tatrman-server")
             credentials {
                 username = providers.gradleProperty("gpr.user").orNull
                     ?: System.getenv("GITHUB_ACTOR")

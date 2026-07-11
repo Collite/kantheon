@@ -6,10 +6,10 @@
 tatrman-modeler           = "0.8.6"
 tatrman-ttr-metadata      = "0.8.6"
 tatrman-translator        = "0.9.0"   # SV-P1 gate 2: translate.v1 public (was 0.8.5 / proteus.v1)
-# SV-P0: the spine libs + proto stubs moved to tatrman-server and are consumed as
-# org.tatrman:* artifacts from Maven Local (0.0.1-LOCAL) — same mechanism as
-# ttr-metadata. Flips to the 0.9.x public line at SV-P1 gate 3.
-tatrman-server            = "0.0.1-LOCAL"
+# The spine libs + proto stubs moved to tatrman-server (SV-P0); consumed as
+# org.tatrman:* artifacts from GitHub Packages Collite/tatrman-server (SV-P1
+# gate 3a, server-libs/v0.9.0). The 0.0.1-LOCAL/mavenLocal interim is retired.
+tatrman-server            = "0.9.0"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
