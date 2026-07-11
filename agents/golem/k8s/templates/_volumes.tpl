@@ -24,20 +24,20 @@ on shem.configMapName. Byte-equivalent to the pre-library golem deployment.
 {{- end }}
 {{- end -}}
 {{/*
-A Shem-loaded Golem resolves its area→packages from Ariadne at boot ONE-SHOT (no auto-retry;
+A Shem-loaded Golem resolves its area→packages from Veles at boot ONE-SHOT (no auto-retry;
 a boot-time failure leaves the pod permanently not-ready). So when a Shem is mounted, block
-startup on an initContainer until Ariadne's model is loaded — Ariadne's /ready returns 503 until
-`registry.read()` is non-null, so this waits out the deploy race (Golem + Ariadne start together).
+startup on an initContainer until Veles's model is loaded — Veles's /ready returns 503 until
+`registry.read()` is non-null, so this waits out the deploy race (Golem + Veles start together).
 Skeleton Golem (no shem.configMapName) needs no model and renders no initContainer.
 */}}
 {{- define "kantheon-service.initContainers" -}}
 {{- if .Values.shem.configMapName }}
       initContainers:
-        - name: wait-for-ariadne
-          image: {{ .Values.ariadneGate.image }}
+        - name: wait-for-veles
+          image: {{ .Values.velesGate.image }}
           command:
             - sh
             - -c
-            - "until wget -q -O- {{ .Values.ariadneGate.url }} >/dev/null 2>&1; do echo 'waiting for ariadne /ready'; sleep 3; done; echo 'ariadne is model-ready'"
+            - "until wget -q -O- {{ .Values.velesGate.url }} >/dev/null 2>&1; do echo 'waiting for veles /ready'; sleep 3; done; echo 'veles is model-ready'"
 {{- end }}
 {{- end -}}
