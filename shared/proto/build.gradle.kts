@@ -151,7 +151,7 @@ abstract class PreparePythonPackage : DefaultTask() {
             [project]
             name = "shared-proto"
             version = "0.1.0"
-            dependencies = ["protobuf>=4.0.0", "ttr-plan-proto==0.8.4"]
+            dependencies = ["protobuf>=4.0.0", "ttr-plan-proto==0.9.0"]
             [build-system]
             requires = ["hatchling"]
             build-backend = "hatchling.build"
