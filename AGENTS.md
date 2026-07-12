@@ -74,22 +74,20 @@ brew install --cask temurin@21    # JDK 21 (or your preferred installer)
 # protoc is fetched by Gradle's protobuf plugin; no system install needed.
 # Docker / K3s already running.
 
-# 2. GitHub Packages auth — a `read:packages` PAT is needed for ONE group:
-#    PERMANENT: `org.tatrman:ttr-{parser,writer,semantics}` from the
-#    `Collite/modeler` repo (the TTR toolchain; the read-spine graph/translator
-#    services Ariadne/Proteus consumed it — both since extracted to tatrman-server
-#    as Veles/ttr-translate — a standing third-party dep, NOT ai-platform coupling;
-#    see CLAUDE.md §7.3).
+# 2. Maven auth — NONE needed for the build.
+#    `org.tatrman:*` (the TTR toolchain `ttr-{parser,writer,semantics}` + the
+#    open read spine's shared libs/proto stubs/clients) resolves from **Maven
+#    Central** (public, anonymous, no PAT) at the 0.9.4 line — a standing
+#    third-party dep, NOT ai-platform coupling (see CLAUDE.md §7.3). The two
+#    `Collite/tatrman{,-server}` GitHub Packages Maven repos and the `gpr.*`
+#    PAT they required were RETIRED (SV-P1 S4, 2026-07-12); settings.gradle.kts
+#    now lists only mavenCentral().
 #    The ai-platform `cz.dfpartner:*` coupling is fully gone (fork Stage 2.6
 #    cut the last residual, Themis's shared-proto/nlp.v1) — no cz.dfpartner
-#    Maven coordinate remains. The PAT is still required for the modeler group.
-#    Create a classic PAT at https://github.com/settings/tokens with scope: read:packages
-#    Write to ~/.gradle/gradle.properties:
-cat >> ~/.gradle/gradle.properties <<EOF
-gpr.user=<your-github-handle>
-gpr.token=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-EOF
-# Confirm ~/.gradle/gradle.properties is in your global .gitignore.
+#    Maven coordinate remains. So a clean-clone Gradle build needs no gradle.properties
+#    credentials at all.
+#    (If some non-Maven GitHub Packages use ever appears — e.g. GHCR operand
+#    images pulled at k8s runtime — that is a separate registry, unaffected here.)
 
 # 3. Clone + init
 git clone git@github.com:<org>/kantheon.git
@@ -101,7 +99,7 @@ just build-kt capabilities-mcp
 just test-all
 ```
 
-If you see Maven auth failures during `just init`, double-check `gpr.user` and `gpr.token` in `~/.gradle/gradle.properties` and that the PAT has `read:packages` (now needed only for the `Collite/modeler` `org.tatrman` group — CLAUDE.md §7.3). See [`docs/implementation/v1/_archive/aip-v1-gap-closure-plan.md`](./docs/implementation/v1/_archive/aip-v1-gap-closure-plan.md) Gap 1 for the historical full recipe.
+Maven resolution during `just init` needs no credentials — `org.tatrman:*` comes from Maven Central (public). If you hit a resolution error, it is a network/version-pin issue, not auth. See [`docs/implementation/v1/_archive/aip-v1-gap-closure-plan.md`](./docs/implementation/v1/_archive/aip-v1-gap-closure-plan.md) Gap 1 for the historical (GitHub Packages PAT-based) recipe, now superseded by Central.
 
 ---
 
@@ -267,9 +265,9 @@ testcontainers            = "1.20.3"
 wiremock                  = "3.9.2"
 jib                       = "3.4.4"
 
-# Modeler — TTR parser/writer/semantics, third-party Maven from Collite/modeler
-# (the ONE standing external Maven group; NOT ai-platform — CLAUDE.md §7.3)
-tatrman-modeler           = "0.4.0"
+# Tatrman — TTR parser/writer/semantics, third-party Maven from **Maven Central**
+# (the ONE standing external Maven group; public/no PAT; NOT ai-platform — CLAUDE.md §7.3)
+tatrman-modeler           = "0.9.4"
 
 [libraries]
 tatrman-ttr-parser        = { module = "org.tatrman:ttr-parser",    version.ref = "tatrman-modeler" }
@@ -310,9 +308,9 @@ dependencies {
 
 **No convention plugins.** ai-platform's `CLAUDE.md` describes aspirational `id("my.kotlin-ktor")` plugins; they were never built. Decision 2026-05-12: kantheon stays on direct `alias(libs.plugins.*)` calls.
 
-### 5.1 GitHub Packages — `settings.gradle.kts`
+### 5.1 Maven repositories — `settings.gradle.kts`
 
-The ai-platform `cz.dfpartner` Maven repo is **gone** (fork Stage 2.6). The only remaining GitHub Packages repo is `Collite/modeler` for the third-party TTR toolchain (`org.tatrman` group) — a standing dep that keeps the `gpr.*` PAT permanently (CLAUDE.md §7.3):
+The ai-platform `cz.dfpartner` Maven repo is **gone** (fork Stage 2.6). The `org.tatrman:*` group (the third-party TTR toolchain + the open read spine's shared libs/proto stubs/clients) now resolves from **Maven Central** — public, anonymous, no PAT. There is **no** GitHub Packages Maven repo left: the two `Collite/tatrman{,-server}` repos and the `gpr.*` credentials they required were retired (SV-P1 S4, 2026-07-12). A standing third-party dep, NOT ai-platform coupling (CLAUDE.md §7.3):
 
 ```kotlin
 rootProject.name = "kantheon"
@@ -325,21 +323,10 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
-        // TTR parser/writer/semantics (third-party, from the `Collite/modeler` repo).
-        // NOT ai-platform coupling — see CLAUDE.md §7.3.
-        maven {
-            name = "ColliteModeler"
-            url = uri("https://maven.pkg.github.com/Collite/modeler")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull
-                    ?: System.getenv("GITHUB_ACTOR")
-                password = providers.gradleProperty("gpr.token").orNull
-                    ?: System.getenv("GITHUB_TOKEN")
-            }
-            content {
-                includeGroup("org.tatrman")           // only the modeler toolchain resolves here
-            }
-        }
+        // `org.tatrman:*` (TTR toolchain + read-spine libs/proto/clients) resolves
+        // from Maven Central above — public, no PAT. The `Collite/tatrman{,-server}`
+        // GitHub Packages repos and the `gpr.*` PAT are RETIRED. NOT ai-platform
+        // coupling — see CLAUDE.md §7.3.
     }
 }
 ```
@@ -483,7 +470,7 @@ When writing code against a complex library, consult one of these **before** gue
 - **ResponseMessage field number.** Always **99**. Don't reuse it for payload fields. (`reserved 99;` in the proto if you must.)
 - **`args_json` not `args`.** Function-call args are JSON-string, not a typed proto. Validate against the caller's `ParamSpec`, don't bake the schema into the proto.
 - **Stage doc checkboxes drift.** Verify code state from `git log` and code inspection, not from `tasks-*.md` checkboxes (carried over from ai-platform habit). If you're closing a task, tick the box in the same commit.
-- **Maven 401 on first build.** `gpr.user` / `gpr.token` missing or PAT lacks `read:packages`. See §2.
+- **Maven resolution failure on first build.** No auth is involved — `org.tatrman:*` resolves from Maven Central (public, no PAT). A failure here is a network reachability or version-pin mismatch, not a 401. See §2.
 - **ktlint_official + Kotest = run `ktlintFormat` before "done".** The repo uses `ktlint_code_style = ktlint_official` (`.editorconfig`). Kotest's fluent idioms — `StringSpec({ ... })`, `a shouldBe b`, `Builder.newBuilder().setX().build()` chains — violate its `class-signature` and `chain-method-continuation` rules unless formatted. **Always run `./gradlew ktlintFormat` (or `just lint-all` and fix) before claiming a task complete** — newly-authored specs are the usual offender, and the violations are auto-fixable. Do *not* wave off `lint-all` red as an "inherited baseline": as of review-002 (2026-06-13) the repo is ktlint-green, so any red is something you (or a recent change) introduced. Forked ai-platform libs arrive pre-formatted and stay clean.
 
 ### 12.1 Forked modules
