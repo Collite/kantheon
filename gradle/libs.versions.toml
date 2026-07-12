@@ -3,13 +3,15 @@
 # https://docs.gradle.org/current/userguide/version_catalogs.html
 
 [versions]
-tatrman-modeler           = "0.8.6"
-tatrman-ttr-metadata      = "0.8.6"
-tatrman-translator        = "0.9.0"   # SV-P1 gate 2: translate.v1 public (was 0.8.5 / proteus.v1)
+# The whole org.tatrman:* spine is on the uniform 0.9.4 Maven Central line
+# (SV-P1 S4 public debut; repointed off GitHub Packages 2026-07-12, review-input ⚑2).
+tatrman-modeler           = "0.9.4"
+tatrman-ttr-metadata      = "0.9.4"
+tatrman-translator        = "0.9.4"   # translate.v1 public (was 0.8.5 / proteus.v1 pre-rename)
 # The spine libs + proto stubs moved to tatrman-server (SV-P0); consumed as
-# org.tatrman:* artifacts from GitHub Packages Collite/tatrman-server (SV-P1
-# gate 3a, server-libs/v0.9.0). The 0.0.1-LOCAL/mavenLocal interim is retired.
-tatrman-server            = "0.9.0"
+# org.tatrman:* artifacts from Maven Central (public). The GitHub Packages +
+# 0.0.1-LOCAL/mavenLocal interims are retired.
+tatrman-server            = "0.9.4"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"

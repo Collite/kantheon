@@ -11,51 +11,16 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
-        // NB: no `mavenLocal()`. It was the SV-P0 interim for the moved
-        // tatrman-server libs (org.tatrman:*:0.0.1-LOCAL) and, earlier, ttr-metadata
-        // — both now resolve from GitHub Packages (SV-P1 gate 3a: `server-libs/v0.9.0`
-        // on Collite/tatrman-server; ttr-metadata on Collite/tatrman). A clean machine
-        // builds from the registries alone (review-input ⚑5 retired).
-        // The ai-platform GitHub Packages repo (DFPartner/ai-platform, group
-        // cz.dfpartner) was removed in fork Stage 2.6 — Themis retargeted off
-        // cz.dfpartner:shared-proto (nlp.v1 → in-repo nlp.v1). No ai-platform
-        // Maven coupling remains. The Collite/tatrman repo below stays (third-
-        // party TTR toolchain, org.tatrman:* — permanent, see CLAUDE.md §7.3).
-        maven {
-            // TTR parser/writer/semantics (third-party, from the `Collite/tatrman` repo (ex-modeler, forked 2026-07-03)).
-            // The `org.tatrman:ttr-{parser,writer,semantics}:0.8.4` artifacts are NOT
-            // published to Maven Central; they live in this GitHub Packages repo. The
-            // same `gpr.*` PAT works (GitHub Packages auth is per-user, per-package-visibility).
-            // Stage 2.1 (Veles) and 2.4 (Translate) consume these.
-            name = "Tatrman"
-            url = uri("https://maven.pkg.github.com/Collite/tatrman")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull
-                    ?: System.getenv("GITHUB_ACTOR")
-                password = providers.gradleProperty("gpr.token").orNull
-                    ?: System.getenv("GITHUB_TOKEN")
-            }
-            content {
-                includeGroup("org.tatrman")
-            }
-        }
-        // The open spine's moved shared libs + proto stubs (org.tatrman:*), from
-        // the `Collite/tatrman-server` GitHub Packages repo (SV-P1 gate 3a,
-        // `server-libs/v0.9.0`). Same per-user `gpr.*` PAT as the Tatrman feed
-        // above. Gradle falls through the two org.tatrman feeds by content.
-        maven {
-            name = "TatrmanServer"
-            url = uri("https://maven.pkg.github.com/Collite/tatrman-server")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull
-                    ?: System.getenv("GITHUB_ACTOR")
-                password = providers.gradleProperty("gpr.token").orNull
-                    ?: System.getenv("GITHUB_TOKEN")
-            }
-            content {
-                includeGroup("org.tatrman")
-            }
-        }
+        // `org.tatrman:*` — the TTR toolchain (Collite/tatrman) + the open read
+        // spine's shared libs/proto stubs (Collite/tatrman-server) — now resolve
+        // from **Maven Central** (SV-P1 S4 review-input ⚑2, repointed 2026-07-12 at
+        // the 0.9.4 public line). Central is public/anonymous, so the two
+        // `Collite/tatrman{,-server}` GitHub Packages repos (and the `gpr.*` PAT they
+        // needed) are RETIRED here — mavenCentral() above serves the whole group.
+        // GitHub Packages remains the pre-release *staging* lane on the publisher
+        // side; kantheon just consumes the released Central artifacts.
+        // NB: no `mavenLocal()` either (the SV-P0 interim, review-input ⚑5, long
+        // retired). No ai-platform Maven coupling remains (fork Stage 2.6).
     }
 }
 
