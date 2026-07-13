@@ -1,5 +1,14 @@
 # Kantheon v1 — Master Plan
 
+> **⚠ STALE AS A STATUS SOURCE (banner 2026-07-13).** Last real revision 2026-06-27 —
+> predates the deploy-test program (PROGRAM DONE 2026-07-09), the SV-P0/P1 read-spine extraction
+> to `tatrman-server`, and the ttr-metadata/ttr-translator sub-extractions. For current state read
+> `docs/STATUS.md`, `docs/architecture/fork/extraction-inventory-260710.md` and
+> `implementation/v1/deploy-test/`. Known contradiction: this doc marks Themis P1–P3 done while
+> `themis/plan.md` §9 shows Stage 3.1–3.4 unchecked and the `themis/v0.2.0` tag pending — trust
+> the arc plan over this board.
+
+
 > **What this is.** The single cross-arc orchestration plan for v1. It owns sequencing, the three parallel streams, the mergepoints between them, and the live status board. It does **not** restate phase/stage/task detail — each arc's `plan.md` remains the source of truth for that, and is linked from here.
 >
 > **What it replaces.** The former cross-cutting layer (`next-steps.md`, `aip-v1-*`, the 2026-06-12 handover/review notes) is archived under [`_archive/`](./_archive/). This doc is the new resumption pointer.
