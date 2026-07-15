@@ -13,9 +13,10 @@ import kotlinx.serialization.Serializable
 
 /**
  * Embeddings via the LLM gateway (contracts §10). The LLM gateway exposes the
- * OpenAI-shaped embeddings surface — `POST /api/v1/embeddings`, request
- * `{model, input:{texts:[...]}}`, response `{data:[{index, embedding}], model}` —
- * so this client speaks that wire directly. Batched; one `data` item per input,
+ * OpenAI-shaped embeddings surface — `POST /v1/embeddings`, request
+ * `{model, input:[...]}` (standard OpenAI: `input` is a string or array — the 1.x
+ * `{texts:[...]}` wrapper was dropped, LG-D3), response `{data:[{index, embedding}],
+ * model}` — so this client speaks that wire directly. Batched; one `data` item per input,
  * keyed by `index`, which we sort by to restore submission order.
  *
  * There is no top-level `dimensions` field: the conformed dimension is checked
@@ -40,14 +41,9 @@ class LlmGatewayEmbeddingsClient(
     private val config: EmbedConfig,
 ) : EmbeddingsPort {
     @Serializable
-    private data class EmbedInput(
-        val texts: List<String>,
-    )
-
-    @Serializable
     private data class EmbedBody(
         val model: String,
-        val input: EmbedInput,
+        val input: List<String>, // standard OpenAI embeddings input (array of strings)
     )
 
     @Serializable
@@ -66,9 +62,9 @@ class LlmGatewayEmbeddingsClient(
     override suspend fun embed(texts: List<String>): EmbedResult {
         if (texts.isEmpty()) return EmbedResult(emptyList(), config.modelId, config.modelVersion, config.dimensions)
         val resp: HttpResponse =
-            http.post("$baseUrl/api/v1/embeddings") {
+            http.post("$baseUrl/v1/embeddings") {
                 contentType(ContentType.Application.Json)
-                setBody(EmbedBody(config.modelId, EmbedInput(texts)))
+                setBody(EmbedBody(config.modelId, texts))
             }
         require(resp.status.isSuccess()) { "LLM-gateway embeddings failed: ${resp.status}" }
         val reply: EmbedReply = resp.body()

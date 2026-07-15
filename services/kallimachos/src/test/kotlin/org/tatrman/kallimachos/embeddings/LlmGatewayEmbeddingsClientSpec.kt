@@ -18,7 +18,7 @@ import kotlinx.serialization.json.Json
 /**
  * P2 Stage 2.1 T2 — the LLM-gateway embeddings client against a Wiremock'd
  * the LLM gateway (contracts §10; EXAMPLES §9). Stubs the REAL OpenAI-shaped surface
- * The LLM gateway serves: `POST /api/v1/embeddings` → `{data:[{index, embedding}]}`.
+ * The LLM gateway serves: `POST /v1/embeddings` → `{data:[{index, embedding}]}`.
  * The conformed dimension N is checked against each embedding's length (mismatch
  * = config error); a data count that disagrees with the inputs throws; an embed
  * error throws (the service catches → PENDING).
@@ -48,7 +48,7 @@ class LlmGatewayEmbeddingsClientSpec :
                     ]}
                     """.trimIndent()
                 wm.stubFor(
-                    wmPost(urlPathEqualTo("/api/v1/embeddings")).willReturn(
+                    wmPost(urlPathEqualTo("/v1/embeddings")).willReturn(
                         aResponse()
                             .withStatus(200)
                             .withHeader("Content-Type", "application/json")
@@ -69,7 +69,7 @@ class LlmGatewayEmbeddingsClientSpec :
             val wm = WireMockServer(WireMockConfiguration.options().dynamicPort()).also { it.start() }
             try {
                 wm.stubFor(
-                    wmPost(urlPathEqualTo("/api/v1/embeddings")).willReturn(
+                    wmPost(urlPathEqualTo("/v1/embeddings")).willReturn(
                         aResponse()
                             .withStatus(200)
                             .withHeader("Content-Type", "application/json")
@@ -86,7 +86,7 @@ class LlmGatewayEmbeddingsClientSpec :
             val wm = WireMockServer(WireMockConfiguration.options().dynamicPort()).also { it.start() }
             try {
                 wm.stubFor(
-                    wmPost(urlPathEqualTo("/api/v1/embeddings")).willReturn(
+                    wmPost(urlPathEqualTo("/v1/embeddings")).willReturn(
                         aResponse()
                             .withStatus(200)
                             .withHeader("Content-Type", "application/json")
@@ -102,7 +102,7 @@ class LlmGatewayEmbeddingsClientSpec :
         "an embed HTTP error throws (the service turns this into PENDING)" {
             val wm = WireMockServer(WireMockConfiguration.options().dynamicPort()).also { it.start() }
             try {
-                wm.stubFor(wmPost(urlPathEqualTo("/api/v1/embeddings")).willReturn(aResponse().withStatus(503)))
+                wm.stubFor(wmPost(urlPathEqualTo("/v1/embeddings")).willReturn(aResponse().withStatus(503)))
                 shouldThrow<Exception> { runBlocking { client(wm).embed(listOf("alpha")) } }
             } finally {
                 wm.stop()

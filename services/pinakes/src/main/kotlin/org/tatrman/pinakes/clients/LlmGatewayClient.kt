@@ -13,8 +13,9 @@ import kotlinx.serialization.Serializable
 /**
  * The LLM egress for the compile stage (architecture §7 — the COMPILE stage is
  * LLM-gateway-driven). A thin chat-completion client; the compile is batch/offline
- * (never on the query path). REST mirror of the LLM-gateway Chat surface,
- * Wiremock-tested.
+ * (never on the query path). Speaks the LLM-gateway standard OpenAI chat surface —
+ * `POST /v1/chat/completions`, `{model, messages:[{role,content}]}`, reply
+ * `{choices:[{message:{content}}]}`. Wiremock-tested.
  */
 interface LlmGatewayClient {
     suspend fun complete(
@@ -24,30 +25,62 @@ interface LlmGatewayClient {
 }
 
 @Serializable
+private data class ChatMessage(
+    val role: String,
+    val content: String,
+)
+
+@Serializable
 private data class ChatBody(
-    val system: String,
-    val user: String,
+    val model: String,
+    val messages: List<ChatMessage>,
 )
 
 @Serializable
 private data class ChatReply(
-    val content: String = "",
-)
+    val choices: List<Choice> = emptyList(),
+) {
+    @Serializable
+    data class Choice(
+        val message: Message = Message(),
+    )
+
+    @Serializable
+    data class Message(
+        val content: String = "",
+    )
+}
 
 class HttpLlmGatewayClient(
     private val http: HttpClient,
     private val baseUrl: String,
+    private val model: String,
 ) : LlmGatewayClient {
     override suspend fun complete(
         systemPrompt: String,
         userPrompt: String,
     ): String {
         val resp: HttpResponse =
-            http.post("$baseUrl/v1/chat") {
+            http.post("$baseUrl/v1/chat/completions") {
                 contentType(ContentType.Application.Json)
-                setBody(ChatBody(systemPrompt, userPrompt))
+                setBody(
+                    ChatBody(
+                        model = model,
+                        messages =
+                            listOf(
+                                ChatMessage("system", systemPrompt),
+                                ChatMessage("user", userPrompt),
+                            ),
+                    ),
+                )
             }
         require(resp.status.isSuccess()) { "LLM-gateway chat failed: ${resp.status}" }
-        return resp.body<ChatReply>().content
+        return resp
+            .body<ChatReply>()
+            .choices
+            .firstOrNull()
+            ?.message
+            ?.content
+            ?: ""
     }
 }

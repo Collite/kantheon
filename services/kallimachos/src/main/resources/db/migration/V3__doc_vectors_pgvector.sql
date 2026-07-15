@@ -6,6 +6,10 @@
 --
 -- N defaults to 1024 (BGE-M3 / multilingual-e5-large class). If the conformed
 -- model's dimension differs, this migration is the single place it changes.
+-- INTERIM: N = 1536 for OpenAI ada-002 while the local bge-m3 (1024) server is not
+-- yet up (the LLM gateway 2.0 catalog serves only ada-002). Switching the model
+-- re-embeds the whole corpus (dimension change invalidates every vector), so this
+-- is edited in place rather than a follow-on migration. Revert to 1024 with bge-m3.
 
 CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -13,7 +17,7 @@ CREATE TABLE doc_vectors (
     part_id       BIGINT NOT NULL REFERENCES parts(id) ON DELETE CASCADE,
     model_id      TEXT   NOT NULL,
     model_version TEXT   NOT NULL,
-    embedding     vector(1024) NOT NULL,
+    embedding     vector(1536) NOT NULL,
     PRIMARY KEY (part_id, model_id, model_version)
 );
 

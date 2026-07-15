@@ -75,7 +75,7 @@ class CorpusStores(
                     dimensions = config.getInt("kallimachos.embed.dimensions"),
                 )
             } else {
-                EmbedConfig("bge-m3", "1", 1024)
+                EmbedConfig("ada-002", "1", 1536) // INTERIM: ada-002/1536 until the local bge-m3 server is up
             }
 
         private fun embeddingsOf(

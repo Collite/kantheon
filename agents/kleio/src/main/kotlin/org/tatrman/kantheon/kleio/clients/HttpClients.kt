@@ -106,8 +106,8 @@ class HttpKallimachosMcpClient(
 
 /**
  * Kleio → LLM-gateway grounded synthesis. Speaks the LLM gateway's OpenAI-shaped chat
- * surface — `POST /api/v1/chat/completions`, `{model, messages:[{role,content}]}`,
- * reply `{choices:[{message:{content}}]}` (with a top-level `content` fallback).
+ * surface — `POST /v1/chat/completions`, `{model, messages:[{role,content}]}`,
+ * reply `{choices:[{message:{content}}]}`.
  * The prompt constrains the answer to the retrieved chunks and asks the model to
  * return `{"answer", "citedPartIds", "citedPageIds"}`; a parse failure yields the
  * raw text with no citations (the render then drops to NO-citations, never
@@ -146,7 +146,7 @@ class HttpKleioLlmClient(
             }
         val raw =
             http
-                .post("$llmGatewayBaseUrl/api/v1/chat/completions") {
+                .post("$llmGatewayBaseUrl/v1/chat/completions") {
                     contentType(ContentType.Application.Json)
                     setBody(body.toString())
                 }.bodyAsText()
@@ -167,7 +167,7 @@ class HttpKleioLlmClient(
         }
     }
 
-    /** The assistant text — `choices[0].message.content`, or the top-level `content` fallback. */
+    /** The assistant text — `choices[0].message.content` (standard OpenAI chat.completion). */
     private fun extractContent(raw: String): String? =
         try {
             val root = json.parseToJsonElement(raw).jsonObject
@@ -180,7 +180,6 @@ class HttpKleioLlmClient(
                 ?.get("content")
                 ?.jsonPrimitive
                 ?.content
-                ?: root["content"]?.jsonPrimitive?.content
         } catch (e: Exception) {
             null
         }

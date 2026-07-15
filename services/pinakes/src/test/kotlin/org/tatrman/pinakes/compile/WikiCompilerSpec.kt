@@ -28,7 +28,7 @@ class WikiCompilerSpec :
 
         fun compilerFor(wm: WireMockServer): WikiCompiler {
             val http = HttpClient(CIO) { install(ContentNegotiation) { json() } }
-            return WikiCompiler(HttpLlmGatewayClient(http, "http://localhost:${wm.port()}"))
+            return WikiCompiler(HttpLlmGatewayClient(http, "http://localhost:${wm.port()}", "sonnet"))
         }
 
         fun wiremock() = WireMockServer(WireMockConfiguration.options().dynamicPort()).also { it.start() }
@@ -37,9 +37,9 @@ class WikiCompilerSpec :
             val wm = wiremock()
             try {
                 wm.stubFor(
-                    wmPost(urlPathEqualTo("/v1/chat")).willReturn(
+                    wmPost(urlPathEqualTo("/v1/chat/completions")).willReturn(
                         aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(
-                            """{"content":"[{\"kind\":\"ENTITY\",\"title\":\"Kaufland\",\"contentMd\":\"# Kaufland\",\"derivedFromParts\":[8,9],\"entityType\":\"customer\",\"entityLabel\":\"Kaufland\"},{\"kind\":\"SUMMARY\",\"title\":\"Overview\",\"contentMd\":\"...\",\"derivedFromParts\":[8,9]}]"}""",
+                            """{"choices":[{"message":{"content":"[{\"kind\":\"ENTITY\",\"title\":\"Kaufland\",\"contentMd\":\"# Kaufland\",\"derivedFromParts\":[8,9],\"entityType\":\"customer\",\"entityLabel\":\"Kaufland\"},{\"kind\":\"SUMMARY\",\"title\":\"Overview\",\"contentMd\":\"...\",\"derivedFromParts\":[8,9]}]"}}]}""",
                         ),
                     ),
                 )
@@ -59,9 +59,9 @@ class WikiCompilerSpec :
             val wm = wiremock()
             try {
                 wm.stubFor(
-                    wmPost(urlPathEqualTo("/v1/chat")).willReturn(
+                    wmPost(urlPathEqualTo("/v1/chat/completions")).willReturn(
                         aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(
-                            """{"content":"not valid json at all"}""",
+                            """{"choices":[{"message":{"content":"not valid json at all"}}]}""",
                         ),
                     ),
                 )
@@ -77,7 +77,7 @@ class WikiCompilerSpec :
         "an LLM error degrades to a mechanical SUMMARY (the corpus stays queryable)" {
             val wm = wiremock()
             try {
-                wm.stubFor(wmPost(urlPathEqualTo("/v1/chat")).willReturn(aResponse().withStatus(503)))
+                wm.stubFor(wmPost(urlPathEqualTo("/v1/chat/completions")).willReturn(aResponse().withStatus(503)))
                 val drafts = runBlocking { compilerFor(wm).compile(parts).pages }
                 drafts.size shouldBe 1
                 drafts.first().kind shouldBe PageKind.SUMMARY

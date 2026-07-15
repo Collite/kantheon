@@ -86,7 +86,7 @@ fun main() {
     // The conformed corpus embedding dimension (must agree with Kallimachos's).
     val corpusEmbed =
         EmbedSpec(
-            modelId = configOr(config, "pinakes.embed.model-id", "bge-m3"),
+            modelId = configOr(config, "pinakes.embed.model-id", "ada-002"), // INTERIM until local bge-m3 is up
             dimensions =
                 if (config.hasPath(
                         "pinakes.embed.dimensions",
@@ -94,7 +94,7 @@ fun main() {
                 ) {
                     config.getInt("pinakes.embed.dimensions")
                 } else {
-                    1024
+                    1536
                 },
             modelVersion = configOr(config, "pinakes.embed.model-version", "1"),
         )
@@ -102,7 +102,8 @@ fun main() {
     val llmGatewayBase =
         "http://${configOr(config, "pinakes.llmgateway.host", "llm-gateway")}:" +
             (if (config.hasPath("pinakes.llmgateway.port")) config.getInt("pinakes.llmgateway.port") else 8080)
-    val llmGateway = HttpLlmGatewayClient(http, llmGatewayBase)
+    val llmGateway =
+        HttpLlmGatewayClient(http, llmGatewayBase, configOr(config, "pinakes.llmgateway.model", "sonnet"))
     val pageWriter = HttpCorpusPageWriter(http, kallimachosBase)
     val conceptIndex = InMemoryConceptIndex() // shared by RESOLVE + LINK (compounding)
     val resolver = EntityResolver(conceptIndex)
