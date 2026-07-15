@@ -2,6 +2,7 @@ package org.tatrman.pinakes.clients
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -55,6 +56,7 @@ class HttpLlmGatewayClient(
     private val http: HttpClient,
     private val baseUrl: String,
     private val model: String,
+    private val apiKey: String = "", // ttrk- gateway key (2.0 /v1 is key-gated); blank in tests
 ) : LlmGatewayClient {
     override suspend fun complete(
         systemPrompt: String,
@@ -63,6 +65,7 @@ class HttpLlmGatewayClient(
         val resp: HttpResponse =
             http.post("$baseUrl/v1/chat/completions") {
                 contentType(ContentType.Application.Json)
+                if (apiKey.isNotBlank()) bearerAuth(apiKey)
                 setBody(
                     ChatBody(
                         model = model,

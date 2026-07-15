@@ -103,7 +103,12 @@ fun main() {
         "http://${configOr(config, "pinakes.llmgateway.host", "llm-gateway")}:" +
             (if (config.hasPath("pinakes.llmgateway.port")) config.getInt("pinakes.llmgateway.port") else 8080)
     val llmGateway =
-        HttpLlmGatewayClient(http, llmGatewayBase, configOr(config, "pinakes.llmgateway.model", "sonnet"))
+        HttpLlmGatewayClient(
+            http,
+            llmGatewayBase,
+            configOr(config, "pinakes.llmgateway.model", "sonnet"),
+            configOr(config, "pinakes.llmgateway.api-key", ""),
+        )
     val pageWriter = HttpCorpusPageWriter(http, kallimachosBase)
     val conceptIndex = InMemoryConceptIndex() // shared by RESOLVE + LINK (compounding)
     val resolver = EntityResolver(conceptIndex)

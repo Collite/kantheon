@@ -118,6 +118,7 @@ class HttpKleioLlmClient(
     private val llmGatewayBaseUrl: String,
     private val systemPrompt: String,
     private val model: String,
+    private val apiKey: String = "", // ttrk- gateway key (2.0 /v1 is key-gated); blank in tests
 ) : KleioLlmClient {
     override suspend fun answer(
         question: String,
@@ -148,6 +149,7 @@ class HttpKleioLlmClient(
             http
                 .post("$llmGatewayBaseUrl/v1/chat/completions") {
                     contentType(ContentType.Application.Json)
+                    if (apiKey.isNotBlank()) header(HttpHeaders.Authorization, "Bearer $apiKey")
                     setBody(body.toString())
                 }.bodyAsText()
         return parse(raw)

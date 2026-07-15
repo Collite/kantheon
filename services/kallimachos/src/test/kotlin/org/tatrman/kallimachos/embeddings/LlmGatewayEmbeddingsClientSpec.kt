@@ -2,6 +2,7 @@ package org.tatrman.kallimachos.embeddings
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.post as wmPost
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
@@ -33,6 +34,29 @@ class LlmGatewayEmbeddingsClientSpec :
         ): LlmGatewayEmbeddingsClient {
             val http = HttpClient(CIO) { install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) } }
             return LlmGatewayEmbeddingsClient(http, "http://localhost:${wm.port()}", cfg)
+        }
+
+        "sends the ttrk- key as an Authorization: Bearer header when configured" {
+            val wm = WireMockServer(WireMockConfiguration.options().dynamicPort()).also { it.start() }
+            try {
+                // The stub matches ONLY when the Authorization header is present — so a passing
+                // embed proves the client sent `Bearer ttrk-test` (2.0 /v1 is key-gated).
+                wm.stubFor(
+                    wmPost(urlPathEqualTo("/v1/embeddings"))
+                        .withHeader("Authorization", equalTo("Bearer ttrk-test"))
+                        .willReturn(
+                            aResponse()
+                                .withStatus(200)
+                                .withHeader("Content-Type", "application/json")
+                                .withBody("""{"data":[{"index":0,"embedding":[0.1,0.2,0.3]}],"model":"bge-m3"}"""),
+                        ),
+                )
+                val http = HttpClient(CIO) { install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) } }
+                val keyed = LlmGatewayEmbeddingsClient(http, "http://localhost:${wm.port()}", config, "ttrk-test")
+                runBlocking { keyed.embed(listOf("alpha")) }.vectors.size shouldBe 1
+            } finally {
+                wm.stop()
+            }
         }
 
         "embeds a batch and returns one vector per input (ordered by index)" {

@@ -102,7 +102,8 @@ class CorpusStores(
             // (`object`, `usage`, …) the client does not model.
             val http =
                 HttpClient(CIO) { install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) } }
-            return LlmGatewayEmbeddingsClient(http, base, embedConfig)
+            val apiKey = configOr(config, "kallimachos.llmgateway.api-key", "")
+            return LlmGatewayEmbeddingsClient(http, base, embedConfig, apiKey)
         }
 
         private fun configOr(

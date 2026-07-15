@@ -2,6 +2,7 @@ package org.tatrman.kallimachos.embeddings
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -39,6 +40,7 @@ class LlmGatewayEmbeddingsClient(
     private val http: HttpClient,
     private val baseUrl: String,
     private val config: EmbedConfig,
+    private val apiKey: String = "", // ttrk- gateway key (2.0 /v1 is key-gated); blank in tests/1.x-permit-all
 ) : EmbeddingsPort {
     @Serializable
     private data class EmbedBody(
@@ -64,6 +66,7 @@ class LlmGatewayEmbeddingsClient(
         val resp: HttpResponse =
             http.post("$baseUrl/v1/embeddings") {
                 contentType(ContentType.Application.Json)
+                if (apiKey.isNotBlank()) bearerAuth(apiKey)
                 setBody(EmbedBody(config.modelId, texts))
             }
         require(resp.status.isSuccess()) { "LLM-gateway embeddings failed: ${resp.status}" }

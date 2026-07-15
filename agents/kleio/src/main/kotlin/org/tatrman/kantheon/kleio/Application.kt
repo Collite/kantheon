@@ -57,8 +57,9 @@ fun main() {
             .readText()
 
     val promModel = config.getString("kleio.llmgateway.model")
+    val promKey = config.getString("kleio.llmgateway.api-key")
     val retriever = HttpKallimachosMcpClient(http, mcpBase)
-    val llm = HttpKleioLlmClient(http, promBase, grounded, promModel)
+    val llm = HttpKleioLlmClient(http, promBase, grounded, promModel, promKey)
     val turnService =
         KleioTurnService(
             strategy = KleioStrategy(retriever, llm),
