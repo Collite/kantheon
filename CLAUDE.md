@@ -1,5 +1,8 @@
 # Kantheon — Project Guide for Claude
 
+> **Task tracking moved 2026-07-14.** Task lists, phase plans, STATUS.md, and phase-exit reviews for this repo now live in `collite-gh/project/kantheon/`. This repo keeps architecture, design docs, manuals, implementation notes, and examples in place — see `project/README.md` for the full split and `project/SOURCES.md` for exactly what moved from where. Anything removed from here sits in this repo's `_to_delete/` pending your final cleanup, not deleted outright.
+
+
 > **Status:** living document. Supersedes the former separate Pythia and Golem projects (which are now design folders under `docs/design/pythia/` and `docs/design/golem/`).
 >
 > **Read with.** [`AGENTS.md`](./AGENTS.md) for tech stack / dev hints / build commands, [`EXAMPLES.md`](./EXAMPLES.md) for canonical code patterns, and [`docs/README.md`](./docs/README.md) for the documentation map.

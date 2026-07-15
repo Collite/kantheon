@@ -42,7 +42,11 @@ SQL
 
 echo "==> [2/3] flyway migrate (schemas=${SCHEMA})"
 # The shared PG migration set lives in :agents:hebe:modules:memory db/migration-pg/.
-flyway -url="jdbc:${PG_ADMIN_URL#postgres:}" \
+# Normalize PG_ADMIN_URL (postgres:// OR postgresql://) to a jdbc:postgresql:// URL — flyway needs
+# the driver scheme or it errors "No Flyway database plugin found". Credentials come from
+# FLYWAY_USER/FLYWAY_PASSWORD (or a ?user=&password= query on PG_ADMIN_URL); pgjdbc does not parse a
+# user:pass@ authority, so don't rely on that form.
+flyway -url="jdbc:postgresql://${PG_ADMIN_URL#*://}" \
   -schemas="${SCHEMA}" \
   -locations="filesystem:agents/hebe/modules/memory/src/main/resources/db/migration-pg" \
   migrate
@@ -53,14 +57,24 @@ SET search_path TO ${SCHEMA};
 REVOKE UPDATE, DELETE ON receipts, messages, llm_calls, tool_calls FROM ${ROLE};
 SQL
 
-echo "==> [3/3] K8s Secret skeleton: hebe-${ID} (fill in the real values)"
-kubectl -n "${K8S_NAMESPACE}" create secret generic "hebe-${ID}" \
-  --from-literal=pg \
-  --from-literal=keycloak-client-secret= \
-  --from-literal=llm-gateway-key= \
-  --from-literal=telegram= \
-  --from-literal=receipts.signing_key= \
-  --dry-run=client -o yaml | kubectl apply -f -
+echo "==> [3/3] K8s Secret hebe-${ID}"
+# Create ONCE — never clobber a secret the operator has already filled in. The old
+# `create … --dry-run | apply` reset every value to empty on each re-run.
+# receipts.signing_key MUST be a real 32-byte Ed25519 seed: hebe requires it at boot and cannot
+# self-persist one (K8sSecretStore.set is a no-op), so an empty placeholder crash-loops the pod
+# ("Ed25519 seed must be 32 bytes"). Generate it here; the rest are placeholders to fill in.
+if kubectl -n "${K8S_NAMESPACE}" get secret "hebe-${ID}" >/dev/null 2>&1; then
+  echo "    hebe-${ID} already exists — leaving it untouched (fill/patch values manually)."
+else
+  kubectl -n "${K8S_NAMESPACE}" create secret generic "hebe-${ID}" \
+    --from-literal=pg= \
+    --from-literal=keycloak-client-secret= \
+    --from-literal=llm-gateway-key= \
+    --from-literal=telegram=
+  kubectl -n "${K8S_NAMESPACE}" patch secret "hebe-${ID}" --type merge \
+    -p "{\"data\":{\"receipts.signing_key\":\"$(openssl rand 32 | base64 | tr -d '\n')\"}}"
+  echo "    created hebe-${ID} with a generated receipts.signing_key; fill in pg / keycloak-client-secret / llm-gateway-key / telegram."
+fi
 
 cat <<NEXT
 ==> provisioned hebe_${ID}.

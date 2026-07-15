@@ -17,8 +17,7 @@ with zero remaining runtime/build coupling back to ai-platform as of Phase 5 (20
 those are mid-way through a **second-order extraction** into tatrman as publishable OSS libraries:
 Ariadne's core → `org.tatrman:ttr-metadata(-git)` (code landed; **publish-to-GitHub-Packages gate
 still open**, pinned to `0.0.1-LOCAL`), and Proteus's `query-translator` core →
-`org.tatrman:ttr-translator` + `ttr-plan-proto` (**planned, not executed** — 73 files, the largest
-remaining locally-vendored core in ai-platform). The grounding stack (chrono/geo/money,
+`org.tatrman:ttr-translator` + `ttr-plan-proto` (**executed 2026-07-07** — *correction 2026-07-15: this said "planned, not executed" but B1+B2 landed the same week this doc was written; see `ttr-translator-extraction.md`* — was 73 files, the largest locally-vendored core in ai-platform). The grounding stack (chrono/geo/money,
 grounding-mcp, Golem's GroundEntities node) is confirmed **absent from kantheon** (postdates the
 fork by ~3–4 weeks). `agents/golem` was not forked (kantheon hand-rewrites in Kotlin/Koog);
 `agents/resolver` has **no kantheon counterpart at all**. The entire v0 ERP-SQL family stays
@@ -37,7 +36,7 @@ ai-platform-only and sunsets.
 | fuzzy-mcp / fuzzy-matcher | `tools/fuzzy-mcp`, `services/fuzzy-matcher` | `tools/echo-mcp`, `services/echo` (`org.tatrman.echo.v1`) | EXTRACTED | |
 | nlp / nlp-mcp | `infra/nlp`, `tools/nlp-mcp` | `services/kadmos`, `tools/kadmos-mcp` | EXTRACTED | Python kept (spaCy/Stanza/MorphoDiTa moat). |
 | erp-data-mcp | `tools/erp-data-mcp` | none | V0-LEGACY | |
-| translator | `services/translator` | `services/proteus` (`org.tatrman.proteus.v1`) | EXTRACTED (service); TOOLCHAIN sub-extraction PLANNED | `query-translator` lib move + `plan.v1`/`transdsl.v1`/`dfdsl.v1` ownership transfer to tatrman `ttr-plan-proto` = Phase B, not executed. |
+| translator | `services/translator` | `services/proteus` (`org.tatrman.proteus.v1`) | EXTRACTED (service); TOOLCHAIN sub-extraction ✅ EXECUTED 2026-07-07 (corrected 2026-07-15, was marked PLANNED) | `query-translator` lib move + `plan.v1`/`transdsl.v1`/`dfdsl.v1` ownership transfer to tatrman `ttr-plan-proto` = Phase B, done — see `ttr-translator-extraction.md`. |
 | validator + sql-security | `services/validator`, `infra/sql-security` | `services/argos` (merged) | EXTRACTED (consolidated) | Identity model DIVERGED: kantheon default bearer-token roles; whois demoted to opt-in enrichment. |
 | query-runner | `services/query-runner` | `services/theseus` | EXTRACTED | |
 | dispatcher | `services/dispatcher` | `services/kyklop` | EXTRACTED | |
@@ -50,7 +49,7 @@ ai-platform-only and sunsets.
 | agents-fe | `frontends/agents-fe` | `frontends/iris` (+ `agents/iris-bff`) | DIVERGED | Rewrite basis, not a fork. |
 | golem | `agents/golem` (Python/LangGraph) | `agents/golem` rewrite (Kotlin/Koog, ports v2 semantics) | DIVERGED (deliberate twin) | The two-reference-implementations pattern. |
 | v0 sql-* family | `services/erp-sql*`, `services/sql-*-service`, `infra/sql-{metadata,validator}`, `frontends/erp-sql-fe`, `shared/libs/kotlin/erp-sql-*` | none | V0-LEGACY | Sunsetting; not part of the November push. |
-| query-translator lib | `shared/libs/kotlin/query-translator` (73 files) | → `org.tatrman:ttr-translator` (PLANNED) | DIVERGED / mid-migration | Largest remaining vendored core. |
+| query-translator lib | `shared/libs/kotlin/query-translator` (0 files — deleted 2026-07-07, was 73) | → `org.tatrman:ttr-translator` (✅ EXECUTED, corrected 2026-07-15) | MIGRATED (was DIVERGED / mid-migration) | Vendored core removed; consumed as a published artifact. |
 | ttr-parser / ttr-writer | vestigial (`ttr-parser` has no `src/`, only stale `build/`) | `org.tatrman:ttr-parser` / `ttr-writer` (tatrman) | TOOLCHAIN (already adopted) | Delete stale dirs after confirming swap. |
 | otel-config, data-formatter, db-common, fuzzy-common, ktor-configurator, logging-config, whois-common | `shared/libs/kotlin/*` | same names in kantheon (vendored copies) | EXTRACTED | Forked in-repo Phase 1. |
 | kantheon-only libs | — | ariadne-client, bff-base, capabilities-client, component-testkit, envelope-render, integration-harness, keycloak-auth, llm-gateway-client, pattern-params | KANTHEON-NATIVE | keycloak-auth carved from erp-sql-common's token-provider (self-contained). |
@@ -96,8 +95,8 @@ whether kantheon vendors or inlines them today), resolver.v1, grounding.v1, erp*
 
 - **ttr-metadata publish gate** — finish GitHub Packages publishing (drop `0.0.1-LOCAL`); it blocks
   CI-reproducibility for ai-platform AND kantheon. **First item.**
-- **query-translator → ttr-translator + ttr-plan-proto** — execute the planned arc; transfer
-  plan.v1/transdsl.v1/dfdsl.v1 ownership to tatrman with FQCNs/wire format frozen (TR-3).
+- ~~**query-translator → ttr-translator + ttr-plan-proto** — execute the planned arc; transfer
+  plan.v1/transdsl.v1/dfdsl.v1 ownership to tatrman with FQCNs/wire format frozen (TR-3).~~ **Done 2026-07-07** (corrected 2026-07-15 — this next-step item was stale).
 - **Grounding** — after DFP validation, run a "Fork Phase 6" (copy-paste, rename, `org.tatrman.*`
   repackage) so ai-platform can stop vendoring before November.
 - **Resolver** — rewrite kantheon-native (Kadmos capability or Golem-rewrite node) rather than

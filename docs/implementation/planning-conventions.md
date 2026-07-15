@@ -1,6 +1,43 @@
 # Kantheon — Planning Conventions
 
-> **Status:** locked 2026-05-15. Applies to all planning in this repository going forward. Any deviation is documented per-stage at the point of departure.
+> **Status:** locked 2026-05-15, amended 2026-07-14 (§0 added — planning location + stream/lane, ecosystem-wide, applies beyond kantheon too). Applies to all planning in this repository going forward. Any deviation is documented per-stage at the point of departure.
+
+## 0. Planning location & stream/lane (added 2026-07-14, ecosystem-wide)
+
+Two rules that now apply across the whole Tatrman ecosystem, not just kantheon —
+added here because this is the only formalized planning-process document found in
+any of the repos. Source: `project/streams-proposal-260714.md` and
+`project/planning-skill-rules-260714.md`.
+
+**Planning artefacts live in `project/`, not in this repo's `docs/` tree.**
+`plan.md` and every per-stage `tasks-p<phase>-s<stage>-*.md` file now live at
+`project/kantheon/implementation/v1/<agent>/`, mirroring the layout described in
+§4 below but under `project/` instead of `kantheon/docs/`. `architecture.md` and
+`contracts.md` stay in both places (`kantheon/docs/architecture/<agent>/` here,
+`project/kantheon/architecture/<agent>/` in `project/`) — close to the code for
+whoever's working in this repo, but `project/` is the one to edit. `STATUS.md` for
+the kantheon effort as a whole lives at `project/kantheon/STATUS.md`, not in this
+repo. Design docs (`kantheon/docs/design/<agent>/`) are unaffected — no
+`project/`-only equivalent, both copies stay in sync manually as before.
+
+**Every task gets a stream and lane at planning time.** Add to the relevant
+STATUS.md's YAML frontmatter (mandatory — planning is not complete until both
+are set):
+
+```yaml
+stream: dev | project
+lane: senior1 | senior2 | junior | bora-unblock | bora-legal | bora-support | claude-support
+```
+
+`stream: dev` covers everything required for coding, including design and
+planning; `stream: project` covers legal/PM, support, and Claude-support work.
+Kantheon's own effort-level STATUS.md (`project/kantheon/STATUS.md`) is currently
+`dev`/`senior2`. Sub-arcs that split across streams (e.g. a corpus-authorship half
+of an effort) get their own STATUS.md or row rather than blending lanes — see the
+split-item pattern in `project/streams-proposal-260714-dashboard.html`.
+**Dependencies inside the Dev stream reference Dev-stream items only** — a
+task's `blocked_on`/`gates` should never point at Project-stream work; track that
+link in the cross-stream watch list instead (same source doc).
 
 ## 1. Hierarchy — bottom-up
 
@@ -55,10 +92,10 @@ The integration-test suite (Testcontainers + integration + e2e + in-cluster acce
 Task lists are written per-stage, one file per stage. Filename convention:
 
 ```
-kantheon/docs/v1/<agent>/tasks-p<phase>-s<stage>-<short-name>.md
+project/kantheon/implementation/v1/<agent>/tasks-p<phase>-s<stage>-<short-name>.md
 ```
 
-For example: `kantheon/docs/v1/themis/tasks-p1-s2-capabilities-proto.md`.
+For example: `project/kantheon/implementation/v1/themis/tasks-p1-s2-capabilities-proto.md`. (Moved from `kantheon/docs/v1/<agent>/` to `project/` 2026-07-14 — see §0.)
 
 ### Per-task-list expectations
 
@@ -79,10 +116,12 @@ For each phase, a top-level overview document `tasks-p<phase>-overview.md` refer
 
 The first instance of this convention applied is the Themis arc:
 
-- `kantheon/docs/v1/themis/architecture.md`
-- `kantheon/docs/v1/themis/contracts.md`
-- `kantheon/docs/v1/themis/plan.md`
-- per-stage task lists at `kantheon/docs/v1/themis/tasks-p<n>-s<n.m>-*.md` (written after the three above)
+- `kantheon/docs/architecture/themis/architecture.md`
+- `kantheon/docs/architecture/themis/contracts.md`
+- `project/kantheon/implementation/v1/themis/plan.md`
+- per-stage task lists at `project/kantheon/implementation/v1/themis/tasks-p<n>-s<n.m>-*.md` (written after the three above)
+
+(Paths updated 2026-07-14 to reflect §0 — `plan.md`/tasks moved to `project/`, `architecture.md`/`contracts.md` stayed here under their own `docs/architecture/` subtree.)
 
 Future arcs (Iris BFF, Pythia, Golem rewrite, capabilities-mcp follow-ups) mirror the same structure.
 

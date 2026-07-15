@@ -1,6 +1,6 @@
 # Proteus → ttr-translator extraction arc
 
-> **Status:** planned 2026-07-06; execution = Phase B of the tatrman-side plan. Design + contracts live in **Collite/tatrman**: `docs/ttr-translator/architecture/{architecture,contracts}.md`, plan `docs/ttr-translator/implementation/v1/plan.md` (decisions TR-1…TR-8). This doc is the kantheon-side pointer + summary; the kantheon task lists live in [`../../implementation/v1/ttr-translator/`](../../implementation/v1/ttr-translator/).
+> **Status:** ✅ EXECUTED 2026-07-07 (B1 proto adoption + B2 translator switch, commit `ea910103`: `org.tatrman:ttr-translator`/`ttr-plan-proto` adopted, the vendored `shared/libs/kotlin/query-translator` deleted); B3 docs/tags followed 2026-07-09 (`proteus/v0.6.0`, `ariadne/v0.6.0` tagged; CLAUDE.md swept). **Correction (2026-07-15):** this header previously still read "planned 2026-07-06" a week after the work actually landed — caught during a status audit against git history (`ea910103`, the two tags); `extraction-inventory-260710.md`'s "PLANNED, not executed" characterization is similarly stale and superseded. Design + contracts live in **Collite/tatrman**: `docs/ttr-translator/architecture/{architecture,contracts}.md`, plan `docs/ttr-translator/implementation/v1/plan.md` (decisions TR-1…TR-8). This doc is the kantheon-side pointer + summary; the kantheon task lists live in [`../../implementation/v1/ttr-translator/`](../../implementation/v1/ttr-translator/).
 
 ## What happens
 
