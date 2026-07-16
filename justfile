@@ -8,7 +8,10 @@ default:
 
 # Resolve a bare module name (e.g. `_smoke-test`) to its Gradle project path
 # (`:tools:_smoke-test`). Accepts either bare names or full slash paths.
-_resolve service:
+# (Renamed from `_resolve` 2026-07-16, justfile sync — `_resolve` now returns a
+# plain filesystem path, matching tatrman/tatrman-server/modeler; this is the
+# Gradle-path-returning helper the Kotlin-specific recipes below already used.)
+_gradle-path service:
     @if [[ "{{service}}" == *"/"* ]]; then \
         echo ":$(echo {{service}} | sed 's|/|:|g')"; \
     else \
@@ -19,6 +22,95 @@ _resolve service:
         fi; \
         echo ":$(echo "$path" | sed 's|/|:|g')"; \
     fi
+
+# Resolve a bare module name to its on-disk path. A path (contains "/") passes
+# through unchanged. Searches agents/services/workers/tools/frontends/infra +
+# shared/libs/{kotlin,python,ts}.
+_resolve name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ "{{name}}" == *"/"* ]]; then
+        echo "{{name}}"
+        exit 0
+    fi
+    roots=()
+    for d in agents services workers tools frontends infra shared/libs/kotlin shared/libs/python shared/libs/ts; do
+        [ -d "$d" ] && roots+=("$d")
+    done
+    path=$(find "${roots[@]}" -mindepth 1 -maxdepth 1 -type d -name "{{name}}" -print -quit 2>/dev/null || true)
+    if [ -z "$path" ]; then
+        echo "❌ Module '{{name}}' not found under agents/, services/, workers/, tools/, frontends/, infra/, shared/libs/{kotlin,python,ts}/" >&2
+        exit 1
+    fi
+    echo "$path"
+
+# Which lane a resolved path builds under (kt | py | fe).
+_lang path:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -f "{{path}}/build.gradle.kts" ]; then echo kt
+    elif [ -f "{{path}}/pyproject.toml" ]; then echo py
+    elif [ -f "{{path}}/package.json" ]; then echo fe
+    else
+        echo "❌ Can't tell what language {{path}} is (no build.gradle.kts / pyproject.toml / package.json)" >&2
+        exit 1
+    fi
+
+# ── lint / build / test — bare = everything, name/path = one module ───────────
+
+# Lint everything (Kotlin + Python + frontends). One module: `just lint themis`.
+lint module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        just lint-kt
+        just lint-py
+        just lint-fe
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    lang=$(just _lang "$path")
+    case "$lang" in
+        kt) just lint-kt "$path" ;;
+        py) just lint-py "$path" ;;
+        fe) just lint-fe "$path" ;;
+    esac
+
+# Build everything (Kotlin + Python + frontends). One module: `just build themis`.
+build module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        just build-kt
+        just build-py
+        just build-fe
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    lang=$(just _lang "$path")
+    case "$lang" in
+        kt) just build-kt "$path" ;;
+        py) just build-py "$path" ;;
+        fe) just build-fe "$path" ;;
+    esac
+
+# Test everything (Kotlin + Python + frontends). One module: `just test themis`.
+test module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        just test-kt
+        just test-py
+        just test-fe
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    lang=$(just _lang "$path")
+    case "$lang" in
+        kt) just test-kt "$path" ;;
+        py) just test-py "$path" ;;
+        fe) just test-fe "$path" ;;
+    esac
 
 # First-time setup: verify GitHub PAT for ai-platform Maven, exercise Gradle, regenerate protos.
 init:
@@ -58,33 +150,57 @@ py-sync-all: proto-py
         (cd "$dir" && uv sync) < /dev/null; \
     done
 
-# Run tests for a specific Python service. Trailing args pass through to pytest,
-# so the component tier (testcontainers-python) selects its marker:
-#   just test-py services/metis                 # all tests
-#   just test-py services/metis -m component     # real-dep component tier only
+# Run tests for every Python module, or one (bare name or path). Trailing args
+# pass through to pytest, so the component tier (testcontainers-python) selects
+# its marker:
+#   just test-py                                 # every Python module
+#   just test-py metis                            # one module, by name
+#   just test-py services/metis -m component       # real-dep component tier only
 #   just test-py services/metis -m "not component"  # mocked unit tier only
 # Exits 0 on "no tests collected" (pytest exit 5) so empty modules don't fail CI.
-test-py service *args: proto-py
-    cd {{service}} && (uv run pytest {{args}} || (code=$?; if [ $code -eq 5 ]; then echo "No tests collected. Skipping..."; exit 0; else exit $code; fi))
+test-py module="" *args: proto-py
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        find . -name "pyproject.toml" -not -path "*/shared/proto/*" -not -path "*/node_modules/*" -not -path "*/.venv/*" -exec dirname {} \; | sort -u | while read -r d; do just test-py "$d" {{args}}; done
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    cd "$path" && (uv run pytest {{args}} || (code=$?; if [ $code -eq 5 ]; then echo "No tests collected. Skipping..."; exit 0; else exit $code; fi))
 
-# Lint a specific Python service. Auto-fixes with ruff.
-# Usage: `just lint-py services/kadmos`
-lint-py service:
-    cd {{service}} && uv run ruff check . --fix
+# Lint every Python module, or one (bare name or path). Auto-fixes with ruff.
+# Usage: `just lint-py` / `just lint-py metis` / `just lint-py services/metis`
+lint-py module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        find . -name "pyproject.toml" -not -path "*/shared/proto/*" -not -path "*/node_modules/*" -not -path "*/.venv/*" -exec dirname {} \; | sort -u | while read -r d; do just lint-py "$d"; done
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    cd "$path" && uv run ruff check . --fix
 
-# Build a Python service Docker image (Jib is JVM-only, so Python services
-# use a Dockerfile). A service whose Dockerfile pulls in the repo-root
-# `shared/` tree (uv path-deps — e.g. services/kadmos) must build from the
+# Build every Python module's Docker image, or one (bare name or path). Jib is
+# JVM-only, so Python services use a Dockerfile. A service whose Dockerfile
+# pulls in the repo-root `shared/` tree (uv path-deps) must build from the
 # repo-root context; self-contained ones build from their own dir. The image
-# is tagged `<name>:dev` to match the k8s `image:` convention (echo:dev,
-# ariadne:dev). Usage: `just build-py services/kadmos`
-build-py service: proto-py
-    cd {{service}} && uv sync                                              # ensure lockfile is fresh
-    @if grep -qE '^COPY[[:space:]]+shared' {{service}}/Dockerfile; then \
-        echo "↳ repo-root build context (Dockerfile copies shared/)"; \
-        docker build -t "$(basename {{service}})":dev -f {{service}}/Dockerfile . ; \
-    else \
-        docker build -t "$(basename {{service}})":dev {{service}} ; \
+# is tagged `<name>:dev` to match the k8s `image:` convention.
+# Usage: `just build-py` / `just build-py metis` / `just build-py services/metis`
+build-py module="": proto-py
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        find . -name "pyproject.toml" -not -path "*/shared/proto/*" -not -path "*/node_modules/*" -not -path "*/.venv/*" -exec dirname {} \; | sort -u | while read -r d; do just build-py "$d"; done
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    cd "$path" && uv sync   # ensure lockfile is fresh
+    cd - >/dev/null
+    if grep -qE '^COPY[[:space:]]+shared' "$path/Dockerfile"; then
+        echo "↳ repo-root build context (Dockerfile copies shared/)"
+        docker build -t "$(basename "$path")":dev -f "$path/Dockerfile" .
+    else
+        docker build -t "$(basename "$path")":dev "$path"
     fi
 
 # Build a Python service Docker image and deploy it to local K3s (mirrors
@@ -165,17 +281,21 @@ eval-themis-routing:
 eval-themis-routing-selftest:
     cd agents/themis && python3 eval/run_routing_eval.py --self-test
 
-# Build one Kotlin service. Usage: `just build-kt _smoke-test`
-build-kt service:
-    ./gradlew "$(just _resolve {{service}}):build" --no-daemon
+# Build every Kotlin module, or one. Usage: `just build-kt` / `just build-kt _smoke-test`
+build-kt service="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{service}}" ]; then ./gradlew build --no-daemon
+    else ./gradlew "$(just _gradle-path {{service}}):build" --no-daemon
+    fi
 
-# Run tests for one Kotlin service. Usage: `just test-kt _smoke-test`
-test-kt service:
-    ./gradlew "$(just _resolve {{service}}):test" --no-daemon
-
-# Run all Kotlin tests across the build.
-test-all:
-    ./gradlew test --no-daemon
+# Test every Kotlin module, or one. Usage: `just test-kt` / `just test-kt _smoke-test`
+test-kt service="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{service}}" ]; then ./gradlew test --no-daemon
+    else ./gradlew "$(just _gradle-path {{service}}):test" --no-daemon
+    fi
 
 # Export iris turn-feedback (PD-3) to per-agent eval/candidates/ JSONL. Needs
 # iris.db.enabled=true + IRIS_DB_* config. Optional output dir (default eval/candidates).
@@ -194,7 +314,7 @@ test-component service="":
     @if [ -z "{{service}}" ]; then \
         ./gradlew componentTest --no-daemon; \
     else \
-        ./gradlew "$(just _resolve {{service}}):componentTest" --no-daemon; \
+        ./gradlew "$(just _gradle-path {{service}}):componentTest" --no-daemon; \
     fi
 
 # Run one integration context end-to-end against **bp-dsk**, on demand (WS-R1 T5) —
@@ -279,14 +399,24 @@ it-bp-dsk-all olymp_dir=env_var_or_default("OLYMP_DIR", "~/Dev/collite-gh/olymp"
 validate-charts mode="check":
     ./shared/charts/validate.sh {{mode}}
 
-# ktlint check across all modules + the Hebe detekt pass (the mutation-funnel
-# rule — every state change must flow through ToolDispatcher.dispatch). The
-# `detekt` task only exists on the `:agents:hebe:` modules (they alone apply the
-# detekt plugin), so this runs the custom rule against the Hebe sources only.
-lint-all:
-    ./gradlew ktlintCheck detekt --no-daemon
+# ktlint check across every module, or one — plus the Hebe detekt pass on a
+# bare (whole-repo) invocation (the mutation-funnel rule — every state change
+# must flow through ToolDispatcher.dispatch; `detekt` only exists on the
+# `:agents:hebe:` modules, so it's skipped for a single-module invocation).
+# Usage: `just lint-kt` / `just lint-kt themis` / `just lint-kt agents/themis`.
+# Autofix: `just fmt` (whole repo — no single-module form).
+lint-kt module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then ./gradlew ktlintCheck detekt --no-daemon
+    else
+        path=$(just _resolve "{{module}}")
+        gradle_path=$(just _gradle-path "$path")
+        ./gradlew "${gradle_path}:ktlintCheck" --no-daemon
+    fi
 
-lint-kt:
+# ktlint autoformat + the Hebe detekt pass (whole repo — no single-module form).
+fmt:
     ./gradlew ktlintFormat detekt --no-daemon
 
 # --- Hebe (personal autonomous agent) ----------------------------------------
@@ -353,18 +483,47 @@ deploy-hebe id="dev":
 sysifos-dev:
     cd frontends/sysifos && (npm ci || npm install) && npm run codegen && npm run dev
 
-# Build one frontend (type-check + vite build). Usage: `just build-fe iris`
-build-fe service:
-    cd frontends/{{service}} && (npm ci || npm install) && npm run build
+# Build every frontend (type-check + vite build), or one (bare name or path).
+# Usage: `just build-fe` / `just build-fe iris` / `just build-fe frontends/iris`
+build-fe module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        for d in frontends/*/; do just build-fe "${d%/}"; done
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    cd "$path" && (npm ci || npm install) && npm run build
 
-# Run unit tests for one frontend (vitest, non-watch). Usage: `just test-fe iris`
-test-fe service:
-    cd frontends/{{service}} && (npm ci || npm install) && npx vitest run
+# Run unit tests for every frontend, or one (vitest, non-watch).
+# Usage: `just test-fe` / `just test-fe iris`
+test-fe module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        for d in frontends/*/; do just test-fe "${d%/}"; done
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    cd "$path" && (npm ci || npm install) && npx vitest run
 
-# Lint one frontend (oxlint + eslint, non-mutating check). Usage: `just lint-fe iris`
-lint-fe service:
-    cd frontends/{{service}} && (npm ci || npm install) && npx oxlint . && npx eslint .
+# Lint every frontend, or one (oxlint + eslint, non-mutating check).
+# Usage: `just lint-fe` / `just lint-fe iris`
+lint-fe module="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "{{module}}" ]; then
+        for d in frontends/*/; do just lint-fe "${d%/}"; done
+        exit 0
+    fi
+    path=$(just _resolve "{{module}}")
+    cd "$path" && (npm ci || npm install) && npx oxlint . && npx eslint .
 
+# Ad hoc LOCAL push to your own GHCR namespace — NOT the release flow. For
+# that, use `just publish <module>` (tags the repo; CI builds + pushes to
+# ghcr.io/collite/… via release-image.yml). This recipe exists for quick
+# iteration — push a throwaway `:testing` image without cutting a tag.
+#
 # Build + push a frontend's nginx image to GHCR (ghcr.io/boraperusic/<service>:<tag>).
 # Frontends are nginx images (NOT Jib) — the Dockerfile `COPY dist`, so we vite-build
 # first (dist is gitignored), then `docker build` the static-server image. bp-dsk is
@@ -383,22 +542,44 @@ publish-fe-image service tag="testing":
     docker push "ghcr.io/boraperusic/{{service}}:{{tag}}"
     @echo "✅ pushed ghcr.io/boraperusic/{{service}}:{{tag}} (linux/amd64)"
 
-# Create a new version tag for a module and push it to origin.
-# Tag format: `<module-name>/v<X.Y.Z>` (per AGENTS.md §11 + ai-platform convention).
+# ── publish — unified release entry point ───────────────────────────────────────
+#
+# Tags the repo; release-image.yml (tag-driven CI) builds the module's image
+# (Jib for Kotlin, Docker for Python/frontend — same lane auto-detection as
+# `just build`) and pushes it to ghcr.io/collite/<module>:<version>. This is
+# the RELEASE flow — for a throwaway local push without cutting a tag, use
+# `just publish-image` / `just publish-fe-image` instead (ghcr.io/boraperusic/…).
+#
+# Kantheon has no Maven/PyPI — GHCR is its only registry, and it's already
+# "internal" in the sense the other repos mean (no public/anonymous consumer).
+# So there's no RELEASE-vs-internal duality to gate here; `release` is still
+# accepted as a modifier (mirrors tatrman/tatrman-server's `just publish`
+# syntax) but only affects the tag's cosmetic `-RELEASE` suffix, which
+# release-image.yml strips before it ever becomes an image tag — the pushed
+# image is always the bare `x.y.z`, RELEASE-marked or not.
 #
 # Usage:
-#   just tag capabilities-mcp                 # bump patch on the latest tag (default)
-#   just tag capabilities-mcp minor           # bump minor
-#   just tag capabilities-mcp major           # bump major
-#   just tag capabilities-mcp set 0.1.0       # set explicit version
-#   just tag all patch                        # bump patch on every module
-tag module level="patch" version="":
+#   just publish capabilities-mcp                 # bump patch on the latest tag (default)
+#   just publish capabilities-mcp minor           # bump minor
+#   just publish capabilities-mcp major           # bump major
+#   just publish capabilities-mcp set 0.1.0       # set explicit version
+#   just publish tools/capabilities-mcp patch     # path form
+#   just publish all patch                        # bump patch on every module
+publish module a="patch" b="" c="":
     #!/usr/bin/env bash
     set -euo pipefail
 
     MODULE="{{module}}"
-    LEVEL="{{level}}"
-    CUSTOM_VERSION="{{version}}"
+    NEXT_A="{{a}}"
+    RELEASE=false
+    if [ "$NEXT_A" = "release" ]; then
+        RELEASE=true
+        LEVEL="${b:-patch}"
+        CUSTOM_VERSION="{{c}}"
+    else
+        LEVEL="$NEXT_A"
+        CUSTOM_VERSION="{{b}}"
+    fi
 
     if [[ "$LEVEL" != "major" && "$LEVEL" != "minor" && "$LEVEL" != "patch" && "$LEVEL" != "set" ]]; then
         echo "❌ Level must be 'major', 'minor', 'patch', or 'set'." >&2
@@ -406,7 +587,7 @@ tag module level="patch" version="":
     fi
 
     if [[ "$LEVEL" == "set" && -z "$CUSTOM_VERSION" ]]; then
-        echo "❌ 'set' requires a version. Usage: just tag <module> set 1.2.3" >&2
+        echo "❌ 'set' requires a version. Usage: just publish <module> set 1.2.3" >&2
         exit 1
     fi
 
@@ -422,7 +603,7 @@ tag module level="patch" version="":
             fi
         else
             echo "❌ Refusing to tag from branch '$BRANCH' in a non-interactive shell." >&2
-            echo "    Switch to main, or re-run with --yes: KANTHEON_TAG_FORCE=1 just tag ..." >&2
+            echo "    Switch to main, or re-run with --yes: KANTHEON_TAG_FORCE=1 just publish ..." >&2
             if [[ "${KANTHEON_TAG_FORCE:-}" != "1" ]]; then
                 exit 1
             fi
@@ -441,9 +622,11 @@ tag module level="patch" version="":
         local mod_name
         mod_name=$(basename "$mod_path")
 
-        # Latest existing tag: `<mod-name>/vX.Y.Z` — pick highest by `sort -V`.
+        # Single version line per module — a RELEASE tag always mints a brand-new
+        # number (never reuses one already spent by a bare tag), so the stripped
+        # RELEASE image tag never collides with an already-pushed one.
         local latest_tag
-        latest_tag=$(git tag -l "${mod_name}/v*" | sed "s|^${mod_name}/v||" | sort -V | tail -n 1 || true)
+        latest_tag=$(git tag -l "${mod_name}/v*" | sed -E "s|^${mod_name}/v||; s/-RELEASE\$//" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
 
         local new_version
         if [[ "$LEVEL" == "set" ]]; then
@@ -466,12 +649,14 @@ tag module level="patch" version="":
             new_version="${major}.${minor}.${patch}"
         fi
 
-        local new_tag="${mod_name}/v${new_version}"
-
-        if git rev-parse -q --verify "refs/tags/${new_tag}" >/dev/null; then
-            echo "❌ Tag ${new_tag} already exists. Aborting ${mod_name}." >&2
+        if git rev-parse -q --verify "refs/tags/${mod_name}/v${new_version}" >/dev/null || \
+           git rev-parse -q --verify "refs/tags/${mod_name}/v${new_version}-RELEASE" >/dev/null; then
+            echo "❌ Version ${new_version} already used (as a bare or RELEASE tag) for ${mod_name}. Aborting ${mod_name}." >&2
             return 1
         fi
+
+        local new_tag="${mod_name}/v${new_version}"
+        [ "$RELEASE" = true ] && new_tag="${new_tag}-RELEASE"
 
         echo "🏷️  Creating tag: ${new_tag}"
         git tag "${new_tag}"
@@ -479,7 +664,7 @@ tag module level="patch" version="":
         echo "🚀 Pushing tag to origin..."
         git push origin "${new_tag}"
 
-        echo "✅ Tagged and pushed ${new_tag}"
+        echo "✅ Tagged and pushed ${new_tag} — release-image.yml will build + push ghcr.io/collite/${mod_name}:${new_version}"
     }
 
     if [[ "$MODULE" == "all" ]]; then
@@ -496,16 +681,7 @@ tag module level="patch" version="":
         done
         echo "✅ All eligible modules tagged."
     else
-        # Resolve `MODULE` to its on-disk path. Mirrors `_resolve` but returns a path, not a Gradle coord.
-        if [[ "$MODULE" == */* ]]; then
-            mod_path="$MODULE"
-        else
-            mod_path=$(find agents tools frontends shared -maxdepth 4 -type d -name "$MODULE" -print -quit 2>/dev/null || true)
-        fi
-        if [[ -z "${mod_path:-}" || ! -d "$mod_path" ]]; then
-            echo "❌ Module '$MODULE' not found under agents/, tools/, frontends/, shared/libs/kotlin/." >&2
-            exit 1
-        fi
+        mod_path=$(just _resolve "$MODULE")
         tag_module "$mod_path"
     fi
 
@@ -523,7 +699,7 @@ tags:
 
 # Build a Jib image and deploy to local K3s.
 deploy-kt service:
-    ./gradlew "$(just _resolve {{service}}):jibDockerBuild" --no-daemon
+    ./gradlew "$(just _gradle-path {{service}}):jibDockerBuild" --no-daemon
     @path=$(find agents services workers tools frontends shared -maxdepth 4 -type d -name "{{service}}" -print -quit); \
     if [ -z "$path" ] || [ ! -d "$path/k8s/overlays/local" ]; then \
         echo "no k8s/overlays/local under $path — skipping kubectl apply"; \
@@ -534,6 +710,11 @@ deploy-kt service:
         kubectl -n kantheon rollout restart deployment/"${dep:-{{service}}}"; \
     fi
 
+# Ad hoc LOCAL push to your own GHCR namespace (ghcr.io/boraperusic/…) — NOT the
+# release flow. For that, use `just publish <module>` (tags the repo; CI builds
+# + pushes to ghcr.io/collite/… via release-image.yml). This recipe exists for
+# quick iteration — push a throwaway `:testing` image without cutting a tag.
+#
 # `jib` (not jibDockerBuild) pushes straight to the registry, and CI=true forces a multi-arch
 # (amd64+arm64) manifest so the amd64 bp-olymp01 node can pull. The image name defaults to the
 # module basename (theseus-mcp, theseus, brontes, …), matching the chart's image.repository — but
@@ -544,14 +725,13 @@ deploy-kt service:
 #   GHCR_USER=BoraPerusic GHCR_TOKEN=ghp_xxx just publish-image tools/theseus-mcp
 #   GHCR_USER=… GHCR_TOKEN=… just publish-image services/theseus v0.1.0            # explicit tag
 #   GHCR_USER=… GHCR_TOKEN=… just publish-image agents/themis testing themis-mcp   # image name ≠ dir
-# Push a Kotlin module's Jib image to GHCR (ghcr.io/boraperusic/<name>:<tag>, default :testing).
 publish-image service tag="testing" image="":
     @if [ -z "${GHCR_USER:-}" ] || [ -z "${GHCR_TOKEN:-}" ]; then \
         echo "❌ set GHCR_USER + GHCR_TOKEN (a PAT with write:packages) — e.g. GHCR_USER=BoraPerusic GHCR_TOKEN=ghp_… just publish-image {{service}}"; \
         exit 1; \
     fi
     img="{{image}}"; if [ -z "$img" ]; then img="$(basename {{service}})"; fi; \
-    CI=true ./gradlew "$(just _resolve {{service}}):jib" \
+    CI=true ./gradlew "$(just _gradle-path {{service}}):jib" \
         -Djib.to.image="ghcr.io/boraperusic/$img:{{tag}}" \
         -Djib.to.auth.username="$GHCR_USER" \
         -Djib.to.auth.password="$GHCR_TOKEN" \

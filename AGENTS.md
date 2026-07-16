@@ -96,7 +96,7 @@ just init                         # gradle wrapper + uv (frontends) + proto code
 
 # 4. Smoke-test the build
 just build-kt capabilities-mcp
-just test-all
+just test-kt
 ```
 
 Maven resolution during `just init` needs no credentials — `org.tatrman:*` comes from Maven Central (public). If you hit a resolution error, it is a network/version-pin issue, not auth. See [`docs/implementation/v1/_archive/aip-v1-gap-closure-plan.md`](./docs/implementation/v1/_archive/aip-v1-gap-closure-plan.md) Gap 1 for the historical (GitHub Packages PAT-based) recipe, now superseded by Central.
@@ -139,8 +139,8 @@ just deploy-fork               # (fork-era) read-spine deploy chain — see the 
 
 # Test
 just test-kt <module>          # per-module
-just test-all                  # full Kotest suite
-just lint-all                  # ktlint + detekt where wired
+just test-kt                   # full Kotest suite (bare = every module)
+just lint-kt                   # ktlint + detekt where wired (bare = every module)
 
 # Local infra teardown / logs
 just local-infra-logs
@@ -471,7 +471,7 @@ When writing code against a complex library, consult one of these **before** gue
 - **`args_json` not `args`.** Function-call args are JSON-string, not a typed proto. Validate against the caller's `ParamSpec`, don't bake the schema into the proto.
 - **Stage doc checkboxes drift.** Verify code state from `git log` and code inspection, not from `tasks-*.md` checkboxes (carried over from ai-platform habit). If you're closing a task, tick the box in the same commit.
 - **Maven resolution failure on first build.** No auth is involved — `org.tatrman:*` resolves from Maven Central (public, no PAT). A failure here is a network reachability or version-pin mismatch, not a 401. See §2.
-- **ktlint_official + Kotest = run `ktlintFormat` before "done".** The repo uses `ktlint_code_style = ktlint_official` (`.editorconfig`). Kotest's fluent idioms — `StringSpec({ ... })`, `a shouldBe b`, `Builder.newBuilder().setX().build()` chains — violate its `class-signature` and `chain-method-continuation` rules unless formatted. **Always run `./gradlew ktlintFormat` (or `just lint-all` and fix) before claiming a task complete** — newly-authored specs are the usual offender, and the violations are auto-fixable. Do *not* wave off `lint-all` red as an "inherited baseline": as of review-002 (2026-06-13) the repo is ktlint-green, so any red is something you (or a recent change) introduced. Forked ai-platform libs arrive pre-formatted and stay clean.
+- **ktlint_official + Kotest = run `ktlintFormat` before "done".** The repo uses `ktlint_code_style = ktlint_official` (`.editorconfig`). Kotest's fluent idioms — `StringSpec({ ... })`, `a shouldBe b`, `Builder.newBuilder().setX().build()` chains — violate its `class-signature` and `chain-method-continuation` rules unless formatted. **Always run `just fmt` (or `just lint-kt` and fix) before claiming a task complete** — newly-authored specs are the usual offender, and the violations are auto-fixable. Do *not* wave off `lint-kt` red as an "inherited baseline": as of review-002 (2026-06-13) the repo is ktlint-green, so any red is something you (or a recent change) introduced. Forked ai-platform libs arrive pre-formatted and stay clean.
 
 ### 12.1 Forked modules
 
