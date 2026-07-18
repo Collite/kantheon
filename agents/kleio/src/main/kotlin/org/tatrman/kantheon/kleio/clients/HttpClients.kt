@@ -106,7 +106,7 @@ class HttpKallimachosMcpClient(
 
 /**
  * Kleio → LLM-gateway grounded synthesis. Speaks the LLM gateway's OpenAI-shaped chat
- * surface — `POST /api/v1/chat/completions`, `{model, messages:[{role,content}]}`,
+ * surface — `POST /v1/chat/completions`, `{model, messages:[{role,content}]}`,
  * reply `{choices:[{message:{content}}]}` (with a top-level `content` fallback).
  * The prompt constrains the answer to the retrieved chunks and asks the model to
  * return `{"answer", "citedPartIds", "citedPageIds"}`; a parse failure yields the
@@ -146,7 +146,7 @@ class HttpKleioLlmClient(
             }
         val raw =
             http
-                .post("$llmGatewayBaseUrl/api/v1/chat/completions") {
+                .post("$llmGatewayBaseUrl/v1/chat/completions") {
                     contentType(ContentType.Application.Json)
                     setBody(body.toString())
                 }.bodyAsText()
