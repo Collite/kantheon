@@ -70,7 +70,7 @@ class GolemInvestmentBundleSpec :
                     .addAllTags(listOf("finance"))
                     .setFound(true)
                     .build()
-            val cap = ShemAssembler.assemble(overlay, listOf(area), investmentModel())
+            val cap = ShemAssembler.assemble(overlay, listOf(area), investmentModel(), "cs")
 
             cap.agentKind shouldBe AgentKind.AREA_QA
             cap.agentId shouldBe "golem-investment"

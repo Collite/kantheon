@@ -1,7 +1,9 @@
 package org.tatrman.kantheon.golem.shem
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -41,8 +43,11 @@ data class ShemSource(
 data class ShemOverlayBlock(
     val visibilityRoles: List<String> = emptyList(),
     val descriptionForRouter: String = "",
-    val exampleQuestions: List<String> = emptyList(),
-    val counterExamples: List<String> = emptyList(),
+    // BM-6: authored EITHER flat (`[...]`, locale-agnostic — golem-ucetnictvi precedent) OR per-locale
+    // (`{ en: [...], cs: [...] }`, bilingual Shems). Resolved to a flat list for the delivery locale at
+    // assembly (ShemAssembler, golem.locale). See [LocalizedStrings].
+    val exampleQuestions: LocalizedStrings = LocalizedStrings(),
+    val counterExamples: LocalizedStrings = LocalizedStrings(),
     val localeDefaults: List<LocaleDefaultYaml> = emptyList(),
     // Optional per-Shem tool capability refs, appended to the template constants by
     // [ShemAssembler]. Most Golems leave this empty (they reach data through the template
@@ -57,6 +62,44 @@ data class LocaleDefaultYaml(
     val dateFormat: String = "",
     val currency: String = "",
 )
+
+/**
+ * A Shem list field that is authored EITHER as a flat `List<String>` (locale-agnostic, the
+ * golem-ucetnictvi precedent) OR as a per-locale map `{ en: [...], cs: [...] }` (BM-6 bilingual
+ * Shems). [ShemAssembler] resolves it to one flat list for the delivery locale via [forLocale].
+ */
+data class LocalizedStrings(
+    val flat: List<String>? = null,
+    val byLocale: Map<String, List<String>> = emptyMap(),
+) {
+    /** Flat wins (locale-agnostic); else exact locale, else language prefix (cs ⇐ cs-CZ), else any, else empty. */
+    fun forLocale(locale: String): List<String> {
+        flat?.let { return it }
+        val lang = locale.substringBefore('-')
+        return byLocale[locale]
+            ?: byLocale[lang]
+            ?: byLocale.entries.firstOrNull { it.key.substringBefore('-') == lang }?.value
+            ?: byLocale.values.firstOrNull()
+            ?: emptyList()
+    }
+
+    companion object {
+        @JvmStatic
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        fun from(node: JsonNode): LocalizedStrings =
+            when {
+                node.isArray -> LocalizedStrings(flat = node.map { it.asText() })
+                node.isObject ->
+                    LocalizedStrings(
+                        byLocale =
+                            node.fields().asSequence().associate { (k, v) ->
+                                k to (if (v.isArray) v.map { e -> e.asText() } else emptyList())
+                            },
+                    )
+                else -> LocalizedStrings()
+            }
+    }
+}
 
 /**
  * Parses + lints a Golem pod's `kantheon.shem/v1` overlay YAML. Golem-local on

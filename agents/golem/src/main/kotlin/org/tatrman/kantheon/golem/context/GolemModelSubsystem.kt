@@ -36,6 +36,7 @@ class GolemModelSubsystem(
     private val velesClient: MetadataGrpcClient?,
     private val overlay: ShemOverlay? = null,
     private val areaResults: List<ResolveAreaResponse> = emptyList(),
+    private val locale: String = "cs",
 ) {
     private val resolvedAreas = AtomicReference(areaResults)
 
@@ -80,7 +81,7 @@ class GolemModelSubsystem(
         val ctx = shem ?: return
         val ov = overlay ?: return
         val model = packageContext?.currentOrNull() ?: return
-        ctx.update(ShemAssembler.assemble(ov, resolvedAreas.get(), model))
+        ctx.update(ShemAssembler.assemble(ov, resolvedAreas.get(), model, locale))
     }
 
     fun close() = velesClient?.close()
@@ -131,7 +132,7 @@ class GolemModelSubsystem(
             )
 
             // Placeholder Shem — overlay-only fields; model-derived fields fill in at load().
-            val shem = ShemContext(ShemAssembler.identity(overlay))
+            val shem = ShemContext(ShemAssembler.identity(overlay, locale = locale))
 
             val promptStore = PromptStore(shemDir = shemDir, locale = locale)
             log.info("Golem prompts mounted from {} (locale {})", shemDir, locale)
@@ -141,7 +142,7 @@ class GolemModelSubsystem(
                     "Shem '{}' loaded but golem.veles.host is unset — model will not load (prompts still mounted)",
                     shem.golemId,
                 )
-                return GolemModelSubsystem(shem, null, promptStore, null, overlay)
+                return GolemModelSubsystem(shem, null, promptStore, null, overlay, locale = locale)
             }
 
             // Resolve each area to its packages, union (deduped, order-preserving).
@@ -153,6 +154,7 @@ class GolemModelSubsystem(
                 velesClient = client,
                 overlay = overlay,
                 areaResults = areaResults,
+                locale = locale,
             )
         }
 

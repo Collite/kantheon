@@ -52,6 +52,7 @@ object ShemAssembler {
         overlay: ShemOverlay,
         areaResults: List<ResolveAreaResponse>,
         model: ModelSnapshot,
+        locale: String,
     ): AgentCapability {
         val areaEntities =
             model.entities
@@ -64,7 +65,7 @@ object ShemAssembler {
                 .filter { it.isNotBlank() }
                 .distinct()
 
-        return identityBuilder(overlay, areaResults)
+        return identityBuilder(overlay, areaResults, locale)
             // ── (2) model-derived ──
             .addAllAreaEntities(areaEntities)
             .addAllPreferredQueries(preferredQueries)
@@ -81,11 +82,13 @@ object ShemAssembler {
     fun identity(
         overlay: ShemOverlay,
         areaResults: List<ResolveAreaResponse> = emptyList(),
-    ): AgentCapability = identityBuilder(overlay, areaResults).build()
+        locale: String = "cs",
+    ): AgentCapability = identityBuilder(overlay, areaResults, locale).build()
 
     private fun identityBuilder(
         overlay: ShemOverlay,
         areaResults: List<ResolveAreaResponse>,
+        locale: String,
     ): AgentCapability.Builder {
         val id = overlay.source.id
         // Template refs + any per-Shem tool refs the overlay declares (e.g. midas.*:v1),
@@ -108,8 +111,8 @@ object ShemAssembler {
             // ── (3) overlay residue ──
             .addAllVisibilityRoles(overlay.overlay.visibilityRoles)
             .setDescriptionForRouter(descriptionForRouter(overlay, areaResults))
-            .addAllExampleQuestions(overlay.overlay.exampleQuestions)
-            .addAllCounterExamples(overlay.overlay.counterExamples)
+            .addAllExampleQuestions(overlay.overlay.exampleQuestions.forLocale(locale))
+            .addAllCounterExamples(overlay.overlay.counterExamples.forLocale(locale))
             .addAllLocaleDefaults(localeDefaults(overlay))
     }
 

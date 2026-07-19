@@ -62,7 +62,7 @@ class GolemErpBundleSpec :
                     .addAllTags(listOf("finance"))
                     .setFound(true)
                     .build()
-            val cap = ShemAssembler.assemble(overlay, listOf(area), accountingModel())
+            val cap = ShemAssembler.assemble(overlay, listOf(area), accountingModel(), "cs")
 
             cap.agentKind shouldBe AgentKind.AREA_QA
             cap.agentId shouldBe "golem-erp"

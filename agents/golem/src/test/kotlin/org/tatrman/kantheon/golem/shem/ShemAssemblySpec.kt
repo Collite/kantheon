@@ -23,7 +23,7 @@ class ShemAssemblySpec :
         val model = fixtureModel()
 
         "identity + template constants come from the overlay source + template" {
-            val cap = ShemAssembler.assemble(overlay, areas, model)
+            val cap = ShemAssembler.assemble(overlay, areas, model, "cs")
             cap.agentId shouldBe "golem-ucetnictvi"
             cap.displayName shouldBe "Účetnictví"
             cap.areaName shouldBe "accounting"
@@ -40,13 +40,13 @@ class ShemAssemblySpec :
         }
 
         "area_entities + preferred_queries are model-derived (entity / pattern-query localNames)" {
-            val cap = ShemAssembler.assemble(overlay, areas, model)
+            val cap = ShemAssembler.assemble(overlay, areas, model, "cs")
             cap.areaEntitiesList shouldContainExactly listOf("ucet", "obdobi", "hodnota")
             cap.preferredQueriesList shouldContainExactly listOf("zustatkyUctu", "nezauctovaneDoklady")
         }
 
         "area_terminology is best-effort — one TermDef per entity with a description or aliases" {
-            val cap = ShemAssembler.assemble(overlay, areas, model)
+            val cap = ShemAssembler.assemble(overlay, areas, model, "cs")
             // "hodnota" has neither description nor aliases → skipped.
             cap.areaTerminologyList.map { it.term } shouldContainExactly listOf("ucet", "obdobi")
             val ucet = cap.areaTerminologyList.single { it.term == "ucet" }
@@ -58,7 +58,7 @@ class ShemAssemblySpec :
         }
 
         "visibility_roles + the overlay router seed + examples are carried from the overlay" {
-            val cap = ShemAssembler.assemble(overlay, areas, model)
+            val cap = ShemAssembler.assemble(overlay, areas, model, "cs")
             cap.visibilityRolesList shouldContainExactly listOf("kantheon-area-accounting")
             cap.descriptionForRouter shouldContain "Účetnictví a navazující"
             cap.exampleQuestionsList.single() shouldContain "4902"
@@ -68,14 +68,14 @@ class ShemAssemblySpec :
 
         "description_for_router is seeded from the area(s) when the overlay omits it" {
             val minimal = ShemOverlayParser.parse(MINIMAL_OVERLAY_YAML)
-            val cap = ShemAssembler.assemble(minimal, areas, model)
+            val cap = ShemAssembler.assemble(minimal, areas, model, "cs")
             // seeded: "<area description> (<tags>)"
             cap.descriptionForRouter shouldBe "Účetnictví a navazující obchodní doklady (finance)"
         }
 
         "locale_defaults fall back to the template defaults when the overlay omits them" {
             val minimal = ShemOverlayParser.parse(MINIMAL_OVERLAY_YAML)
-            val cap = ShemAssembler.assemble(minimal, areas, model)
+            val cap = ShemAssembler.assemble(minimal, areas, model, "cs")
             cap.localeDefaultsList.map { it.locale } shouldContainExactly listOf("cs-CZ", "en")
             cap.localeDefaultsList.single { it.locale == "en" }.currency shouldBe "EUR"
         }
@@ -90,7 +90,7 @@ class ShemAssemblySpec :
                     resolveArea(description = "Accounting", tags = listOf("finance")),
                     resolveArea(description = "Sales", tags = emptyList()),
                 )
-            val cap = ShemAssembler.assemble(twoAreaOverlay, twoResults, model)
+            val cap = ShemAssembler.assemble(twoAreaOverlay, twoResults, model, "cs")
             cap.areaName shouldBe "accounting,sales"
             cap.descriptionForRouter shouldBe "Accounting (finance) Sales"
         }

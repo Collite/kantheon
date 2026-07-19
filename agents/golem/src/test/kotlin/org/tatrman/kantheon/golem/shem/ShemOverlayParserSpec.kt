@@ -26,8 +26,8 @@ class ShemOverlayParserSpec :
             o.source.areas shouldContainExactly listOf("accounting")
             o.overlay.visibilityRoles shouldContainExactly listOf("kantheon-area-accounting")
             o.overlay.descriptionForRouter shouldContain "Účetnictví"
-            o.overlay.exampleQuestions.single() shouldContain "4902"
-            o.overlay.counterExamples.single() shouldContain "marže"
+            o.overlay.exampleQuestions.forLocale("cs").single() shouldContain "4902"
+            o.overlay.counterExamples.forLocale("cs").single() shouldContain "marže"
             o.overlay.localeDefaults
                 .single()
                 .currency shouldBe "CZK"
@@ -37,7 +37,7 @@ class ShemOverlayParserSpec :
             val o = ShemOverlayParser.parse(MINIMAL_OVERLAY_YAML)
             o.source.id shouldBe "ucetnictvi"
             o.overlay.descriptionForRouter shouldBe ""
-            o.overlay.exampleQuestions.shouldBeEmpty()
+            o.overlay.exampleQuestions.forLocale("cs").shouldBeEmpty()
             o.overlay.localeDefaults.shouldBeEmpty()
         }
 
