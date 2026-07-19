@@ -82,6 +82,7 @@ private fun buildAnswerSurface(
                 host = config.getString("golem.llm-gateway.host"),
                 port = config.getInt("golem.llm-gateway.port"),
                 timeoutMs = config.getLong("golem.llm-gateway.timeout-ms"),
+                apiKey = config.getString("golem.llm-gateway.key"),
             ),
         )
     val promptExecutor = LlmGatewayPromptExecutor(llmClient)
@@ -93,9 +94,9 @@ private fun buildAnswerSurface(
             chipLlmTopupEnabled = config.getBoolean("golem.format.chipLlmTopupEnabled"),
             chipTopupTimeoutMs = config.getLong("golem.format.chipTopupTimeoutMs"),
         )
-    // Chip top-up via a CHEAP completion (haiku); failures degrade to no extra chips.
+    // Chip top-up via a CHEAP completion (generic "mini" tier); failures degrade to no extra chips.
     val llmTopup =
-        LlmTopupChips(formatConfig) { prompt -> llmClient.complete(prompt, model = "haiku").getOrNull() }
+        LlmTopupChips(formatConfig) { prompt -> llmClient.complete(prompt, model = "mini").getOrNull() }
     val formatEnricher = FormatEnricher(formatConfig, llmTopup)
     val deps =
         GolemGraphDeps(
