@@ -11,7 +11,13 @@ tatrman-translator        = "0.9.4"   # translate.v1 public (was 0.8.5 / proteus
 # The spine libs + proto stubs moved to tatrman-server (SV-P0); consumed as
 # org.tatrman:* artifacts from Maven Central (public). The GitHub Packages +
 # 0.0.1-LOCAL/mavenLocal interims are retired.
-tatrman-server            = "0.9.7"
+tatrman-server            = "0.9.4"
+# ttr-llm-client decoupled to 0.9.7 (golem gateway-2.0 cutover needs LlmGatewayEndpoint.apiKey +
+# the generic-tier executor). The rest of server-libs stays 0.9.4 because 0.9.7's ttr-server-proto
+# transitively pins ttr-plan-proto:0.9.6-rc01 (an RC absent from Maven Central) — ttr-llm-client has
+# NO proto deps (koog/ktor only), so it resolves cleanly at 0.9.7. (Fix the RC pin in tatrman-server
+# and re-cut server-libs to re-unify later.)
+tatrman-ttr-llm-client    = "0.9.7"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
@@ -298,7 +304,7 @@ tatrman-fuzzy-common                = { module = "org.tatrman:fuzzy-common",    
 tatrman-whois-common                = { module = "org.tatrman:whois-common",                             version.ref = "tatrman-server" }
 tatrman-keycloak-auth               = { module = "org.tatrman:keycloak-auth",                            version.ref = "tatrman-server" }
 tatrman-ttr-meta-client             = { module = "org.tatrman:ttr-meta-client",                          version.ref = "tatrman-server" }
-tatrman-ttr-llm-client              = { module = "org.tatrman:ttr-llm-client",                           version.ref = "tatrman-server" }
+tatrman-ttr-llm-client              = { module = "org.tatrman:ttr-llm-client",                           version.ref = "tatrman-ttr-llm-client" }
 tatrman-ttr-server-proto            = { module = "org.tatrman:ttr-server-proto",                         version.ref = "tatrman-server" }
 exposed-core                        = { module = "org.jetbrains.exposed:exposed-core",                    version.ref = "exposed" }
 exposed-jdbc                        = { module = "org.jetbrains.exposed:exposed-jdbc",                    version.ref = "exposed" }
