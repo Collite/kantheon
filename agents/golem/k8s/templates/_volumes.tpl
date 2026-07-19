@@ -21,6 +21,15 @@ on shem.configMapName. Byte-equivalent to the pre-library golem deployment.
         - name: shem
           configMap:
             name: {{ .Values.shem.configMapName }}
+            {{- with .Values.shem.items }}
+            # Optional key→path remap. ConfigMap keys can't contain '/', so a
+            # nested prompt bundle is packed with flat keys (e.g.
+            # prompts-en-intent.yaml) and re-nested here to prompts/en/intent.yaml
+            # — matching golem's PromptStore layout (<shemDir>/prompts/<locale>/…).
+            # Unset → the whole ConfigMap mounts flat (shem.yaml only), unchanged.
+            items:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
 {{- end }}
 {{- end -}}
 {{/*

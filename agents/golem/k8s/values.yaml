@@ -42,6 +42,16 @@ db:
 shem:
   configMapName: ""
   mountPath: /etc/golem/shem
+  # Optional ConfigMap key→path remap (Stage 3.3 T6). When the Shem bundle carries
+  # a nested prompt tree, pack it with flat keys (ConfigMap keys can't contain '/')
+  # and list the mapping here so the volume mounts them at the nested paths golem's
+  # PromptStore expects (prompts/<locale>/intent.yaml). Unset → flat mount (shem.yaml
+  # only). Example:
+  #   items:
+  #     - { key: shem.yaml, path: shem.yaml }
+  #     - { key: prompts-en-intent.yaml, path: prompts/en/intent.yaml }
+  #     - { key: prompts-cs-intent.yaml, path: prompts/cs/intent.yaml }
+  items: []
 
 # When a Shem is mounted (shem.configMapName set), an initContainer blocks Golem's start until
 # Veles's model is loaded (its /ready returns 503 until then) — Golem resolves its area→packages
