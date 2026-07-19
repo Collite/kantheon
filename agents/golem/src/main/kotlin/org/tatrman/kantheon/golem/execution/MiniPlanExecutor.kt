@@ -17,6 +17,7 @@ import org.tatrman.kantheon.golem.v1.QueryNode
 import org.tatrman.kantheon.golem.v1.ResourceUsage
 import org.tatrman.kantheon.golem.v1.Status
 import org.tatrman.kantheon.golem.v1.StepRecord
+import org.tatrman.meta.v1.Language
 import java.time.Instant
 import java.util.UUID
 
@@ -197,7 +198,17 @@ class MiniPlanExecutor(
                         throw ParamFillNeededException(name, label)
                     }
                 }
-            return RanQuery(queryClient.query(source, q.sourceLanguage, paramsJson, rowCap, bearer), source)
+            // A resolved pattern's language is a model property (SQL for every hartland query),
+            // not the LLM's to guess. Honouring q.sourceLanguage here sent SQL patterns as
+            // "transdsl" → translator_rejected → 0 rows (Stage 3.3 T7). Use the pattern's own
+            // language; fall back to the plan value only if the model left it unspecified.
+            val patternLanguage =
+                pq.sourceLanguage
+                    .takeIf { it != Language.LANGUAGE_UNSPECIFIED }
+                    ?.name
+                    ?.lowercase()
+                    ?: q.sourceLanguage
+            return RanQuery(queryClient.query(source, patternLanguage, paramsJson, rowCap, bearer), source)
         }
         // Raw source (free-SQL / composer-emitted SQL): no typed parameter rail.
         val source = q.source

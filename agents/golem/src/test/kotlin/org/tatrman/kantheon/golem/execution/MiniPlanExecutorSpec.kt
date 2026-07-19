@@ -9,6 +9,7 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.tatrman.meta.v1.Language
 import org.tatrman.meta.v1.ModelBundle
 import org.tatrman.meta.v1.ModelBundleQuery
 import org.tatrman.meta.v1.ObjectDescriptor
@@ -84,12 +85,14 @@ private fun modelWith(
     patternId: String,
     sourceText: String,
     params: List<QueryParameterDef> = emptyList(),
+    sourceLanguage: Language = Language.SQL,
 ): ModelSnapshot {
     val q =
         ModelBundleQuery
             .newBuilder()
             .setObjectDescriptor(ObjectDescriptor.newBuilder().setLocalName(patternId))
             .setSourceText(sourceText)
+            .setSourceLanguage(sourceLanguage)
             .addAllParameters(params)
             .build()
     return ModelSnapshot.from(ModelBundle.newBuilder().addPatternQueries(q).build())
@@ -175,6 +178,42 @@ class MiniPlanExecutorSpec :
                 table.columnsMap["amount"]!!.alignment shouldBe "right"
                 table.columnsMap.containsKey("invoice") shouldBe false
                 result.stepRecords.map { it.status } shouldBe listOf("COMPLETED", "COMPLETED")
+            }
+        }
+
+        "a resolved PATTERN dispatches with the model's language, not the LLM's node guess" {
+            runTest {
+                // The model says the pattern is SQL; the LLM node mislabels it "transdsl".
+                // Golem must honour the pattern's own language (regression: sending SQL as
+                // transdsl → translator_rejected → 0 rows, Stage 3.3 T7).
+                val client = FakeQueryClient()
+                val model =
+                    modelWith("channelRevenue", "SELECT 1", sourceLanguage = Language.SQL)
+                val p =
+                    plan(
+                        PlanSource.PATTERN,
+                        queryNode("q1", patternId = "channelRevenue", sourceLanguage = "transdsl"),
+                        renderNode("r1", "q1"),
+                    )
+                val result = MiniPlanExecutor(client).execute(p, request(), model, bearer = "tok")
+
+                result.status shouldBe Status.STATUS_DONE
+                client.queries.single().language shouldBe "sql"
+            }
+        }
+
+        "a resolved PATTERN with an unspecified model language falls back to the node's value" {
+            runTest {
+                val client = FakeQueryClient()
+                val model =
+                    modelWith("q", "SELECT 1", sourceLanguage = Language.LANGUAGE_UNSPECIFIED)
+                val p =
+                    plan(
+                        PlanSource.PATTERN,
+                        queryNode("q1", patternId = "q", sourceLanguage = "transdsl"),
+                    )
+                MiniPlanExecutor(client).execute(p, request(), model, bearer = "tok")
+                client.queries.single().language shouldBe "transdsl"
             }
         }
 
