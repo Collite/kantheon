@@ -120,7 +120,10 @@ object PatternParameterRail {
     private fun parseArgs(rawArgsJson: String): Map<String, Any?> {
         if (rawArgsJson.isBlank() || rawArgsJson == "{}") return emptyMap()
         val obj = runCatching { json.parseToJsonElement(rawArgsJson).jsonObject }.getOrNull() ?: return emptyMap()
-        return obj.mapValues { (_, el) -> jsonScalar(el) }
+        // A key present with an explicit JSON `null` is semantically "not provided" — drop it so the
+        // missing-required gate fires (→ param_fill) rather than binding null and running under-bound.
+        // Some composers (notably gpt-5) emit {"year_from": null} instead of omitting the key.
+        return obj.filterValues { it !is JsonNull }.mapValues { (_, el) -> jsonScalar(el) }
     }
 
     private fun jsonScalar(el: kotlinx.serialization.json.JsonElement): Any? =
