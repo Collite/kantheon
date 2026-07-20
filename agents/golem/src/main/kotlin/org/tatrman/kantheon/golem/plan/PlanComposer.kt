@@ -78,8 +78,16 @@ class PlanComposer(
         val resolution = request.resolvedIntent
         val bindings =
             """{"function_id":"${resolution.functionId}","args":${resolution.argsJson.ifBlank { "{}" }}}"""
+        // Render each pattern WITH its declared parameters (name:type, `?` = optional) so the composer
+        // uses the exact declared names in params_json. Without this the placeholder was pattern ids only,
+        // so the model had to GUESS parameter names — a strong reasoner (gpt-5) would "helpfully" rename or
+        // merge them (e.g. year_from+year_to → date_range), which then fails plan validation.
         val patterns =
-            model?.patternQueries?.joinToString("\n") { "- ${it.objectDescriptor.localName}" }?.ifBlank { "(none)" }
+            model?.patternQueries?.joinToString("\n") { pq ->
+                val params =
+                    pq.parametersList.joinToString(", ") { p -> "${p.name}:${p.type}${if (p.optional) "?" else ""}" }
+                "- ${pq.objectDescriptor.localName}(${params})"
+            }?.ifBlank { "(none)" }
                 ?: "(model not loaded)"
         val schema =
             model?.let { snap ->
