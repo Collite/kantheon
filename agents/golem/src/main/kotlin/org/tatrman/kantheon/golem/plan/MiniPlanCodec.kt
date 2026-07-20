@@ -64,7 +64,10 @@ object MiniPlanCodec {
                 .setSourceLanguage(strOrEmpty(q, "source_language"))
                 .setParamsJson(paramsJson(q["params_json"]))
                 .setCompileFirst(q["compile_first"]?.jsonPrimitive?.booleanOrNull ?: false)
-        strOrNull(q, "pattern_id")?.let { b.patternId = it }
+        // Defensive: the composer may echo the rendered catalog line `id(name:type, …)` as the id
+        // (gpt-5 does this intermittently). The pattern id is only the name before any `(` — strip a
+        // params suffix so it still resolves against the model.
+        strOrNull(q, "pattern_id")?.let { b.patternId = it.substringBefore('(').trim() }
         return b.build()
     }
 
