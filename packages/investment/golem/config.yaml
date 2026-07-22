@@ -1,0 +1,20 @@
+# Golem-Investment config — the package's agentic face (FO-12; seam C-3).
+#
+# PLACEHOLDER (schemaVersion 1). The CONTENTS schema of this file is KANTHEON-OWNED (golem template
+# mechanics) and has been requested via the C-3 seam round-trip — it is not yet delivered. FO validates
+# only the ENVELOPE (presence + schemaVersion, declared in ../package.yaml). This placeholder holds the
+# shape's intent until Kantheon delivers the real C-3 schema.
+#
+# FO-P4: replace with the Kantheon-owned golem-config once the C-3 contents schema lands.
+schemaVersion: 1
+face: golem-investment
+
+# The agentic face instantiates over the SAME model/canon/plugins as the deterministic entry face — one
+# domain identity, two faces (FO-12 μ-2). A golem is a journal client: any data change it proposes exits
+# as a §5 batch (source.type="agent") through the entry door — no privileged write path (seam C-1).
+model: investment
+tools:
+  - conseq-distrinfo   # propose batches from a DistrInfo pull
+  - twr                # answer performance questions from canon-functions
+  - mwr
+  - fifo

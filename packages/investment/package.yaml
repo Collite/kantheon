@@ -1,0 +1,28 @@
+# Investment domain package (FO-24) — the manifest (FO contracts §15, validated by
+# @tatrman/package-sdk's package-manifest.schema.json). The first package; it proves the SDK.
+# Supersedes the Midas app (FO-12); Golem-Investment is its agentic face (golem slot below).
+package: investment
+version: 0.1.0
+
+model: ./model/                  # TTR-M: clients·portfolios (scd2) · assets·prices (scd1) · transactions (ledger) · positions
+canon: ./canon/                  # TTR-P: <txn_book>-entry-apply — cash-leg derivation, ledger corrections
+forms: ./forms/                  # ttrl authored overrides (generated defaults otherwise)
+
+plugins:
+  # Proposal-source parsers (§13) — statement/book loaders → §5 batches. Conseq re-homes here (⚑R-2).
+  - { id: conseq-distrinfo, type: proposal-source, artifact: "@investment/parsers@0.1.0" }
+  - { id: excel-book,       type: proposal-source, artifact: "@investment/parsers@0.1.0" }
+  # Canon-functions (§3) — exotic calc beyond TTR-P, pure + versioned (P-3).
+  - { id: twr,  type: canon-function, artifact: "@investment/calc@0.1.0", determinism: pure }
+  - { id: mwr,  type: canon-function, artifact: "@investment/calc@0.1.0", determinism: pure }
+  - { id: fifo, type: canon-function, artifact: "@investment/calc@0.1.0", determinism: pure }
+
+connectors: []
+
+# Agentic-face slot (C-3) — schemaVersion is the FO-validated envelope; config.yaml CONTENTS schema is
+# Kantheon-owned (requested via the C-3 seam; versioned placeholder until delivered).
+golem:
+  config: ./golem/config.yaml
+  schemaVersion: 1
+
+reconciliation: ./recon.yaml     # §14 broker-statement reconciliation config
