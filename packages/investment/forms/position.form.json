@@ -1,0 +1,15 @@
+{
+  "kind": "tatrman.ttrl.row-entry-form",
+  "version": "1",
+  "target": { "table": "investment.position" },
+  "semantics": "scd2",
+  "readOnly": false,
+  "fields": [
+    { "name": "portfolio_ref", "label": "Portfolio", "control": "lookup", "required": true, "readOnly": false, "key": true, "lookup": { "refTable": "portfolio", "refColumn": "external_id" } },
+    { "name": "asset_ref", "label": "Asset", "control": "lookup", "required": true, "readOnly": false, "key": true, "lookup": { "refTable": "asset", "refColumn": "isin" } },
+    { "name": "valuation_date", "label": "Valuation date", "control": "date", "required": true, "readOnly": false, "key": true },
+    { "name": "quantity", "label": "Quantity", "control": "number", "required": true, "readOnly": false, "key": false },
+    { "name": "market_value", "label": "Market value", "control": "number", "required": true, "readOnly": false, "key": false }
+  ],
+  "effectiveDate": { "name": "effectiveDate", "label": "Effective date", "required": true }
+}

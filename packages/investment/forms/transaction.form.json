@@ -1,0 +1,18 @@
+{
+  "kind": "tatrman.ttrl.row-entry-form",
+  "version": "1",
+  "target": { "table": "investment.transaction" },
+  "semantics": "ledger",
+  "readOnly": false,
+  "fields": [
+    { "name": "external_id", "label": "Transaction ref", "control": "text", "required": true, "readOnly": false, "key": true },
+    { "name": "portfolio_ref", "label": "Portfolio", "control": "lookup", "required": true, "readOnly": false, "key": false, "lookup": { "refTable": "portfolio", "refColumn": "external_id" } },
+    { "name": "asset_ref", "label": "Asset", "control": "lookup", "required": true, "readOnly": false, "key": false, "lookup": { "refTable": "asset", "refColumn": "isin" } },
+    { "name": "leg", "label": "Leg (security · cash · external-flow)", "control": "text", "required": true, "readOnly": false, "key": false },
+    { "name": "operation", "label": "Operation (buy · sell · credit · debit · deposit · withdrawal)", "control": "text", "required": true, "readOnly": false, "key": false },
+    { "name": "trade_date", "label": "Trade date", "control": "date", "required": true, "readOnly": false, "key": false },
+    { "name": "quantity", "label": "Quantity", "control": "number", "required": false, "readOnly": false, "key": false },
+    { "name": "amount", "label": "Amount", "control": "number", "required": true, "readOnly": false, "key": false },
+    { "name": "currency", "label": "Currency", "control": "text", "required": true, "readOnly": false, "key": false }
+  ]
+}

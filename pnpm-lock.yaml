@@ -6,6 +6,18 @@ settings:
 
 importers:
 
+  packages/investment/plugins/calc:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.1)
+
   packages/investment/plugins/parsers:
     devDependencies:
       '@types/node':
