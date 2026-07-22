@@ -1,0 +1,7 @@
+# Domain-package plugin workspace (FO-P4, Bora 2026-07-22). Scoped to the content packages' TS plugins
+# ONLY — the Vue frontends (frontends/iris, frontends/landing) manage themselves and are deliberately
+# NOT included. A package's plugins build against the published open SDK alone (cert lever, FO-23).
+packages:
+  - 'packages/*/plugins/*'
+allowBuilds:
+  esbuild: true
