@@ -4,19 +4,26 @@ The first Tatrman domain package. FO-P4 S3 — **being populated**. Supersedes t
 same model/canon/plugins power two faces: the deterministic **entry** face (Studio Data Entry, FO-P3)
 and the agentic **Golem-Investment** face (from `golem/config.yaml`).
 
-## Status (2026-07-21)
+## Status (2026-07-23) — **S3 v0 complete, Verify PASS**
 
 ```
 investment/
-  package.yaml        # ✅ manifest (§15) — VALIDATES against @tatrman/package-sdk's schema
-  model/              # ✅ TTR-M book: parties (client·portfolio scd2, consultant canon) ·
+  package.yaml        # ✅ manifest (§15) — VALIDATES against @tatrman/package-sdk's schema (real file)
+  model/              # ✅ TTR-M book: parties (client·portfolio scd2, consultant canon) ·      (S3.T2)
   │                   #    instruments (asset·asset_price scd1) · book (transaction ledger, position scd2)
-  canon/              # ◑ transaction-entry-apply: cash-leg derivation ✅ PROVEN (S3.T3); ledger corrections + cash cascade pending
-  forms/              # ☐ authored ttrl overrides                                          (S3.T6)
-  plugins/            # ☐ conseq-distrinfo + excel-book parsers · twr/mwr/fifo             (S3.T4/T5 — home TBD)
+  canon/              # ◑ transaction-entry-apply: cash-leg derivation ✅ PROVEN live (S3.T3); ledger corrections + cash cascade pending
+  forms/              # ✅ transaction·position authored ttrl overrides                          (S3.T6)
+  plugins/            # ✅ @investment/parsers (conseq-distrinfo·excel-book·csv, 3/3) ·          (S3.T4/T5)
+  │                   #    @investment/calc (twr·mwr·fifo, 11/11) — home RESOLVED (kantheon pnpm workspace, 2026-07-22)
   golem/config.yaml   # ✅ slot placeholder (C-3 contents schema Kantheon-owned, requested)
   recon.yaml          # ✅ broker-statement reconciliation config (§14)
 ```
+
+**S3 Verify (2026-07-23, senior2):** package CI green (parsers 3/3 · calc 11/11 · SDK 10/10 · loader 8/8
+incl. third-party cert-lever · reconciliation BUILD SUCCESSFUL · cash-leg round-trip 2/2); the real
+`package.yaml` validates against the built SDK schema; B-F6 §5 decomposition fully accounted. Only `canon/`
+stays ◑ — the cash-leg derivation is proven; ledger-correction cash-cascade awaits the leg-correlation
+decision (below). Loader→live-registry wiring is seam-level (in-memory fakes) until S4 + the ⚑2 publish cut.
 
 ## Open gaps (flagged to Bora at S3 kickoff)
 
@@ -33,10 +40,12 @@ investment/
   (tatrman-platform `EntryCashLegRoundTripSpec`, on `fo`). **Remaining:** the `cash-operation`/`cash-ref`
   functions land in the plugin home (T4/T5, below); ledger-correction cash-cascade needs a leg-correlation
   decision for the simplified `transaction` shape (legacy used `correlation_id`).
-- **Canon-functions (T5):** TWR/MWR/FIFO (exotic calc) remain TTR-P canon-functions, home TBD (below).
-- **Plugin package home (T4/T5):** `@investment/parsers` / `@investment/calc` are TS npm packages, but
-  kantheon has no pnpm workspace (Gradle + Vue frontends). Where the plugin code lives is a structural
-  decision for Bora.
+- **Canon-functions (T5):** ✅ **DONE.** TWR/MWR/FIFO ship as `@investment/calc` `CanonFunction` SPI impls
+  (pure, versioned P-3), 11/11 green. Property tests vs Midas-known results pending a Midas fixture corpus.
+- **Plugin package home (T4/T5):** ✅ **RESOLVED (Bora, 2026-07-22).** `@investment/parsers` / `@investment/calc`
+  live in-kantheon at `packages/investment/plugins/*` under the new `kantheon/pnpm-workspace.yaml` (globs
+  `packages/*/plugins/*` — content-package TS plugins only, Vue frontends excluded). Cert-lever discipline
+  preserved: each plugin builds against the open SDK via a local `sdk-shim.ts` (RO-6), no kantheon-internal dep.
 
 **Provenance:** the Conseq DistrInfo loader (`../../features/midas/conseq`, ⚑R-2) re-homes here as the
 `conseq-distrinfo` proposal-source parser once the plugin home is decided; entity mapping + corpus carry over.
