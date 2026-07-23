@@ -18,6 +18,9 @@ tatrman-server            = "0.9.4"
 # NO proto deps (koog/ktor only), so it resolves cleanly at 0.9.7. (Fix the RC pin in tatrman-server
 # and re-cut server-libs to re-unify later.)
 tatrman-ttr-llm-client    = "0.9.7"
+# The ⑤ validator SPI (org.tatrman:ttr-validator-spi) from Maven Central — the open C-5-i plugin contract
+# the llm-guard plugin implements (published via tatrman `just publish bundle validator`).
+tatrman-ttr-validator-spi = "0.10.0"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
@@ -305,6 +308,7 @@ tatrman-whois-common                = { module = "org.tatrman:whois-common",    
 tatrman-keycloak-auth               = { module = "org.tatrman:keycloak-auth",                            version.ref = "tatrman-server" }
 tatrman-ttr-meta-client             = { module = "org.tatrman:ttr-meta-client",                          version.ref = "tatrman-server" }
 tatrman-ttr-llm-client              = { module = "org.tatrman:ttr-llm-client",                           version.ref = "tatrman-ttr-llm-client" }
+tatrman-ttr-validator-spi           = { module = "org.tatrman:ttr-validator-spi",                        version.ref = "tatrman-ttr-validator-spi" }
 tatrman-ttr-server-proto            = { module = "org.tatrman:ttr-server-proto",                         version.ref = "tatrman-server" }
 exposed-core                        = { module = "org.jetbrains.exposed:exposed-core",                    version.ref = "exposed" }
 exposed-jdbc                        = { module = "org.jetbrains.exposed:exposed-jdbc",                    version.ref = "exposed" }

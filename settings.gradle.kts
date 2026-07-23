@@ -160,3 +160,7 @@ include(":tools:kallimachos-mcp")
 
 // Stream B — Kleio (kleio/plan.md P5). The NotebookLM agent over a mart.
 include(":agents:kleio")
+
+// PL-P4.S2.T5 — the LLM-guard validator plugin: kantheon implementing the OPEN org.tatrman:ttr-validator-spi
+// (contracts §9) is the P2 clarification made real (a third party ships a plugin on the platform's contract).
+include(":plugins:llm-guard")
