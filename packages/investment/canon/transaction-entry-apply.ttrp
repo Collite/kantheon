@@ -1,0 +1,44 @@
+// transaction-entry-apply — the investment book's apply canon (FO-P4 S3.T3, the FO-8 flagship).
+//
+// Derivation-as-canon: the cash counter-leg that Sysifos hardcoded in Kotlin
+// (midas-core/derivation/CashLegDerivation.kt, contracts §1.1.A) is now reviewable, deterministic
+// TTR-P — the author proposes the SECURITY leg of a trade and this program DERIVES the CASH leg.
+// Ledger corrections are reverse-and-replace, derived from `change-semantics: ledger` (FO-9) — this
+// program hand-codes no reversal (the `entry` stdlib lowers it from the md declaration).
+//
+// ⚠ SURFACE PROVISIONAL — the verb/derive spelling pins on PL's PLA-2 ratification (contracts §1;
+//   `// EN: surface pins on PLA-2`). The SHAPE below is frozen and PROVEN: the structured form drives
+//   the real `entry` toolchain (ttrp-graph ENTRY_LOWERING → ttrp-emit) and round-trips through the live
+//   FO-P2 ApplyDoor on Postgres — see tatrman-platform `EntryCashLegRoundTripSpec` (propose the security
+//   leg → the security row + the derived cash-debit row both commit; byte-equal replay). Only the text
+//   syntax here is provisional; swap it for the ratified spelling when PLA-2 lands, no logic change.
+
+import entry.*
+
+apply transaction insert-rows(rows) {
+
+    // The cash counter-leg (ED contracts §7 derive-row). One economic trade = sibling `transaction`
+    // rows keyed by `leg`; the proposed row is the security leg, this is its cash side.
+    // S3.T3 ruling (Bora, 2026-07-23): NO cash-account modelling in v0 — `asset_ref` and `quantity` are
+    // omitted (null); the `leg='cash'` discriminator + `currency` identify the cash side. A reserved
+    // ASSET_CASH-per-currency convention is a later revisit if positions need a cash line.
+    derive-row transaction {
+        leg           = 'cash',
+        // buy → cash out (debit); sell → cash in (credit); dividend/interest/deposit → credit;
+        // fee/tax/withdrawal → debit. The map is a pure canon-function (manifest §15 `cash-operation`).
+        operation     = call-fn("cash-operation", operation),
+        // a distinct, traceable code for the derived leg (`<external_id>-cash`).
+        external_id   = call-fn("cash-ref", external_id),
+        // copied from the security leg: same booking, same money magnitude (sign lives in `operation`).
+        portfolio_ref = portfolio_ref,
+        trade_date    = trade_date,
+        amount        = amount,
+        currency      = currency
+        // asset_ref, quantity, sk, reversal_of: omitted → null / ledger-serial (v0, per the ruling).
+    }
+}
+
+// Corrections (not shown as surface here): `reverse-and-replace(keyed-rows)` — the ledger semantics the
+// `entry` stdlib derives from `change-semantics: ledger` (the `-rev<n>`/`-rep<n>` F3 id scheme). A
+// correction to a security leg reverses+replaces it; the cash-leg cascade rides the same canon once the
+// leg-correlation model (legacy `correlation_id`) is settled for the simplified `transaction` shape.

@@ -1,0 +1,68 @@
+package investment
+
+model book
+
+// The investment book — parties (D-5-style ER). Ported from the Midas operational model + the Conseq
+// entity mapping (features/midas/conseq/wiki/02-entity-mapping.md). Change-semantics are DECLARED here
+// and the apply program DERIVES the mechanics — nobody hand-codes SCD2 (FO-9).
+//
+// NOTE (md toolchain): `management` + `change-semantics` + the `valid-from`/`valid-to`/`reversal-link`
+// attribute roles are the FO-P2-ratified md declarations (demand-specs/ttrm-md-declarations.md). Their
+// md-grammar support is the standing stub-carry (fixture-stubbed through FO-P2/P3); these files author
+// the ratified surface and parse once the md toolchain half lands. FO-P4: md-grammar delivery.
+
+def entity client {
+    description: "Clients — the investor of record. PII (name/email/tax) is effective-dated."
+    labelPlural: "Clients"
+    codeAttribute: external_id
+    nameAttribute: name
+    roles: [master, dimension]
+    management: data
+    change-semantics: scd2
+    displayLabel: { en: "Client", cs: "Klient" }
+    attributes: [
+        def attribute sk          { type: int, isKey: true },
+        def attribute external_id { type: text },
+        def attribute name        { type: text },
+        def attribute email       { type: text },
+        def attribute tax_country { type: { type: char, length: 2 } },
+        def attribute valid_from  { type: date, role: valid-from },
+        def attribute valid_to    { type: date, role: valid-to }
+    ]
+}
+
+def entity portfolio {
+    description: "Portfolios — a client's folder of assets (service + currency). Effective-dated state."
+    labelPlural: "Portfolios"
+    codeAttribute: external_id
+    nameAttribute: label
+    roles: [master, dimension]
+    management: data
+    change-semantics: scd2
+    displayLabel: { en: "Portfolio", cs: "Portfolio" }
+    attributes: [
+        def attribute sk           { type: int, isKey: true },
+        def attribute external_id  { type: text },
+        def attribute label        { type: text },
+        def attribute client_ref   { type: int },
+        def attribute base_currency { type: { type: char, length: 3 } },
+        def attribute state        { type: text },
+        def attribute valid_from   { type: date, role: valid-from },
+        def attribute valid_to     { type: date, role: valid-to }
+    ]
+}
+
+def entity consultant {
+    description: "Consultants — a reference dimension governed in the model (canon-managed, read-only in entry)."
+    labelPlural: "Consultants"
+    codeAttribute: consultant_id
+    nameAttribute: consultant_name
+    roles: [dimension]
+    management: canon
+    displayLabel: { en: "Consultant", cs: "Poradce" }
+    attributes: [
+        def attribute sk              { type: int, isKey: true },
+        def attribute consultant_id   { type: text },
+        def attribute consultant_name { type: text }
+    ]
+}

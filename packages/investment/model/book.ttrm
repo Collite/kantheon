@@ -1,0 +1,49 @@
+package investment
+
+model book
+
+// The transactional book. Transactions are an append-only LEDGER — corrections are reverse-and-replace
+// (Sysifos DNA), never in-place edits; the apply program derives that from `change-semantics: ledger`
+// via the `reversal-link` role (FO-9). Positions are effective-dated holdings (scd2).
+
+def entity transaction {
+    description: "Transactions — security/cash/external-flow legs. Ledger: corrections reverse-and-replace."
+    labelPlural: "Transactions"
+    codeAttribute: external_id
+    roles: [fact]
+    management: data
+    change-semantics: ledger
+    displayLabel: { en: "Transaction", cs: "Transakce" }
+    attributes: [
+        def attribute sk            { type: int, isKey: true },
+        def attribute external_id   { type: text },
+        def attribute portfolio_ref { type: int },
+        def attribute asset_ref     { type: int },
+        def attribute leg           { type: text },   // security | cash | external-flow
+        def attribute operation     { type: text },   // buy | sell | credit | debit | deposit | withdrawal
+        def attribute trade_date    { type: date },
+        def attribute quantity      { type: { type: decimal, length: 18, precision: 6 } },
+        def attribute amount        { type: { type: decimal, length: 18, precision: 2 } },
+        def attribute currency      { type: { type: char, length: 3 } },
+        // ledger role: a correction's reversal points at the original transaction (audit chain).
+        def attribute reversal_of   { type: text, role: reversal-link }
+    ]
+}
+
+def entity position {
+    description: "Positions — a portfolio's holding of an asset at a valuation date. Effective-dated."
+    labelPlural: "Positions"
+    roles: [fact]
+    management: data
+    change-semantics: scd2
+    displayLabel: { en: "Position", cs: "Pozice" }
+    attributes: [
+        def attribute portfolio_ref { type: int, isKey: true },
+        def attribute asset_ref     { type: int, isKey: true },
+        def attribute valuation_date { type: date, isKey: true },
+        def attribute quantity      { type: { type: decimal, length: 18, precision: 6 } },
+        def attribute market_value  { type: { type: decimal, length: 18, precision: 2 } },
+        def attribute valid_from    { type: date, role: valid-from },
+        def attribute valid_to      { type: date, role: valid-to }
+    ]
+}

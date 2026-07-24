@@ -1,0 +1,5 @@
+ContractId,ISIN,ValuationDate,Holding,MarketValue,ProductName
+C1,LU0000000001,2026-06-30,100,10500.00,Fund A
+C1,LU0000000002,2026-06-30,50,5000.00,Fund B
+C2,,2026-06-30,10,1000.00,Missing ISIN row
+C2,LU0000000003,2026-06-30,notnum,500.00,Bad Holding row

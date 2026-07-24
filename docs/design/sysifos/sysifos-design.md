@@ -1,5 +1,15 @@
 # Sysifos — v1 Design
 
+> **🔄 SUPERSEDED-PENDING (FO-12, 2026-07-23).** Sysifos (the bespoke data-entry app) is superseded by
+> **Studio Data Entry** (FO-P3) — the generic, md-derived entry surface over the one journal door (FO-8),
+> with the investment book authored as the `kantheon/packages/investment` package rather than app-specific
+> code. The Sysifos-DNA import UX (upload → diff preview → inline correction → commit) carries over as the
+> §13 proposal-source parsers (`@investment/parsers`, e.g. the Conseq DistrInfo loader, ⚑R-2).
+>
+> **No rug-pull (FO-12).** *Pending*, not deleted: Sysifos runs until each estate migrates to Studio Data
+> Entry — the cutover is the **LF-5 handoff** (Kantheon-side). Migration steps live with the Midas arc:
+> [`../../architecture/midas/migration-to-investment-package.md`](../../architecture/midas/migration-to-investment-package.md).
+>
 > **Status.** Locked design from the 2026-06-13 brainstorm session. Six load-bearing decisions taken (S1–S6, §13). Supersedes the thin Sysifos treatment inside the Midas arc — Sysifos becomes its **own arc** (S1); the Midas arc retains Midas-core, the loaders, reports, Golem-Investment, and dashboards.
 >
 > **Reads with.** [`sysifos-brief.md`](./sysifos-brief.md) (the ask), [`sysifos-brainstorming.md`](./sysifos-brainstorming.md) (how we got here), [`../../architecture/midas/contracts.md`](../../architecture/midas/contracts.md) (the Midas-core REST + `midas/v1` contracts Sysifos consumes — cited by section, never duplicated), [`../iris/iris-design.md`](../iris/iris-design.md) (the sibling surface this one is deliberately *not* shaped like).

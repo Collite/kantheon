@@ -1,0 +1,39 @@
+package investment
+
+model book
+
+// Instruments + market data. Assets are shared across portfolios (ISIN is the natural key); prices are
+// distributor-wide. Overwrite-on-change (scd1) — no history kept for reference attributes.
+
+def entity asset {
+    description: "Assets — securities held across portfolios. ISIN is the global key."
+    labelPlural: "Assets"
+    codeAttribute: isin
+    nameAttribute: name
+    roles: [master, dimension]
+    management: data
+    change-semantics: scd1
+    displayLabel: { en: "Asset", cs: "Aktivum" }
+    attributes: [
+        def attribute sk       { type: int, isKey: true },
+        def attribute isin     { type: { type: char, length: 12 } },
+        def attribute name     { type: text },
+        def attribute asset_class { type: text },
+        def attribute currency { type: { type: char, length: 3 } }
+    ]
+}
+
+def entity asset_price {
+    description: "Asset prices — distributor-wide market data, keyed by (ISIN, date)."
+    labelPlural: "Asset Prices"
+    roles: [fact]
+    management: data
+    change-semantics: scd1
+    displayLabel: { en: "Asset Price", cs: "Cena aktiva" }
+    attributes: [
+        def attribute isin  { type: { type: char, length: 12 }, isKey: true },
+        def attribute price_date { type: date, isKey: true },
+        def attribute price { type: { type: decimal, length: 18, precision: 6 } },
+        def attribute currency { type: { type: char, length: 3 } }
+    ]
+}

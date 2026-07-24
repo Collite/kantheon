@@ -1,5 +1,17 @@
 # Midas — Solution Architecture (kantheon arc, Phases 1–3)
 
+> **🔄 SUPERSEDED-PENDING (FO-12, 2026-07-23).** Midas-as-an-app is superseded by the **investment domain
+> package** (`kantheon/packages/investment` — one TTR-M model + TTR-P canon + ttrl forms + plugins + golem
+> slot), whose two faces replace this arc's surfaces: the deterministic **Studio Data Entry** face (FO-P3)
+> supersedes Sysifos, and the **Golem-Investment** agentic face (the package's `golem/config.yaml`, seam
+> C-1) supersedes the standalone Midas-core agent. The cash-leg derivation this arc hardcoded in Kotlin
+> (`CashLegDerivation`, contracts §1.1.A) is now reviewable TTR-P (`packages/investment/canon/transaction-entry-apply.ttrp`, FO-P4 S3.T3).
+>
+> **No rug-pull (FO-12).** This is *pending*, not deleted: Midas-core, the loaders, and Sysifos keep
+> running on any live estate until that estate is migrated — the cutover is the **LF-5 handoff** wake
+> condition (Kantheon-side), NOT this document's retirement. Until LF-5 fires, this architecture remains
+> the authority for the running Midas estate. Migration steps: [`./migration-to-investment-package.md`](./migration-to-investment-package.md).
+>
 > **Scope.** This document describes the kantheon-side architecture for the Midas arc — the brokerage-domain agent constellation. The arc is **consolidated**: it covers Midas-core, Midas loaders, the kantheon-owned operational Postgres, Golem-Investment, the new Sysifos data-entry app (BFF + FE), the `report-renderer` service, and Iris's dashboard-system extensions, all in one arc. The ai-platform PostgreSQL worker is a parallel-track dependency tracked separately at [`../../implementation/v1/_archive/aip-v1-pg-worker-plan.md`](../../implementation/v1/_archive/aip-v1-pg-worker-plan.md).
 >
 > **Reads with.** [`midas-brief.md`](./midas-brief.md) (the originating brief), [`../kantheon-architecture.md`](../kantheon-architecture.md) (overall constellation), [`../themis/architecture.md`](../themis/architecture.md) (the reference arc, same shape), [`./contracts.md`](./contracts.md) (wire contracts for this arc), [`../../implementation/v1/midas/plan.md`](../../implementation/v1/midas/plan.md) (phased implementation plan).

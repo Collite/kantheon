@@ -1,0 +1,23 @@
+# §14 reconciliation config — the broker-statement diff (FO contracts §14; consumed by the FO-owned
+# :services:reconciliation organ). Diffs modeled positions against an external snapshot; accepted
+# outcomes re-enter as §5 batches (source.type="reconciliation") through the entry door — never a direct
+# write (FO-8).
+recon:
+  broker-statement:
+    scope: investment.position          # the modeled side (ours)
+    snapshot:
+      source: file                      # v1 file/table snapshot ref
+      format: csv
+    match:
+      keys: [portfolio, isin, valuation_date]
+      # snapshot column → modeled column (broker statements rarely use our names)
+      keyMapping:
+        ContractId: portfolio
+        ISIN: isin
+        ValuationDate: valuation_date
+        Holding: quantity
+        MarketValue: market_value
+      tolerances:
+        quantity: 0.0001
+        market_value: 0.01
+    outcome: batch                      # missing→insert · mismatched→update · extra→review
