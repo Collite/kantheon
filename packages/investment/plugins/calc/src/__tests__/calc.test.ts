@@ -1,7 +1,21 @@
 // FO-P4.S3.T5 — the canon-functions against known results + invariants (P-3: pure + versioned).
 
 import { describe, it, expect } from 'vitest';
-import { twr, mwr, fifo, twrFn, mwrFn, fifoFn, type SubPeriod, type CashFlow, type Lot } from '../calc.js';
+import {
+  twr,
+  mwr,
+  fifo,
+  cashOperation,
+  cashRef,
+  twrFn,
+  mwrFn,
+  fifoFn,
+  cashOperationFn,
+  cashRefFn,
+  type SubPeriod,
+  type CashFlow,
+  type Lot,
+} from '../calc.js';
 
 describe('twr (time-weighted return)', () => {
   it('chain-links two +10% sub-periods to +21% (known)', () => {
@@ -51,6 +65,24 @@ describe('mwr (money-weighted return = IRR)', () => {
   it('returns NaN when there is no sign change (no IRR)', () => {
     expect(Number.isNaN(mwr([{ amount: 100, time: 0 }, { amount: 100, time: 1 }]))).toBe(true);
   });
+
+  it('returns NaN on an empty series (no IRR — regression: used to report ~450%)', () => {
+    expect(Number.isNaN(mwr([]))).toBe(true);
+  });
+
+  it('returns NaN on an all-zero series (degenerate/flat NPV — regression: used to report ~450%)', () => {
+    expect(Number.isNaN(mwr([{ amount: 0, time: 0 }, { amount: 0, time: 1 }]))).toBe(true);
+  });
+
+  it('returns NaN on a single flow only (one-signed, never crosses zero)', () => {
+    expect(Number.isNaN(mwr([{ amount: -100, time: 0 }]))).toBe(true);
+  });
+
+  it('finds a high IRR outside the old [-0.9999, 10] bracket (−1 now, +100 next → ~99)', () => {
+    const r = mwr([{ amount: -1, time: 0 }, { amount: 100, time: 1 }]);
+    expect(Number.isNaN(r)).toBe(false);
+    expect(r).toBeCloseTo(99, 4);
+  });
 });
 
 describe('fifo (lot matching)', () => {
@@ -76,10 +108,49 @@ describe('fifo (lot matching)', () => {
     }
   });
 
+  it('reports no shortfall when the sell is fully covered', () => {
+    expect(fifo(lots, 15).shortfall).toBe(0);
+    expect(fifo(lots, 20).shortfall).toBe(0);
+  });
+
+  it('signals an oversell via shortfall (selling 25 of 20 held → shortfall 5)', () => {
+    const r = fifo(lots, 25);
+    expect(r.matched.reduce((s, m) => s + m.qty, 0)).toBe(20); // capped at holdings
+    expect(r.remaining).toEqual([]); // everything consumed
+    expect(r.shortfall).toBe(5); // the uncovered quantity is now visible to the caller
+  });
+
   it('does not mutate the input lots', () => {
     const snapshot = JSON.parse(JSON.stringify(lots));
     fifo(lots, 15);
     expect(lots).toEqual(snapshot);
+  });
+});
+
+describe('cash-operation / cash-ref (cash-leg derivation canon-functions)', () => {
+  it('maps debit operations: buy|withdrawal|fee|tax → "debit"', () => {
+    for (const op of ['buy', 'withdrawal', 'fee', 'tax']) expect(cashOperation(op)).toBe('debit');
+  });
+
+  it('maps credit operations: sell|deposit|dividend|interest → "credit"', () => {
+    for (const op of ['sell', 'deposit', 'dividend', 'interest']) expect(cashOperation(op)).toBe('credit');
+  });
+
+  it('throws on an unknown operation (the derivation must not guess a direction)', () => {
+    expect(() => cashOperation('reclassify')).toThrow();
+  });
+
+  it('derives the cash leg external id as `<externalId>-cash`', () => {
+    expect(cashRef('TXN-1')).toBe('TXN-1-cash');
+  });
+
+  it('exposes both as pinned-version canon-functions (the emitted plan pins them at 0.1.0)', () => {
+    expect(cashOperationFn.id).toBe('cash-operation');
+    expect(cashOperationFn.version).toBe('0.1.0');
+    expect(cashOperationFn.eval('buy')).toBe('debit');
+    expect(cashRefFn.id).toBe('cash-ref');
+    expect(cashRefFn.version).toBe('0.1.0');
+    expect(cashRefFn.eval('TXN-9')).toBe('TXN-9-cash');
   });
 });
 

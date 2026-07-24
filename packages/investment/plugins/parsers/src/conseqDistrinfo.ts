@@ -24,8 +24,9 @@ export const conseqDistrinfoParser: ProposalSourceParser = {
   id: 'conseq-distrinfo',
   version: VERSION,
   parse(input: Uint8Array, _ctx: ParseContext): { batch: RowBatch; diagnostics: Diagnostic[] } {
-    const rows = parseCsv(new TextDecoder().decode(input));
-    const diagnostics: Diagnostic[] = [];
+    const { rows, diagnostics: csvDiagnostics } = parseCsv(new TextDecoder().decode(input));
+    // Structural CSV diagnostics (row-cap, unterminated quote) surface first; they carry no data row.
+    const diagnostics: Diagnostic[] = csvDiagnostics.map((d) => ({ row: d.row ?? 0, code: d.code, detail: d.detail }));
     const edits: RowEdit[] = [];
 
     rows.forEach((raw, idx) => {
@@ -36,10 +37,18 @@ export const conseqDistrinfoParser: ProposalSourceParser = {
       for (const [col, text] of Object.entries(raw)) {
         const field = COLUMN_MAP[col];
         if (!field) continue; // DistrInfo carries extra columns — ignore the ones we don't map.
-        if (NUMERIC_FIELDS.has(field) && text !== '' && Number.isNaN(Number(text))) {
-          diagnostics.push({ row: rowNo, code: 'BAD_TYPE', detail: `'${text}' is not numeric for ${field}` });
-          dropped = true;
-          continue;
+        if (NUMERIC_FIELDS.has(field)) {
+          if (text === '') {
+            // An empty numeric cell is a missing value — emit null, never the empty string '' (which would
+            // flow through as a wrong-but-valid numeric). A present-but-non-numeric value is a BAD_TYPE drop.
+            values[field] = null;
+            continue;
+          }
+          if (Number.isNaN(Number(text))) {
+            diagnostics.push({ row: rowNo, code: 'BAD_TYPE', detail: `'${text}' is not numeric for ${field}` });
+            dropped = true;
+            continue;
+          }
         }
         values[field] = text;
       }

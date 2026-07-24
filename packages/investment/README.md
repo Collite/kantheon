@@ -13,8 +13,8 @@ investment/
   │                   #    instruments (asset·asset_price scd1) · book (transaction ledger, position scd2)
   canon/              # ◑ transaction-entry-apply: cash-leg derivation ✅ PROVEN live (S3.T3); ledger corrections + cash cascade pending
   forms/              # ✅ transaction·position authored ttrl overrides                          (S3.T6)
-  plugins/            # ✅ @investment/parsers (conseq-distrinfo·excel-book·csv, 3/3) ·          (S3.T4/T5)
-  │                   #    @investment/calc (twr·mwr·fifo, 11/11) — home RESOLVED (kantheon pnpm workspace, 2026-07-22)
+  plugins/            # ✅ @investment/parsers (conseq-distrinfo·excel-book·RFC-4180 csv, 14/14) ·      (S3.T4/T5)
+  │                   #    @investment/calc (twr·mwr·fifo·cash-operation·cash-ref, 22/22) — home RESOLVED (kantheon pnpm workspace, 2026-07-22)
   golem/config.yaml   # ✅ slot placeholder (C-3 contents schema Kantheon-owned, requested)
   recon.yaml          # ✅ broker-statement reconciliation config (§14)
 ```
@@ -37,11 +37,13 @@ decision (below). Loader→live-registry wiring is seam-level (in-memory fakes) 
   counter-row: `operation` mapped by `call-fn("cash-operation")`, `external_id` by `cash-ref`, money
   copied, `asset_ref`/`quantity` null per Bora's v0 ruling). **Surface spelling is PLA-2-provisional**;
   the frozen structured form is proven live — round-trips through the real ApplyDoor on PG
-  (tatrman-platform `EntryCashLegRoundTripSpec`, on `fo`). **Remaining:** the `cash-operation`/`cash-ref`
-  functions land in the plugin home (T4/T5, below); ledger-correction cash-cascade needs a leg-correlation
-  decision for the simplified `transaction` shape (legacy used `correlation_id`).
-- **Canon-functions (T5):** ✅ **DONE.** TWR/MWR/FIFO ship as `@investment/calc` `CanonFunction` SPI impls
-  (pure, versioned P-3), 11/11 green. Property tests vs Midas-known results pending a Midas fixture corpus.
+  (tatrman-platform `EntryCashLegRoundTripSpec`, on `fo`). The `cash-operation`/`cash-ref` functions the
+  canon calls are now **implemented + declared** (below). **Remaining:** ledger-correction cash-cascade
+  needs a leg-correlation decision for the simplified `transaction` shape (legacy used `correlation_id`).
+- **Canon-functions (T5):** ✅ **DONE.** TWR/MWR/FIFO **and the cash-leg pair `cash-operation`/`cash-ref`**
+  (called by `canon/transaction-entry-apply.ttrp`) ship as `@investment/calc` `CanonFunction` SPI impls
+  (pure, versioned P-3) and are declared in `package.yaml` (pinned at `@investment/calc@0.1.0`).
+  Property tests vs Midas-known results pending a Midas fixture corpus.
 - **Plugin package home (T4/T5):** ✅ **RESOLVED (Bora, 2026-07-22).** `@investment/parsers` / `@investment/calc`
   live in-kantheon at `packages/investment/plugins/*` under the new `kantheon/pnpm-workspace.yaml` (globs
   `packages/*/plugins/*` — content-package TS plugins only, Vue frontends excluded). Cert-lever discipline
