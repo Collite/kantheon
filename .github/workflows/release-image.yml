@@ -76,7 +76,11 @@ jobs:
             [whois]=infra/whois
             [validate]=services/validate
             [veles]=services/veles
-            [charon]=services/charon
+            # CH-P3 (2026-07-27): no [charon] entry. services/charon was deleted (unified into the
+            # open tatrman-server), so the path check below would `exit 1` here and kill the whole
+            # matrix — every other image with it. tatrman-server is now the SOLE publisher of
+            # ghcr.io/collite/charon; two publishers into one GHCR package is what denied its
+            # charon/v0.10.0 push (project/common/linking.md, finding 3).
             [echo]=services/echo
             [nlp]=services/nlp
             [kallimachos]=services/kallimachos
@@ -91,7 +95,7 @@ jobs:
             [mssql]=workers/mssql
             [polars]=workers/polars
           )
-          ALL="golem hebe iris-bff midas pythia sysifos-bff themis iris health whois validate veles charon echo nlp kallimachos dispatch metis pinakes prometheus translate report-renderer query postgres mssql polars"
+          ALL="golem hebe iris-bff midas pythia sysifos-bff themis iris health whois validate veles echo nlp kallimachos dispatch metis pinakes prometheus translate report-renderer query postgres mssql polars"
 
           declare -a NAMES
           if [ "${{ github.event_name }}" = "push" ]; then

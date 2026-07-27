@@ -2,7 +2,15 @@
 
 > **Companions.** [`architecture.md`](./architecture.md), [`../../implementation/v1/charon/plan.md`](../../implementation/v1/charon/plan.md).
 >
-> **Authority.** Source of truth for `org.tatrman.charon.v1`, the `charon-mcp` tool surface, the connection-registry schema, conventions (buckets, keys, type mapping), and configuration. [`../pythia/contracts.md`](../pythia/contracts.md) §6 defers to this document; Pythia's `Handle` kinds map 1:1 onto `Location` kinds (§7 below).
+> **⚑ Authority MOVED at the CH-P3 cutover (2026-07-27).** The wire contract (`org.tatrman.transfer.v1`, née
+> `org.tatrman.charon.v1`) is now owned by the open [`tatrman-server`](https://github.com/Collite/tatrman-server)
+> repo — `services/charon` + `shared/proto`, published as `org.tatrman:ttr-server-proto`. **Do not edit the proto
+> here, and do not treat this file as authoritative for it.** kantheon consumes the contract by version and keeps
+> only `tools/charon-mcp`; its in-repo `services/charon` and the `transfer/v1` proto duplicate were removed
+> ([kantheon#17](https://github.com/Collite/kantheon/issues/17)). What stays accurate below: the `charon-mcp` tool
+> surface and Pythia's `Handle`↔`Location` mapping. Everything describing the in-repo engine is **fork-era history**.
+>
+> **Authority (historical).** Source of truth for `org.tatrman.charon.v1`, the `charon-mcp` tool surface, the connection-registry schema, conventions (buckets, keys, type mapping), and configuration. [`../pythia/contracts.md`](../pythia/contracts.md) §6 defers to this document; Pythia's `Handle` kinds map 1:1 onto `Location` kinds (§7 below).
 
 ## 1. Proto package `org.tatrman.charon.v1`
 
