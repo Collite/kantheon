@@ -20,8 +20,8 @@ import org.tatrman.transfer.v1.EvictResult
 import org.tatrman.transfer.v1.MoveResult
 import org.tatrman.transfer.v1.WorkerKind
 import org.tatrman.kantheon.charon.mcp.client.CharonGrpcClient
-import org.tatrman.kantheon.common.v1.ResponseMessage
-import org.tatrman.kantheon.common.v1.Severity
+import org.tatrman.common.v1.ResponseMessage
+import org.tatrman.common.v1.Severity
 
 /**
  * Charon P3 Stage 3.2 T1 — JSON↔proto fidelity for the 5 move.* tools. Verifies
