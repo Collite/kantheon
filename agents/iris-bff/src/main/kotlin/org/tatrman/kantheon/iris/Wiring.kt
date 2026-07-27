@@ -28,6 +28,7 @@ import org.tatrman.kantheon.iris.audit.AuditStore
 import org.tatrman.kantheon.iris.audit.Ed25519Signer
 import org.tatrman.kantheon.iris.audit.InMemoryAuditStore
 import org.tatrman.kantheon.iris.dispatch.AgentDispatcher
+import org.tatrman.kantheon.iris.dispatch.parseAgentEndpoints
 import org.tatrman.kantheon.iris.dispatch.golemv2.GolemV2AgentClient
 import org.tatrman.kantheon.iris.dispatch.golemv2.GolemV2Client
 import org.tatrman.kantheon.iris.dispatch.golemv2.GolemV2HttpClient
@@ -102,6 +103,12 @@ fun buildComponents(config: Config): IrisComponents {
 
     // Transitional new-golem /v2 dispatch (deleted at Golem cutover).
     val client = GolemV2HttpClient(config.getString("iris.dispatch.golem-v2.base-url"))
+
+    // Agent-id → /v2 endpoint, for the ids Themis actually routes to (see [parseAgentEndpoints]).
+    val extraAgentEndpoints = parseAgentEndpoints(config.getString("iris.dispatch.agent-endpoints"))
+    if (extraAgentEndpoints.isNotEmpty()) {
+        log.info("iris dispatch: agent endpoints configured for {}", extraAgentEndpoints.keys)
+    }
     val mux = IrisStreamMux()
     val heartbeatMs = config.getLong("iris.stream.heartbeat-s") * 1000
 
@@ -122,7 +129,17 @@ fun buildComponents(config: Config): IrisComponents {
         store: SessionStore,
         audit: AuditStore,
     ): ChatDispatcher {
-        val agents = AgentDispatcher(mapOf("golem-v2" to GolemV2AgentClient(store, client, mux)))
+        // `golem-v2` stays registered (the Phase-3 placeholder id, and the fallback endpoint);
+        // each configured agent id gets a client bound to its own /v2 endpoint.
+        val agents =
+            AgentDispatcher(
+                buildMap {
+                    put("golem-v2", GolemV2AgentClient(store, client, mux))
+                    extraAgentEndpoints.forEach { (agentId, baseUrl) ->
+                        put(agentId, GolemV2AgentClient(store, GolemV2HttpClient(baseUrl), mux))
+                    }
+                },
+            )
         return ChatDispatcher(store, themis, agents, audit, envelopes, metrics = metrics)
     }
 
