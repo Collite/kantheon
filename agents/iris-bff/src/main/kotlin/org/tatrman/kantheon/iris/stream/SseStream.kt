@@ -4,13 +4,18 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respondTextWriter
+import io.ktor.util.cio.ChannelWriteException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.io.Writer
+
+private val log = LoggerFactory.getLogger("org.tatrman.kantheon.iris.stream.SseStream")
 
 /**
  * Respond with a Server-Sent-Events stream (contracts §2.3). Sets the standard
@@ -27,8 +32,19 @@ suspend fun ApplicationCall.respondSse(
 ) {
     response.headers.append(HttpHeaders.CacheControl, "no-cache")
     response.headers.append("X-Accel-Buffering", "no")
-    respondTextWriter(ContentType.parse("text/event-stream")) {
-        sseLoop(this, heartbeatMs, body)
+    try {
+        respondTextWriter(ContentType.parse("text/event-stream")) {
+            sseLoop(this, heartbeatMs, body)
+        }
+    } catch (e: ChannelWriteException) {
+        // A client that goes away mid-stream is ordinary, not a server fault. Left to
+        // propagate it reached StatusPages as "Unhandled error on /v1/chat/stream" and
+        // tried to write a 500 onto a response that was already committed and dead.
+        // The final flush when the writer closes can raise this even after the body ran
+        // cleanly, so it is caught here rather than only at the emit site.
+        log.info("SSE client disconnected before the stream completed: {}", e.message)
+    } catch (e: IOException) {
+        log.info("SSE stream to the client failed: {}", e.message)
     }
 }
 

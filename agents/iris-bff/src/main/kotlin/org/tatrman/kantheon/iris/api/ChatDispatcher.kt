@@ -1,10 +1,12 @@
 package org.tatrman.kantheon.iris.api
 
 import com.google.protobuf.util.JsonFormat
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.tatrman.kantheon.common.v1.AgentId
 import org.tatrman.kantheon.common.v1.ResponseMessage
+import org.slf4j.LoggerFactory
 import org.tatrman.kantheon.common.v1.Severity
 import org.tatrman.kantheon.envelope.v1.FormatEnvelope
 import org.tatrman.kantheon.iris.audit.AuditStore
@@ -52,6 +54,8 @@ import java.util.UUID
  * It persists the turn + writes the audit row (carrying the `RoutingDecision` on
  * the dispatch path) at finalisation.
  */
+private val log = LoggerFactory.getLogger(ChatDispatcher::class.java)
+
 class ChatDispatcher(
     private val store: SessionStore,
     private val themis: ThemisClient,
@@ -70,21 +74,47 @@ class ChatDispatcher(
      * `sequence` across every event of the turn — chip/hint/error envelopes the
      * BFF emits AND the agent's own stream — so a turn that prepends a hint before
      * a dispatch still presents one well-ordered wire to the FE.
+     *
+     * **A lost client must not lose the turn.** Every branch below emits before it
+     * persists, so a write failure part-way through (the user closed the tab, a proxy
+     * reaped the connection, the browser gave up mid-resolve) used to propagate out of
+     * `runTurn` and skip `persist` entirely — no `iris_turns` row, no audit row, and no
+     * stored `pending_resume_token`, so an open clarification became unresumable even
+     * after the user reconnected. The wire is already gone by then; the server-side
+     * record is the part that still matters. So the first failed write marks the stream
+     * closed and every later emit is a no-op, letting the turn run to completion and
+     * persist. (The agent muxes already took this stance for their own terminal frames.)
      */
     private class Sequenced(
         private val turnId: String,
         private val sink: suspend (IrisStreamEvent) -> Unit,
     ) {
         private var seq = 0L
+        private var open = true
 
         suspend fun emit(ev: IrisStreamEvent) {
-            sink(
+            if (!open) return
+            val stamped =
                 ev
                     .toBuilder()
                     .setTurnId(turnId)
                     .setSequence(++seq)
-                    .build(),
-            )
+                    .build()
+            try {
+                sink(stamped)
+            } catch (e: CancellationException) {
+                // The call itself is being cancelled — unwind, don't swallow.
+                throw e
+            } catch (e: Throwable) {
+                // Transport-agnostic on purpose: this class must not know it is behind SSE.
+                open = false
+                log.info(
+                    "turn {} lost its client stream after {} event(s); finishing server-side: {}",
+                    turnId,
+                    seq - 1,
+                    e.message,
+                )
+            }
         }
 
         suspend fun envelope(env: FormatEnvelope) = emit(IrisStreamEvent.newBuilder().setEnvelope(env).build())
