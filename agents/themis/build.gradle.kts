@@ -34,6 +34,11 @@ dependencies {
     // Themis off cz.dfpartner:shared-proto: nlp.v1 → nlp.v1, metadata
     // ResponseMessage/Severity → common.v1 (the last ai-platform Maven coupling).
     implementation(project(":shared:proto"))
+    // JsonFormat — the REST /v1/resolve edge marshals themis/v1 ResolveRequest/Response as
+    // proto-canonical JSON (wire policy, kantheon-architecture §4). Previously this was an
+    // integrationTest-only dependency, so the main source set had no proto JSON codec and the
+    // handler fell back to Ktor's kotlinx converter, which cannot touch a protobuf class.
+    implementation(libs.protobuf.java.util)
 
     // Forked shared libs (Phase 1.3 — in-repo project deps).
     implementation(libs.tatrman.otel.config)

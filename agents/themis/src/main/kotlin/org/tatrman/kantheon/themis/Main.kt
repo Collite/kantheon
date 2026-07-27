@@ -40,7 +40,9 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
 import io.ktor.server.request.receive
+import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
@@ -406,7 +408,17 @@ private suspend fun handleRestResolve(
 ) {
     val logger = org.slf4j.LoggerFactory.getLogger("resolver-agent.rest")
     val startedMs = System.currentTimeMillis()
-    val resolverRequest = call.receive(org.tatrman.kantheon.themis.v1.Themis.ResolveRequest::class)
+    // Proto-canonical JSON in, proto-canonical JSON out (wire policy, kantheon-architecture §4)
+    // — matching iris-bff's HttpThemisClient, which prints/parses with JsonFormat. Do NOT hand
+    // these to Ktor's ContentNegotiation: the installed converter is kotlinx-serialization, and
+    // a protobuf-generated class carries no @Serializable, so `call.receive(...)` /
+    // `call.respond(...)` throw "Serializer for class 'ResolveRequest' is not found" on EVERY
+    // request — a 400 that iris-bff surfaces as "Routing is temporarily unavailable".
+    val resolverRequest =
+        org.tatrman.kantheon.themis.v1.Themis.ResolveRequest
+            .newBuilder()
+            .also { PROTO_JSON_PARSER.merge(call.receiveText(), it) }
+            .build()
     val conversationId =
         resolverRequest.conversationId.takeIf { it.isNotEmpty() }
             ?: "resolver-${System.currentTimeMillis()}"
@@ -602,8 +614,19 @@ private suspend fun handleRestResolve(
         is NodeResult.Error -> throw IllegalStateException("Graph error: ${result.message}")
     }
 
-    call.respond(io.ktor.http.HttpStatusCode.OK, responseBuilder.build())
+    call.respondText(
+        PROTO_JSON_PRINTER.print(responseBuilder.build()),
+        io.ktor.http.ContentType.Application.Json,
+        io.ktor.http.HttpStatusCode.OK,
+    )
 }
+
+/** Proto-canonical JSON codec for the REST resolve edge (see [handleRestResolve]). */
+private val PROTO_JSON_PARSER: com.google.protobuf.util.JsonFormat.Parser =
+    com.google.protobuf.util.JsonFormat.parser().ignoringUnknownFields()
+
+private val PROTO_JSON_PRINTER: com.google.protobuf.util.JsonFormat.Printer =
+    com.google.protobuf.util.JsonFormat.printer().omittingInsignificantWhitespace()
 
 private suspend fun buildResolverContext(
     question: String,
