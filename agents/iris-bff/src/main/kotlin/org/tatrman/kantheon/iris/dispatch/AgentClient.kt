@@ -4,6 +4,7 @@ import org.tatrman.kantheon.common.v1.HandoffContext
 import org.tatrman.kantheon.iris.api.CallerIdentity
 import org.tatrman.kantheon.iris.stream.TurnOutcome
 import org.tatrman.kantheon.iris.v1.IrisStreamEvent
+import org.tatrman.kantheon.themis.v1.Themis.Resolution
 import java.util.UUID
 
 /**
@@ -30,6 +31,12 @@ interface AgentClient {
  * A resolved turn ready for dispatch. [handoff] is the PD-1 context assembled by
  * the BFF; transitional agents (golem-v2) accept and ignore it (the handoff is
  * consumed by Themis), native agents seed from it.
+ *
+ * [resolution] is Themis's verdict for this turn, forwarded verbatim. Native agents
+ * trust it upstream (decision 2026-06-12) — Golem reads its function binding, args,
+ * and `intent_kind` rather than re-deriving them — so a dispatch that drops it makes
+ * the agent guess what Themis already knew. It is nullable because not every dispatch
+ * has one: the multi-question KEEP_TOGETHER path routes without a Resolution.
  */
 data class AgentTurn(
     val turnId: String,
@@ -39,6 +46,7 @@ data class AgentTurn(
     val question: String,
     val desiredFormat: String? = null,
     val handoff: HandoffContext? = null,
+    val resolution: Resolution? = null,
 )
 
 /** A clarification resume routed to its issuing agent. */

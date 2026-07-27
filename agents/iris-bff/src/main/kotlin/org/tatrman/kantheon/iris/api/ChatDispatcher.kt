@@ -237,6 +237,7 @@ class ChatDispatcher(
             desiredFormat,
             correlationId,
             routing,
+            resolution,
         )
     }
 
@@ -276,6 +277,9 @@ class ChatDispatcher(
                 desiredFormat,
                 correlationId,
                 routing = null,
+                // PD-13 KEEP_TOGETHER: the question was never resolved to a single intent,
+                // so there is nothing for the agent to trust upstream here.
+                resolution = null,
             )
         }
 
@@ -326,9 +330,19 @@ class ChatDispatcher(
         desiredFormat: String?,
         correlationId: String,
         routing: RoutingDecision?,
+        resolution: Resolution?,
     ): TurnOutcome {
         val agentTurn =
-            AgentTurn(turnId.toString(), sessionId, caller, correlationId, question, desiredFormat, handoff)
+            AgentTurn(
+                turnId.toString(),
+                sessionId,
+                caller,
+                correlationId,
+                question,
+                desiredFormat,
+                handoff,
+                resolution,
+            )
         // PD-4 (T4): the entities the BFF carried in (the previous in-scope context).
         val sentEntities = handoff?.entitiesList?.map { it.entityType to it.entityId }?.toSet() ?: emptySet()
         val sentLabels = handoff?.entitiesList?.joinToString(", ") { it.displayLabel.ifEmpty { it.entityId } } ?: ""

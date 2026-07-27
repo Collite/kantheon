@@ -29,6 +29,9 @@ import org.tatrman.kantheon.iris.audit.Ed25519Signer
 import org.tatrman.kantheon.iris.audit.InMemoryAuditStore
 import org.tatrman.kantheon.iris.dispatch.AgentDispatcher
 import org.tatrman.kantheon.iris.dispatch.parseAgentEndpoints
+import org.tatrman.kantheon.iris.dispatch.golem.GolemV1AgentClient
+import org.tatrman.kantheon.iris.dispatch.golem.GolemV1HttpClient
+import org.tatrman.kantheon.iris.dispatch.golem.GolemV1Mux
 import org.tatrman.kantheon.iris.dispatch.golemv2.GolemV2AgentClient
 import org.tatrman.kantheon.iris.dispatch.golemv2.GolemV2Client
 import org.tatrman.kantheon.iris.dispatch.golemv2.GolemV2HttpClient
@@ -104,12 +107,15 @@ fun buildComponents(config: Config): IrisComponents {
     // Transitional new-golem /v2 dispatch (deleted at Golem cutover).
     val client = GolemV2HttpClient(config.getString("iris.dispatch.golem-v2.base-url"))
 
-    // Agent-id → /v2 endpoint, for the ids Themis actually routes to (see [parseAgentEndpoints]).
+    // Agent-id → endpoint, for the ids Themis actually routes to (see [parseAgentEndpoints]).
+    // These are native Golems; one HTTP client per endpoint, closed at shutdown.
     val extraAgentEndpoints = parseAgentEndpoints(config.getString("iris.dispatch.agent-endpoints"))
     if (extraAgentEndpoints.isNotEmpty()) {
-        log.info("iris dispatch: agent endpoints configured for {}", extraAgentEndpoints.keys)
+        log.info("iris dispatch: native golem endpoints configured for {}", extraAgentEndpoints.keys)
     }
+    val golemClients = extraAgentEndpoints.mapValues { (_, baseUrl) -> GolemV1HttpClient(baseUrl) }
     val mux = IrisStreamMux()
+    val golemMux = GolemV1Mux()
     val heartbeatMs = config.getLong("iris.stream.heartbeat-s") * 1000
 
     // Phase 3 routing edge: every turn resolves through Themis, then dispatches to
@@ -129,14 +135,20 @@ fun buildComponents(config: Config): IrisComponents {
         store: SessionStore,
         audit: AuditStore,
     ): ChatDispatcher {
-        // `golem-v2` stays registered (the Phase-3 placeholder id, and the fallback endpoint);
-        // each configured agent id gets a client bound to its own /v2 endpoint.
+        // Two dispatch protocols, deliberately not the same one:
+        //
+        //  - `golem-v2` is the Phase-3 placeholder over the *pre-fork* new-golem surface
+        //    (`/v2/session` + `/v2/chat/stream`). Kept for the transitional backend and the
+        //    typed-action/artifact paths that still speak it; deleted at the cutover.
+        //  - every id in `iris.dispatch.agent-endpoints` is a **native kantheon Golem**,
+        //    which serves `/v1/answer` and has no /v2 routes at all. Pointing the v2 client
+        //    at one is what produced "404 from /v2/session" with an empty answer bubble.
         val agents =
             AgentDispatcher(
                 buildMap {
                     put("golem-v2", GolemV2AgentClient(store, client, mux))
-                    extraAgentEndpoints.forEach { (agentId, baseUrl) ->
-                        put(agentId, GolemV2AgentClient(store, GolemV2HttpClient(baseUrl), mux))
+                    golemClients.forEach { (agentId, golem) ->
+                        put(agentId, GolemV1AgentClient(agentId, store, golem, golemMux))
                     }
                 },
             )
@@ -186,6 +198,7 @@ fun buildComponents(config: Config): IrisComponents {
     val closeRouting = {
         runCatching { (themis as? AutoCloseable)?.close() }
         runCatching { capabilities.close() }
+        golemClients.values.forEach { golem -> runCatching { golem.close() } }
     }
 
     if (!config.getBoolean("iris.db.enabled")) {
