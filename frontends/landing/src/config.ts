@@ -1,4 +1,5 @@
 interface AppConfig {
+    AUTH_ENABLED?: string;
     KEYCLOAK_URL: string;
     KEYCLOAK_REALM: string;
     KEYCLOAK_CLIENT_ID: string;
@@ -21,8 +22,20 @@ declare global {
 
 export const config = {
     keycloak: {
+        // Runtime-first, like every other setting below. This USED to read only
+        // `import.meta.env`, which Vite inlines at BUILD time — so a deployment setting
+        // `auth.enabled: false` had no way to reach the running SPA: the value arrived in the
+        // container's environment, generate-env.sh never wrote it into window.APP_CONFIG, and
+        // the built bundle carried a frozen default. The page then tried to authenticate
+        // against a Keycloak client that need not exist, and main.ts only mounts once
+        // authenticated — so the whole app silently rendered blank.
+        //
+        // Polarity now matches Iris (`=== 'true'`, i.e. default OFF) rather than the old
+        // `!== 'false'` (default ON). Landing is a public link page — an unset flag meaning
+        // "no login" is the safer default, and it matches what every deployment already
+        // configures explicitly.
         get authEnabled(): boolean {
-            return import.meta.env.VITE_AUTH_ENABLED !== 'false'
+            return (window.APP_CONFIG?.AUTH_ENABLED || import.meta.env.VITE_AUTH_ENABLED) === 'true'
         },
         get url(): string {
             return window.APP_CONFIG?.KEYCLOAK_URL || import.meta.env.VITE_KEYCLOAK_URL || ''

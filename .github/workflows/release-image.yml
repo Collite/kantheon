@@ -72,6 +72,7 @@ jobs:
             [sysifos-bff]=agents/sysifos-bff
             [themis]=agents/themis
             [iris]=frontends/iris
+            [landing]=frontends/landing
             [health]=infra/health
             [whois]=infra/whois
             [validate]=services/validate
@@ -91,7 +92,7 @@ jobs:
             [mssql]=workers/mssql
             [polars]=workers/polars
           )
-          ALL="golem hebe iris-bff midas pythia sysifos-bff themis iris health whois validate veles charon echo nlp kallimachos dispatch metis pinakes prometheus translate report-renderer query postgres mssql polars"
+          ALL="golem hebe iris-bff midas pythia sysifos-bff themis iris health whois validate veles charon echo nlp kallimachos dispatch metis pinakes prometheus translate report-renderer query postgres mssql polars landing"
 
           declare -a NAMES
           if [ "${{ github.event_name }}" = "push" ]; then
