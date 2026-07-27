@@ -95,9 +95,9 @@ class ResolverEntitiesOnlySpec :
             labels shouldContain "DF ADNAK"
             labels shouldContain "2026-03"
 
-            // The joint-inference (sonnet) LLM call MUST NOT have been made.
+            // The joint-inference (FAST tier) LLM call MUST NOT have been made.
             coVerify(exactly = 0) {
-                llm.client.complete(any(), any(), eq("sonnet"), any(), any())
+                llm.client.complete(any(), any(), eq(ThemisTiers.FAST), any(), any())
             }
         }
 
@@ -174,8 +174,8 @@ class ResolverEntitiesOnlySpec :
             awaiting.awaiting.optionsList.size shouldBeGreaterThanOrEqual 2
         }
 
-        "ENTITIES_ONLY -- top-1 LLM filter call IS made (haiku)" {
-            // Symmetric to the sonnet-not-called assertion: the filter step before
+        "ENTITIES_ONLY -- top-1 LLM filter call IS made (CHEAP tier)" {
+            // Symmetric to the FAST-tier-not-called assertion: the filter step before
             // jointInference still runs, so callers get filteredSpans + fuzzy bindings.
             val fuzzy =
                 mockk<FuzzyServiceClient> {
@@ -199,7 +199,7 @@ class ResolverEntitiesOnlySpec :
             graph.run(state)
 
             coVerify(exactly = 1) {
-                llm.client.complete(any(), any(), eq("haiku"), any(), any())
+                llm.client.complete(any(), any(), eq(ThemisTiers.CHEAP), any(), any())
             }
         }
 
@@ -264,8 +264,9 @@ private data class RecordingLlm(
 
 private fun recordingLlm(filterResponse: String): RecordingLlm {
     val client = mockk<LlmGatewayClient>()
-    coEvery { client.complete(any(), any(), eq("haiku"), any(), any()) } returns Result.success(filterResponse)
-    coEvery { client.complete(any(), any(), eq("sonnet"), any(), any()) } returns
+    coEvery { client.complete(any(), any(), eq(ThemisTiers.CHEAP), any(), any()) } returns
+        Result.success(filterResponse)
+    coEvery { client.complete(any(), any(), eq(ThemisTiers.FAST), any(), any()) } returns
         Result.success("""{"functionId":"shouldNotBeCalled","argsJson":"{}","confidence":0.0,"rationale":""}""")
     return RecordingLlm(client)
 }

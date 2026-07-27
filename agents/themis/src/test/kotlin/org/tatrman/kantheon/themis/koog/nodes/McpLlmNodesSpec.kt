@@ -1,5 +1,7 @@
 package org.tatrman.kantheon.themis.koog.nodes
 
+import org.tatrman.kantheon.themis.koog.ThemisTiers
+
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -124,7 +126,7 @@ class McpLlmNodesSpec :
                 llm.complete(
                     prompt = "test prompt",
                     systemPrompt = "",
-                    model = "haiku",
+                    model = ThemisTiers.CHEAP,
                     temperature = 0.0,
                 )
             } returns Result.success("""[{"index":0,"entityTypes":["x"]}]""")

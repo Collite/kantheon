@@ -64,7 +64,14 @@ internal object IrisV2Threads : Table("iris_v2_threads") {
 
 internal object IrisAudit : Table("iris_audit") {
     // `seq` is DB-`GENERATED ALWAYS AS IDENTITY` — read after insert, never written.
-    val seq = long("seq")
+    // `.autoIncrement()` is what TELLS Exposed that: it omits the column from the INSERT and
+    // asks the driver for generated keys. Declared as a plain long, Exposed had no reason to
+    // retrieve it, so `inserted[IrisAudit.seq]` in ExposedAuditStore.append threw
+    // "IrisAudit.seq is not in record set" on EVERY audited turn. On the success path that
+    // landed after the SSE frames were already flushed (client saw 200, audit row silently
+    // lost); on the error path it replaced the handled error with a 500. No DDL implication —
+    // Flyway owns the schema; autoIncrement only affects Exposed's runtime insert behaviour.
+    val seq = long("seq").autoIncrement()
     val ts = timestampWithTimeZone("ts")
     val userId = text("user_id")
     val eventKind = text("event_kind")

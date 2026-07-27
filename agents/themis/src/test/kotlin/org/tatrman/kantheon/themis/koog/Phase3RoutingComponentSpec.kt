@@ -35,11 +35,11 @@ class Phase3RoutingComponentSpec :
 
         "CHAT_QUICK: a Czech ERP question routes to golem-erp via Layer 1" {
             val llm = mockk<LlmGatewayClient>()
-            // filterRelevantSpans (haiku): faktury→invoice, Shell→customer.
-            coEvery { llm.complete(any(), any(), "haiku", any(), any()) } returns
+            // filterRelevantSpans (CHEAP tier): faktury→invoice, Shell→customer.
+            coEvery { llm.complete(any(), any(), ThemisTiers.CHEAP, any(), any()) } returns
                 Result.success("""[{"index":0,"entityTypes":["invoice"]},{"index":1,"entityTypes":["customer"]}]""")
-            // jointInference (sonnet): a confident resolution.
-            coEvery { llm.complete(any(), any(), "sonnet", any(), any()) } returns
+            // jointInference (FAST tier): a confident resolution.
+            coEvery { llm.complete(any(), any(), ThemisTiers.FAST, any(), any()) } returns
                 Result.success(
                     """{"functionId":"listInvoices","argsJson":"{}","confidence":0.9,"rationale":"clear"}""",
                 )
@@ -55,9 +55,9 @@ class Phase3RoutingComponentSpec :
 
         "routingEnabled=false (reduced MCP surface) leaves Resolution.routing unset" {
             val llm = mockk<LlmGatewayClient>()
-            coEvery { llm.complete(any(), any(), "haiku", any(), any()) } returns
+            coEvery { llm.complete(any(), any(), ThemisTiers.CHEAP, any(), any()) } returns
                 Result.success("""[{"index":0,"entityTypes":["invoice"]},{"index":1,"entityTypes":["customer"]}]""")
-            coEvery { llm.complete(any(), any(), "sonnet", any(), any()) } returns
+            coEvery { llm.complete(any(), any(), ThemisTiers.FAST, any(), any()) } returns
                 Result.success(
                     """{"functionId":"listInvoices","argsJson":"{}","confidence":0.9,"rationale":"clear"}""",
                 )

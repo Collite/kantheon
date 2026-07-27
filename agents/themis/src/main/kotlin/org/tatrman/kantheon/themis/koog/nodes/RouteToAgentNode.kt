@@ -1,5 +1,7 @@
 package org.tatrman.kantheon.themis.koog.nodes
 
+import org.tatrman.kantheon.themis.koog.ThemisTiers
+
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -215,7 +217,7 @@ private suspend fun layer2(
     val prompt = buildLayer2Prompt(input, top5)
     val response =
         llm
-            .complete(prompt = prompt, model = "haiku", temperature = 0.0)
+            .complete(prompt = prompt, model = ThemisTiers.CHEAP, temperature = 0.0)
             .getOrElse {
                 logger.error { "routeToAgent Layer-2 LLM call failed: ${it.message}" }
                 """{"chosen_agent_id":"${top5.firstOrNull()?.agentId ?: ""}","confidence":0.0,"rationale":"LLM unavailable","alternates":[]}"""

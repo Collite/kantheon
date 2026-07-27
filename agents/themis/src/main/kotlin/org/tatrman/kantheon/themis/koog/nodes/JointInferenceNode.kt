@@ -1,5 +1,7 @@
 package org.tatrman.kantheon.themis.koog.nodes
 
+import org.tatrman.kantheon.themis.koog.ThemisTiers
+
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -87,7 +89,7 @@ suspend fun callJointInferenceLlm(
     llm
         .complete(
             prompt = prompt,
-            model = "sonnet",
+            model = ThemisTiers.FAST,
             temperature = 0.0,
         ).getOrElse {
             logger.error { "LLM fast call failed: ${it.message}" }

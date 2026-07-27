@@ -52,8 +52,8 @@ private fun deps(): ThemisGraphDeps {
     val config = cfg()
     val llm =
         mockk<LlmGatewayClient> {
-            coEvery { complete(any(), any(), "haiku", any(), any()) } returns Result.success("[]")
-            coEvery { complete(any(), any(), "sonnet", any(), any()) } returns
+            coEvery { complete(any(), any(), ThemisTiers.CHEAP, any(), any()) } returns Result.success("[]")
+            coEvery { complete(any(), any(), ThemisTiers.FAST, any(), any()) } returns
                 Result.success(
                     """{"functionId":"listInvoices","argsJson":"{}","confidence":0.3,"rationale":"unsure"}""",
                 )

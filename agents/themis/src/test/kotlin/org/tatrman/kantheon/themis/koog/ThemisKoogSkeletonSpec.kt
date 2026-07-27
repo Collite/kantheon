@@ -24,12 +24,24 @@ import org.tatrman.llm.client.LlmGatewayPromptExecutor.Companion.mapModelToGatew
 class ThemisKoogSkeletonSpec :
     StringSpec({
 
-        "model mapping — Anthropic ids map to gateway tier keys" {
-            mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-haiku-3-5")) shouldBe "haiku"
-            mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-sonnet-4")) shouldBe "sonnet"
-            mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-opus-4")) shouldBe "opus"
+        // The executor emits GENERIC tier keys, not provider-flavoured ones. Provider names
+        // (`haiku`/`sonnet`/`opus`) are also catalog aliases, but they pin a specific provider
+        // and so only resolve on a cluster holding that provider's credentials; the generic
+        // tiers are what a deployment remaps freely. See ThemisTiers.
+        "model mapping — Anthropic ids map to generic gateway tier keys" {
+            mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-haiku-3-5")) shouldBe "mini"
+            mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-sonnet-4")) shouldBe "fast"
+            mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-opus-4")) shouldBe "deep"
             // Unknown ids fall through to CHEAP — see the executor's KDoc.
-            mapModelToGatewayKey(LLModel(LLMProvider.OpenAI, "gpt-4o-mini")) shouldBe "haiku"
+            mapModelToGatewayKey(LLModel(LLMProvider.OpenAI, "gpt-4o-mini")) shouldBe "mini"
+        }
+
+        // The graph nodes call LlmGatewayClient.complete directly rather than through the
+        // executor; this pins the two paths to the same vocabulary so they cannot drift apart
+        // again (they did: the nodes asked for Anthropic aliases the executor never emits).
+        "graph-node tiers agree with what the executor emits" {
+            ThemisTiers.CHEAP shouldBe mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-haiku-3-5"))
+            ThemisTiers.FAST shouldBe mapModelToGatewayKey(LLModel(LLMProvider.Anthropic, "claude-sonnet-4"))
         }
 
         "executor — System + User content flow into LlmGatewayClient.complete, response surfaces as Message.Assistant" {
@@ -38,7 +50,7 @@ class ThemisKoogSkeletonSpec :
                 gateway.complete(
                     prompt = "find invoices for ACME",
                     systemPrompt = "You are a Czech ERP question parser.",
-                    model = "haiku",
+                    model = ThemisTiers.CHEAP,
                     temperature = 0.0,
                 )
             } returns Result.success("""{"spans":[]}""")
@@ -65,7 +77,7 @@ class ThemisKoogSkeletonSpec :
         "executor — temperature carries through from prompt.params" {
             val gateway = mockk<LlmGatewayClient>()
             coEvery {
-                gateway.complete(prompt = any(), systemPrompt = any(), model = "sonnet", temperature = 0.7)
+                gateway.complete(prompt = any(), systemPrompt = any(), model = ThemisTiers.FAST, temperature = 0.7)
             } returns Result.success("ok")
 
             val executor = LlmGatewayPromptExecutor(gateway)

@@ -6,7 +6,7 @@ import org.tatrman.llm.client.LlmGatewayEndpoint
 
 /** Adapt a generic [EndpointConfig] to the shared llm-gateway-client's endpoint type. */
 fun EndpointConfig.toLlmGatewayEndpoint(): LlmGatewayEndpoint =
-    LlmGatewayEndpoint(host = host, port = port, timeoutMs = timeoutMs)
+    LlmGatewayEndpoint(host = host, port = port, timeoutMs = timeoutMs, apiKey = apiKey?.takeIf { it.isNotBlank() })
 
 data class ServerConfig(
     val port: Int,
@@ -30,6 +30,15 @@ data class EndpointConfig(
     val host: String,
     val port: Int,
     val timeoutMs: Long,
+    /**
+     * Per-consumer `ttrk-…` key for LLM-gateway 2.0, whose `KeyValidator.requireKey` gates every
+     * route (LG-P6·S1). Only the llm-gateway endpoint uses it; null elsewhere, and null here
+     * means "send no key" — which the 2.0 gateway rejects. `LlmGatewayClient.complete` never
+     * throws, it returns `Result.failure`, so an unkeyed Themis does not fail loudly: the graph
+     * nodes receive an EMPTY response and every JSON parse fails with "Expected start of the
+     * object '{', but had 'EOF'", degrading routing into a contentless clarification.
+     */
+    val apiKey: String? = null,
 )
 
 data class HmacConfig(
@@ -139,6 +148,9 @@ fun resolverConfigFrom(config: Config): ResolverAppConfig {
                 host = llmSection.stringOrEnv("host", "LLM_GATEWAY_HOST", "llm-gateway"),
                 port = llmSection.intOrEnv("port", "LLM_GATEWAY_PORT", 8090),
                 timeoutMs = llmSection.longOrEnv("timeout-ms", "LLM_GATEWAY_TIMEOUT_MS", 60000L),
+                // LG-P6·S1 consumer migration — Themis was missed when kallimachos/pinakes/kleio
+                // were keyed. Empty default keeps local/dev (unkeyed 1.x gateway) working.
+                apiKey = llmSection.stringOrEnv("api-key", "LLM_GATEWAY_KEY", ""),
             ),
         hmac =
             HmacConfig(

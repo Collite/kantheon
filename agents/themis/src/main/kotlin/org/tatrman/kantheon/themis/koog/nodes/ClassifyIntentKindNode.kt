@@ -1,5 +1,7 @@
 package org.tatrman.kantheon.themis.koog.nodes
 
+import org.tatrman.kantheon.themis.koog.ThemisTiers
+
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -121,7 +123,7 @@ suspend fun callIntentLlm(
     llm
         .complete(
             prompt = prompt,
-            model = "haiku",
+            model = ThemisTiers.CHEAP,
             temperature = 0.0,
         ).getOrElse {
             logger.error { "LLM intent tie-break failed: ${it.message}" }

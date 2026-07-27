@@ -39,9 +39,7 @@ import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
-import io.ktor.server.request.receive
 import io.ktor.server.request.receiveText
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -623,10 +621,14 @@ private suspend fun handleRestResolve(
 
 /** Proto-canonical JSON codec for the REST resolve edge (see [handleRestResolve]). */
 private val PROTO_JSON_PARSER: com.google.protobuf.util.JsonFormat.Parser =
-    com.google.protobuf.util.JsonFormat.parser().ignoringUnknownFields()
+    com.google.protobuf.util.JsonFormat
+        .parser()
+        .ignoringUnknownFields()
 
 private val PROTO_JSON_PRINTER: com.google.protobuf.util.JsonFormat.Printer =
-    com.google.protobuf.util.JsonFormat.printer().omittingInsignificantWhitespace()
+    com.google.protobuf.util.JsonFormat
+        .printer()
+        .omittingInsignificantWhitespace()
 
 private suspend fun buildResolverContext(
     question: String,

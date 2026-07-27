@@ -146,7 +146,7 @@ class ResolverIntegrationTest : StringSpec() {
     private fun stubLlmFilter(content: String) {
         llmMock.stubFor(
             post(urlEqualTo("/v1/chat/completions"))
-                .withRequestBody(matchingJsonPath("$.model", equalTo("haiku")))
+                .withRequestBody(matchingJsonPath("$.model", equalTo(ThemisTiers.CHEAP)))
                 .willReturn(okJson(llmResponseBody(content))),
         )
     }
@@ -154,7 +154,7 @@ class ResolverIntegrationTest : StringSpec() {
     private fun stubLlmJoint(content: String) {
         llmMock.stubFor(
             post(urlEqualTo("/v1/chat/completions"))
-                .withRequestBody(matchingJsonPath("$.model", equalTo("sonnet")))
+                .withRequestBody(matchingJsonPath("$.model", equalTo(ThemisTiers.FAST)))
                 .willReturn(okJson(llmResponseBody(content))),
         )
     }

@@ -1,5 +1,7 @@
 package org.tatrman.kantheon.themis.koog.nodes
 
+import org.tatrman.kantheon.themis.koog.ThemisTiers
+
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
 import org.tatrman.llm.client.LlmGatewayClient
@@ -96,7 +98,7 @@ suspend fun callFilterLlm(
     llm
         .complete(
             prompt = prompt,
-            model = "haiku",
+            model = ThemisTiers.CHEAP,
             temperature = 0.0,
         ).getOrElse {
             logger.error { "LLM cheap call failed: ${it.message}" }

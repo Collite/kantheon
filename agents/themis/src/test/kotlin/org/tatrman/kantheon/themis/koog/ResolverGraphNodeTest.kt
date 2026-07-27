@@ -263,7 +263,7 @@ private fun deps(
     if (llmThrows) {
         coEvery { llmClient.complete(any(), any(), any(), any(), any()) } throws RuntimeException("LLM crashed")
     } else {
-        // First call = filterRelevantSpans (haiku); second = jointInference (sonnet).
+        // First call = filterRelevantSpans (CHEAP tier); second = jointInference (FAST tier).
         var llmCalls = 0
         val responses = listOf(filterResponse, jointResponse)
         coEvery { llmClient.complete(any(), any(), any(), any(), any()) } answers {

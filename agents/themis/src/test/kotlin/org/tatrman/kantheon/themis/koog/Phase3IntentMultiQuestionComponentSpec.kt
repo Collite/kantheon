@@ -35,9 +35,9 @@ class Phase3IntentMultiQuestionComponentSpec :
 
         "CHAT_QUICK resolve populates Resolution.intent_kind for a Czech RCA question" {
             val llm = mockk<LlmGatewayClient>()
-            // filterRelevantSpans (haiku) → no relevant spans; jointInference (sonnet) → resolution.
-            coEvery { llm.complete(any(), any(), "haiku", any(), any()) } returns Result.success("[]")
-            coEvery { llm.complete(any(), any(), "sonnet", any(), any()) } returns
+            // filterRelevantSpans (CHEAP tier) → no relevant spans; jointInference (FAST tier) → resolution.
+            coEvery { llm.complete(any(), any(), ThemisTiers.CHEAP, any(), any()) } returns Result.success("[]")
+            coEvery { llm.complete(any(), any(), ThemisTiers.FAST, any(), any()) } returns
                 Result.success(
                     """{"functionId":"revenueReport","argsJson":"{}","confidence":0.9,"rationale":"clear"}""",
                 )
