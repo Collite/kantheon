@@ -8,6 +8,7 @@ import { useAgentSession, type Lang } from '@/composables/useAgentSession'
 import { useAuthStore } from '@/stores/auth'
 import { config } from '@/config'
 import type { AgentKey } from '@/services/irisStream'
+import { toAbsoluteOrigin } from '@/services/baseUrl'
 
 const props = defineProps<{
   agentId?: AgentKey
@@ -49,13 +50,9 @@ const onLanguageChange = (lang: Lang) => {
   void session.changeLanguage(lang)
 }
 
-const agentBaseUrl = computed(() => {
-  const baseUrl = activeAgent.value?.baseUrl || config.golem.baseUrl
-  if (!baseUrl.startsWith('http')) {
-    return `${window.location.protocol}//${baseUrl}`
-  }
-  return baseUrl
-})
+const agentBaseUrl = computed(() =>
+  toAbsoluteOrigin(activeAgent.value?.baseUrl || config.golem.baseUrl),
+)
 </script>
 
 <template>

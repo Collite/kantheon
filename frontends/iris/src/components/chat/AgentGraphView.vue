@@ -33,6 +33,7 @@ import '@vue-flow/core/dist/theme-default.css'
 import dagre from 'dagre'
 import { config } from '@/config'
 import { authHeaders } from '@/services/authHeaders'
+import { toAbsoluteOrigin } from '@/services/baseUrl'
 import { useAgentSession } from '@/composables/useAgentSession'
 import LogicNode from '@/components/graph/LogicNode.vue'
 import McpNode from '@/components/graph/McpNode.vue'
@@ -222,10 +223,9 @@ onMounted(async () => {
     // Golem instances, but stay consistent with the selected agent).
     const session = useAgentSession()
     const agent = config.golemAgents.find((a) => a.id === session.agentKey.value)
-    let baseUrl = agent?.baseUrl || config.golem.baseUrl || 'erp-agent.dfpartner.cz'
-    if (!baseUrl.startsWith('http')) {
-      baseUrl = `${window.location.protocol}//${baseUrl}`
-    }
+    const baseUrl = toAbsoluteOrigin(
+      agent?.baseUrl || config.golem.baseUrl || 'erp-agent.dfpartner.cz',
+    )
 
     const response = await fetch(`${baseUrl}/v2/agent/graph`, { headers: await authHeaders() })
     if (!response.ok) return
