@@ -4,7 +4,10 @@ import org.tatrman.kantheon.themis.koog.ThemisTiers
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonPrimitive
 import org.tatrman.llm.client.LlmGatewayClient
@@ -50,6 +53,26 @@ fun buildJointInferencePrompt(state: ResolverContext): String {
         """.trimMargin()
 }
 
+/**
+ * Read `argsJson` in the canonical wire form: a **string** carrying JSON (Rule 7 —
+ * function-call args ride as `string argsJson`, never a structured value).
+ *
+ * Models emit it both ways, and the prompt's own example shows the OBJECT form
+ * (`"argsJson":{"customerId":"CUST-001"}`) — so a model that follows the example produces
+ * something `.jsonPrimitive` cannot read, and the whole inference was discarded with
+ * "Element class JsonObject is not a JsonPrimitive". The confidence then fell to 0.0 and Themis
+ * emitted a blank clarification, i.e. a well-formed, correct answer was thrown away over its
+ * envelope. Accept either shape and normalise to the string form the rest of the pipeline wants.
+ */
+private fun JsonElement?.asArgsJson(): String =
+    when (this) {
+        null, JsonNull -> "{}"
+        // Already the canonical form: a JSON string whose content is itself JSON.
+        is JsonPrimitive -> if (isString) content else toString()
+        // The object/array form the prompt example invites — serialise it back, compactly.
+        else -> toString()
+    }
+
 fun parseJointInferenceResponse(response: String): InferenceResult {
     val cleaned =
         response
@@ -61,7 +84,7 @@ fun parseJointInferenceResponse(response: String): InferenceResult {
         val obj = jointJson.decodeFromString<JsonObject>(cleaned)
         InferenceResult(
             functionId = obj["functionId"]?.jsonPrimitive?.content ?: "",
-            argsJson = obj["argsJson"]?.jsonPrimitive?.content ?: "{}",
+            argsJson = obj["argsJson"].asArgsJson(),
             bindings = emptyList(),
             confidence = obj["confidence"]?.jsonPrimitive?.double ?: 0.0,
             alternatives = emptyList(),

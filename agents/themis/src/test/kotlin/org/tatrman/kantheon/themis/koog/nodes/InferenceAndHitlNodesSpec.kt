@@ -50,6 +50,46 @@ class InferenceAndHitlNodesSpec :
             out.rationale shouldBe "high"
         }
 
+        // The prompt's own worked example shows argsJson as an OBJECT
+        // (`"argsJson":{"customerId":"CUST-001"}`), so a model that follows the example produces
+        // a shape the string-only reader rejected outright — "Element class JsonObject is not a
+        // JsonPrimitive". A complete, correct inference was discarded over its envelope: the
+        // catch-all dropped confidence to 0.0 and Themis emitted a blank clarification instead of
+        // an answer. Both encodings must land on the same canonical string (Rule 7).
+        "parseJointInferenceResponse — accepts argsJson as an OBJECT, as the prompt example invites" {
+            // Verbatim from a live hartland turn (2026-07-27).
+            val response =
+                """
+                {"functionId":"getMarketplaceRevenue","argsJson":{"year":2025,"breakdown":"quarterly"},"confidence":0.60,"rationale":"trend"}
+                """.trimIndent()
+            val out = parseJointInferenceResponse(response)
+            out.functionId shouldBe "getMarketplaceRevenue"
+            out.confidence shouldBe 0.60
+            out.rationale shouldBe "trend"
+            // Normalised to the string form the rest of the pipeline consumes — and NOT the
+            // stub, which is what the failure produced.
+            out.argsJson shouldContain "\"year\":2025"
+            out.argsJson shouldContain "\"breakdown\":\"quarterly\""
+        }
+
+        "parseJointInferenceResponse — object and escaped-string encodings agree" {
+            val asObject =
+                parseJointInferenceResponse("""{"functionId":"f","argsJson":{"a":1},"confidence":1.0,"rationale":""}""")
+            val asString =
+                parseJointInferenceResponse(
+                    """{"functionId":"f","argsJson":"{\"a\":1}","confidence":1.0,"rationale":""}""",
+                )
+            asObject.argsJson shouldBe asString.argsJson
+        }
+
+        "parseJointInferenceResponse — a missing argsJson still yields the empty-object default" {
+            parseJointInferenceResponse("""{"functionId":"f","confidence":1.0,"rationale":""}""").argsJson shouldBe "{}"
+            parseJointInferenceResponse(
+                """{"functionId":"f","argsJson":null,"confidence":1.0,"rationale":""}""",
+            ).argsJson shouldBe
+                "{}"
+        }
+
         "parseJointInferenceResponse — strips ```json fences" {
             val response = """```json
 {"functionId":"f","argsJson":"{}","confidence":0.5,"rationale":""}
