@@ -85,6 +85,27 @@ protobuf {
     }
 }
 
+// CH-P3 (T2a) — metis.v1 is Python-only in kantheon. Its ownership moved to org.tatrman:ttr-server-proto
+// (which now supplies the Kotlin/Java/gRPC metis classes to metis-mcp + Pythia), but the kantheon-native
+// Metis service is Python and still generates its stubs from metis.proto here. So keep the proto, keep its
+// `python` codegen, and STRIP the JVM codegen (java/kotlin/grpc/grpckt) after generateProto — else two copies
+// of org.tatrman.metis.v1.* land on every consumer's classpath (the noTransferredProtoClasses guard forbids it).
+val stripMetisJvmCodegen by tasks.registering(Delete::class) {
+    val gen = layout.buildDirectory.dir("generated/sources/proto/main")
+    delete(
+        gen.map { it.dir("java/org/tatrman/metis") },
+        gen.map { it.dir("kotlin/org/tatrman/metis") },
+        gen.map { it.dir("grpc/org/tatrman/metis") },
+        gen.map { it.dir("grpckt/org/tatrman/metis") },
+    )
+    mustRunAfter("generateProto")
+}
+tasks.named("generateProto") { finalizedBy(stripMetisJvmCodegen) }
+// The Kotlin/Java compile + the python-package assembly must see the stripped tree.
+tasks.matching { it.name.startsWith("compile") || it.name == "preparePythonPackage" }.configureEach {
+    mustRunAfter(stripMetisJvmCodegen)
+}
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
@@ -192,7 +213,17 @@ val noTransferredProtoClasses by tasks.registering {
                 .archiveFile
                 .get()
                 .asFile
-        val forbidden = listOf("org/tatrman/plan/v1/", "org/tatrman/transdsl/v1/", "org/tatrman/dfdsl/v1/")
+        // CH-P3 — transfer/v1 + metis/v1 moved to org.tatrman:ttr-server-proto (0.10.0). transfer.proto is
+        // deleted here; metis.proto is kept Python-only (its JVM codegen is stripped, see stripMetisJvmCodegen),
+        // so neither may bundle into this jar or two copies land on every consumer's classpath.
+        val forbidden =
+            listOf(
+                "org/tatrman/plan/v1/",
+                "org/tatrman/transdsl/v1/",
+                "org/tatrman/dfdsl/v1/",
+                "org/tatrman/transfer/v1/",
+                "org/tatrman/metis/v1/",
+            )
         val offenders =
             ZipFile(jarFile).use { zip ->
                 zip

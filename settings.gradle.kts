@@ -90,13 +90,9 @@ include(":agents:pythia")
 include(":tools:metis-mcp")
 
 // Charon MCP wrapper (tools/charon-mcp; charon/plan.md Phase 3 Stage 3.2). Mirrors metis-mcp.
+// CH-P3: services/charon was deleted (the mover unified into the open tatrman-server); this MCP
+// wrapper stays kantheon-side (CH-D6) and now targets the deployed open charon via CharonClient.
 include(":tools:charon-mcp")
-
-// Stream B — Charon (charon/plan.md Phase 1 Stage 1.1).
-// First `services/` platform-grade module written in kantheon from the start
-// (no `forked-from` provenance header per AGENTS.md §12.1). Settles the
-// `services/` module conventions that Midas's `report-renderer` will follow.
-include(":services:charon")
 
 // Stream B — Midas (midas/plan.md Phase 1 Stage 1.1). The three Midas-owned
 // Kotlin modules; `agents/midas/shem` holds a YAML manifest (not a module) and
