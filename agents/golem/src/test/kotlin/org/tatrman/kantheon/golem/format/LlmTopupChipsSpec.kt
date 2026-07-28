@@ -3,6 +3,8 @@ package org.tatrman.kantheon.golem.format
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 
@@ -71,6 +73,57 @@ class LlmTopupChipsSpec :
                 val text = chips.first().prompt
                 text.contains('\n') shouldBe false
                 (text.length <= 200) shouldBe true
+            }
+        }
+
+        // ---- locale ----------------------------------------------------------------
+        // These chips are user-facing text and must follow the turn's language. The plan
+        // prompt is selected by the Shem bundle (`prompts/<locale>/intent.yaml`) but this
+        // one lives in code, and used to be unconditionally Czech — so an English session
+        // rendered an English caption with Czech chips underneath it.
+
+        suspend fun promptSentFor(locale: String): String {
+            var seen = ""
+            LlmTopupChips(on) { p ->
+                seen = p
+                "[]"
+            }.derive("How did Marketplace revenue develop in 2025?", 0, locale)
+            return seen
+        }
+
+        "an English turn asks for English chips" {
+            runTest {
+                val prompt = promptSentFor("en")
+                prompt shouldContain "Write them in English"
+                prompt shouldNotContain "Navrhni"
+            }
+        }
+
+        "each language the picker offers is named explicitly" {
+            runTest {
+                promptSentFor("de") shouldContain "Write them in German"
+                promptSentFor("sk") shouldContain "Write them in Slovak"
+                promptSentFor("hu") shouldContain "Write them in Hungarian"
+            }
+        }
+
+        "cs keeps the original prompt verbatim — the estate's proven wording" {
+            runTest { promptSentFor("cs") shouldContain "Navrhni 1–3" }
+        }
+
+        "a blank locale keeps the historical Czech behaviour, not a silent switch to English" {
+            runTest { promptSentFor("") shouldContain "Navrhni 1–3" }
+        }
+
+        "a region-tagged locale resolves on its language subtag" {
+            runTest { promptSentFor("en-GB") shouldContain "Write them in English" }
+        }
+
+        "an unknown locale is passed through rather than defaulting to the wrong language" {
+            runTest {
+                val prompt = promptSentFor("pl")
+                prompt shouldContain "Write them in pl"
+                prompt shouldNotContain "Navrhni"
             }
         }
     })

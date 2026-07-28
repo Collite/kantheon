@@ -63,7 +63,7 @@ class FormatEnricher(
         val chips = mutableListOf<PromptChip>()
         chips += HeuristicChips.derive(rows, rowCount.toInt())
         chips += PatternDerivedChips.derive(pickedId, bindings, model)
-        chips += llmTopup.derive(request.question, chips.size)
+        chips += llmTopup.derive(request.question, chips.size, request.context.locale)
         chips
             .distinctBy {
                 it.prompt
