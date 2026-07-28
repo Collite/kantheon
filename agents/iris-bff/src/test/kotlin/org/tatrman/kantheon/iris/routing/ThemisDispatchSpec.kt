@@ -40,7 +40,7 @@ private class Harness(
         routingHint: String? = null,
     ): List<IrisStreamEvent> {
         val out = mutableListOf<IrisStreamEvent>()
-        dispatcher.runTurn(caller, session.sessionId, question, null, "corr", routingHint, out::add)
+        dispatcher.runTurn(caller, session.sessionId, question, null, "corr", routingHint, null, out::add)
         return out
     }
 

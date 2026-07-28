@@ -223,6 +223,9 @@ const sendMessage = async () => {
         sessionId: sessionId.value,
         question: userText,
         desiredFormat: desiredFmt,
+        // Agents answer in the picker's language — Golem chooses its prompt bundle by
+        // this, so without it an EN session gets Czech captions and chips.
+        locale: selectedLang.value,
       },
       {
         // Tag both bubbles with the server turn id so a later edit_resend can
@@ -377,7 +380,7 @@ const editAndResend = async (fromMessageId: string, editedText: string) => {
       )
     } else {
       // No server turn id (never finalized) — degrade to a plain re-issue.
-      const env = await irisStream.turn({ sessionId: sessionId.value, question: editedText })
+      const env = await irisStream.turn({ sessionId: sessionId.value, question: editedText, locale: selectedLang.value })
       if (env) handlers.onEnvelope(env)
     }
     store.removeDiscarded(fromMessageId)
@@ -435,7 +438,10 @@ const runReissue = async (opts: {
 const pickRoutingAgent = (agentId: string, question: string) =>
   runReissue({
     start: (h) =>
-      irisStream.streamTurn({ sessionId: sessionId.value, question, routingHintAgentId: agentId }, h),
+      irisStream.streamTurn(
+        { sessionId: sessionId.value, question, routingHintAgentId: agentId, locale: selectedLang.value },
+        h,
+      ),
   })
 
 /** Prompt-chip click — re-submit the chip as a normal turn (chip_invocation,

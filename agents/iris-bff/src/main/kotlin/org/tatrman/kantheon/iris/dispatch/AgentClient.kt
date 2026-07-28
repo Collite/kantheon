@@ -47,6 +47,10 @@ data class AgentTurn(
     val desiredFormat: String? = null,
     val handoff: HandoffContext? = null,
     val resolution: Resolution? = null,
+    // The locale the agent should answer in, resolved by the BFF (request → configured
+    // default). Blank means "unset" — the agent falls back to its own default rather than
+    // being told a language nobody chose.
+    val locale: String = "",
 )
 
 /** A clarification resume routed to its issuing agent. */

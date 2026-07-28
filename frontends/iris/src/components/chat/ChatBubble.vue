@@ -66,6 +66,7 @@ const {
   filterTable,
   paginateTable,
   drillRow,
+  selectedLang,
 } = useAgentSession()
 
 // Phase 4 — edit mode
@@ -201,7 +202,11 @@ const onSelectRow = async (payload: { rowNumber: number; originalMessageId: stri
   try {
     const env = await irisStream.turn({
       sessionId: sessionId.value,
+      // NOTE: the question text itself is still hardcoded Czech — golem parses it as a
+      // row-select instruction, so it is functional, not display, text. Left as-is;
+      // localising it means agreeing a typed row-select verb with golem first.
       question: `Vyber řádek ${payload.rowNumber}`,
+      locale: selectedLang.value,
     })
     if (env) {
       chatStore.appendOrReplaceEnvelope(env, { attachToStreaming: false })

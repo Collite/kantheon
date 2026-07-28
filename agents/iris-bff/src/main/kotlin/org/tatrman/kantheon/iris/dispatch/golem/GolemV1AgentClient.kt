@@ -24,13 +24,12 @@ class GolemV1AgentClient(
     private val store: SessionStore,
     private val client: GolemV1Client,
     private val mux: GolemV1Mux = GolemV1Mux(),
-    private val locale: String = "cs",
 ) : AgentClient {
     override suspend fun runTurn(
         turn: AgentTurn,
         emit: suspend (IrisStreamEvent) -> Unit,
     ): TurnOutcome {
-        val request = GolemRequestFactory.forTurn(agentId, turn, locale, store.getTurns(turn.sessionId))
+        val request = GolemRequestFactory.forTurn(agentId, turn, store.getTurns(turn.sessionId))
         return mux.run(
             turn.turnId,
             turn.sessionId,

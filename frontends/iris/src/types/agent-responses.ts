@@ -83,6 +83,10 @@ export interface ChatTurnRequestDto {
   // through Themis). Set when a RoutingPickChip is clicked — the BFF skips the
   // four-layer cascade and dispatches straight to `routingHintAgentId`.
   routingHintAgentId?: string
+  // The language picker's current value. Agents answer in this locale — Golem selects its
+  // prompt bundle by it, so it governs the caption and follow-up chips of the answer bubble,
+  // not just the SPA's own strings. Omitted → the BFF's `iris.locale` default.
+  locale?: string
 }
 
 // ----- /v1/chat/resume -----

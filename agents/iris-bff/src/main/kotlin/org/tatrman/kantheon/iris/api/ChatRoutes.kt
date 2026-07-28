@@ -35,7 +35,15 @@ fun Route.chatRoutes(
         val sessionId = call.ownedSession(store, caller, req.sessionId) ?: return@post
         val corr = call.correlationId()
         call.respondSse(heartbeatMs) { emit ->
-            dispatcher.runTurn(caller, sessionId, req.question, req.desiredFormat, corr, req.routingHintAgentId) { ev ->
+            dispatcher.runTurn(
+                caller,
+                sessionId,
+                req.question,
+                req.desiredFormat,
+                corr,
+                req.routingHintAgentId,
+                req.locale,
+            ) { ev ->
                 emit(IrisSse.frame(ev))
             }
         }
@@ -48,7 +56,15 @@ fun Route.chatRoutes(
         val sessionId = call.ownedSession(store, caller, req.sessionId) ?: return@post
         val corr = call.correlationId()
         var terminal: IrisStreamEvent? = null
-        dispatcher.runTurn(caller, sessionId, req.question, req.desiredFormat, corr, req.routingHintAgentId) { ev ->
+        dispatcher.runTurn(
+            caller,
+            sessionId,
+            req.question,
+            req.desiredFormat,
+            corr,
+            req.routingHintAgentId,
+            req.locale,
+        ) { ev ->
             if (ev.hasEnvelope() || ev.hasError()) terminal = ev
         }
         if (terminal != null) {

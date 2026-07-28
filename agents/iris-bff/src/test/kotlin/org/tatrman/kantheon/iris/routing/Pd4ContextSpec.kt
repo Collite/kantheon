@@ -40,7 +40,7 @@ class Pd4ContextSpec :
                 val (store, chat, caller) = harness("entity-context.sse")
                 val session = store.createSession("u1", "t1")
                 val out = mutableListOf<IrisStreamEvent>()
-                chat.runTurn(caller, session.sessionId, "tržby Tesco?", null, "corr", null, out::add)
+                chat.runTurn(caller, session.sessionId, "tržby Tesco?", null, "corr", null, null, out::add)
 
                 // The session now carries the agent's applied entity (c-2 / Tesco).
                 store.getSession(session.sessionId)!!.entityContextJson shouldContain "c-2"
@@ -66,7 +66,7 @@ class Pd4ContextSpec :
                     ),
                 )
                 val out = mutableListOf<IrisStreamEvent>()
-                chat.runTurn(caller, session.sessionId, "a co teď?", null, "corr", null, out::add)
+                chat.runTurn(caller, session.sessionId, "a co teď?", null, "corr", null, null, out::add)
 
                 // The agent applied c-2 (Tesco) ≠ the carried c-1 (Kaufland) → warning.
                 val env = out.last { it.hasEnvelope() }.envelope
@@ -95,7 +95,7 @@ class Pd4ContextSpec :
                     ),
                 )
                 val out = mutableListOf<IrisStreamEvent>()
-                chat.runTurn(caller, session.sessionId, "a dál?", null, "corr", null, out::add)
+                chat.runTurn(caller, session.sessionId, "a dál?", null, "corr", null, null, out::add)
 
                 out.last { it.hasEnvelope() }.envelope.messagesCount shouldBe 0
             }

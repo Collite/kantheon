@@ -85,7 +85,13 @@ describe('useAgentSession — editAndResend', () => {
 
     await session.editAndResend(userMsg.id, 'edited q')
 
-    expect(irisStream.turn).toHaveBeenCalledWith({ sessionId: 's-1', question: 'edited q' })
+    // The picker's locale rides on every turn — agents answer in it, and Golem picks its
+    // prompt bundle by it, so a re-run must not silently fall back to the BFF's default.
+    expect(irisStream.turn).toHaveBeenCalledWith({
+      sessionId: 's-1',
+      question: 'edited q',
+      locale: session.selectedLang.value,
+    })
     expect(irisStream.editResend).not.toHaveBeenCalled()
     expect(store.messages.some((m) => m.content === 'plain re-run')).toBe(true)
   })

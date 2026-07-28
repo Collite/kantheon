@@ -62,7 +62,8 @@ class ChatDispatcher(
     private val dispatcher: AgentDispatcher,
     private val audit: AuditStore,
     private val envelopes: RoutingEnvelopes,
-    private val locale: String = "cs",
+    // Fallback locale when a turn does not carry one (`iris.locale` / IRIS_LOCALE).
+    private val defaultLocale: String = "cs",
     private val routerAgentId: String = "themis",
     private val defaultAgentId: String = "golem-v2",
     private val metrics: RoutingMetrics = RoutingMetrics.NOOP,
@@ -130,9 +131,12 @@ class ChatDispatcher(
         desiredFormat: String?,
         correlationId: String,
         routingHintAgentId: String? = null,
+        locale: String? = null,
         emit: suspend (IrisStreamEvent) -> Unit,
     ): TurnOutcome {
         val startNanos = System.nanoTime()
+        // The turn's language: what the UI asked for, else the deployment default.
+        val turnLocale = locale?.takeIf { it.isNotBlank() } ?: defaultLocale
         val turnId = UUID.randomUUID()
         val seq = Sequenced(turnId.toString(), emit)
         val session = store.getSession(sessionId) ?: error("session $sessionId not found")
@@ -141,7 +145,10 @@ class ChatDispatcher(
 
         val response =
             try {
-                themis.understand(buildResolveRequest(sessionId, question, routingHintAgentId, handoff), caller.bearer)
+                themis.understand(
+                    buildResolveRequest(sessionId, question, routingHintAgentId, handoff, turnLocale),
+                    caller.bearer,
+                )
             } catch (e: ThemisAuthException) {
                 // Expired/invalid OBO bearer: fail closed, prompt re-auth, do NOT invite a retry.
                 val out =
@@ -184,6 +191,7 @@ class ChatDispatcher(
                         handoff,
                         desiredFormat,
                         correlationId,
+                        turnLocale,
                     )
                 ResolveResponse.OutcomeCase.AWAITING ->
                     handleAwaiting(
@@ -196,6 +204,7 @@ class ChatDispatcher(
                         handoff,
                         desiredFormat,
                         correlationId,
+                        turnLocale,
                     )
                 ResolveResponse.OutcomeCase.REFUSAL ->
                     handleRefusal(turnId, seq, caller, sessionId, question, response.refusal)
@@ -216,6 +225,7 @@ class ChatDispatcher(
         handoff: org.tatrman.kantheon.common.v1.HandoffContext?,
         desiredFormat: String?,
         correlationId: String,
+        locale: String,
     ): TurnOutcome {
         val routing = if (resolution.hasRouting()) resolution.routing else null
 
@@ -268,6 +278,7 @@ class ChatDispatcher(
             correlationId,
             routing,
             resolution,
+            locale,
         )
     }
 
@@ -281,6 +292,7 @@ class ChatDispatcher(
         handoff: org.tatrman.kantheon.common.v1.HandoffContext?,
         desiredFormat: String?,
         correlationId: String,
+        locale: String,
     ): TurnOutcome {
         if (awaiting.hasMultiQuestion()) {
             val mq = awaiting.multiQuestion
@@ -310,6 +322,7 @@ class ChatDispatcher(
                 // PD-13 KEEP_TOGETHER: the question was never resolved to a single intent,
                 // so there is nothing for the agent to trust upstream here.
                 resolution = null,
+                locale = locale,
             )
         }
 
@@ -361,6 +374,7 @@ class ChatDispatcher(
         correlationId: String,
         routing: RoutingDecision?,
         resolution: Resolution?,
+        locale: String,
     ): TurnOutcome {
         val agentTurn =
             AgentTurn(
@@ -372,6 +386,7 @@ class ChatDispatcher(
                 desiredFormat,
                 handoff,
                 resolution,
+                locale,
             )
         // PD-4 (T4): the entities the BFF carried in (the previous in-scope context).
         val sentEntities = handoff?.entitiesList?.map { it.entityType to it.entityId }?.toSet() ?: emptySet()
@@ -536,6 +551,7 @@ class ChatDispatcher(
         question: String,
         routingHintAgentId: String?,
         handoff: org.tatrman.kantheon.common.v1.HandoffContext?,
+        locale: String,
     ): ResolveRequest {
         val builder =
             ResolveRequest

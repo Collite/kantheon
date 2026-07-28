@@ -43,14 +43,17 @@ object GolemRequestFactory {
     fun forTurn(
         golemId: String,
         turn: AgentTurn,
-        locale: String,
         priorTurns: List<TurnRecord> = emptyList(),
     ): GolemRequest {
         val context =
             GolemContext
                 .newBuilder()
-                .setLocale(locale)
                 .addAllConversationExcerpt(excerpt(priorTurns))
+        // Golem selects its prompt bundle by locale (`prompts/<locale>/intent.yaml`), so this
+        // field decides the language of the answer's caption and follow-up chips — not just
+        // of the SPA's own strings. Left unset when the BFF has no locale, so golem falls
+        // back to its Shem's default rather than being told a language nobody chose.
+        turn.locale.takeIf { it.isNotBlank() }?.let { context.locale = it }
         turn.handoff?.let { handoff ->
             context.handoff = handoff
             priorView(handoff)?.let { context.priorView = it }

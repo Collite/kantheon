@@ -23,6 +23,7 @@ class GolemRequestFactorySpec :
         fun turn(
             handoff: HandoffContext? = null,
             resolution: Resolution? = null,
+            locale: String = "cs",
         ) = AgentTurn(
             turnId = "turn-1",
             sessionId = sessionId,
@@ -31,6 +32,7 @@ class GolemRequestFactorySpec :
             question = "Kolik jsme prodali v lednu?",
             handoff = handoff,
             resolution = resolution,
+            locale = locale,
         )
 
         fun priorTurn(
@@ -50,7 +52,7 @@ class GolemRequestFactorySpec :
         )
 
         "the golem_id is the routed agent id — golem rejects any other" {
-            val request = GolemRequestFactory.forTurn("golem-hartland", turn(), "cs")
+            val request = GolemRequestFactory.forTurn("golem-hartland", turn())
 
             request.golemId shouldBe "golem-hartland"
             request.id shouldBe "turn-1"
@@ -69,14 +71,14 @@ class GolemRequestFactorySpec :
                     .setFunctionId("sales_by_month")
                     .setArgsJson("""{"year":2026}""")
                     .build()
-            val request = GolemRequestFactory.forTurn("golem-hartland", turn(resolution = resolution), "cs")
+            val request = GolemRequestFactory.forTurn("golem-hartland", turn(resolution = resolution))
 
             request.resolvedIntent.functionId shouldBe "sales_by_month"
             request.resolvedIntent.argsJson shouldBe """{"year":2026}"""
         }
 
         "no Resolution (the KEEP_TOGETHER path) degrades to an empty binding, not a failure" {
-            val request = GolemRequestFactory.forTurn("golem-hartland", turn(), "cs")
+            val request = GolemRequestFactory.forTurn("golem-hartland", turn())
 
             request.hasResolvedIntent() shouldBe false
             request.resolvedIntent.functionId shouldBe ""
@@ -96,7 +98,7 @@ class GolemRequestFactorySpec :
                             .setArgsJson("""{"year":2025}""")
                             .setTotalRows(12),
                     ).build()
-            val request = GolemRequestFactory.forTurn("golem-hartland", turn(handoff = handoff), "cs")
+            val request = GolemRequestFactory.forTurn("golem-hartland", turn(handoff = handoff))
 
             request.context.handoff.entitiesCount shouldBe 1
             request.context.priorView.bubbleId shouldBe "b-prev"
@@ -109,7 +111,7 @@ class GolemRequestFactorySpec :
             // present-but-blank view must not make golem compose as though there were
             // something to amend.
             val handoff = HandoffContext.newBuilder().setSourceAgentId("golem-hartland").build()
-            val request = GolemRequestFactory.forTurn("golem-hartland", turn(handoff = handoff), "cs")
+            val request = GolemRequestFactory.forTurn("golem-hartland", turn(handoff = handoff))
 
             request.context.hasPriorView() shouldBe false
         }
@@ -122,7 +124,7 @@ class GolemRequestFactorySpec :
                     priorTurn(3, "druhá", envelopeJson = """{"text":"Tržby činily 4,2 mil."}"""),
                     priorTurn(4, "třetí", envelopeJson = "not json at all"),
                 )
-            val request = GolemRequestFactory.forTurn("golem-hartland", turn(), "cs", turns)
+            val request = GolemRequestFactory.forTurn("golem-hartland", turn(), turns)
 
             request.context.conversationExcerptList.map { it.question } shouldContainExactly
                 listOf("první", "druhá", "třetí")
@@ -133,7 +135,7 @@ class GolemRequestFactorySpec :
 
         "the excerpt is bounded" {
             val turns = (1..12).map { priorTurn(it, "q$it") }
-            val request = GolemRequestFactory.forTurn("golem-hartland", turn(), "cs", turns)
+            val request = GolemRequestFactory.forTurn("golem-hartland", turn(), turns)
 
             request.context.conversationExcerptCount shouldBe GolemRequestFactory.MAX_EXCERPT_TURNS
             request.context.getConversationExcerpt(0).question shouldBe "q8"

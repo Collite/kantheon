@@ -116,6 +116,9 @@ fun buildComponents(config: Config): IrisComponents {
     val golemClients = extraAgentEndpoints.mapValues { (_, baseUrl) -> GolemV1HttpClient(baseUrl) }
     val mux = IrisStreamMux()
     val golemMux = GolemV1Mux()
+    // Fallback answer language for turns that carry none (the SPA sends the picker's value).
+    val defaultLocale = config.getString("iris.locale")
+    log.info("iris: default answer locale = {} (per-turn `locale` on the request wins)", defaultLocale)
     val heartbeatMs = config.getLong("iris.stream.heartbeat-s") * 1000
 
     // Phase 3 routing edge: every turn resolves through Themis, then dispatches to
@@ -152,7 +155,7 @@ fun buildComponents(config: Config): IrisComponents {
                     }
                 },
             )
-        return ChatDispatcher(store, themis, agents, audit, envelopes, metrics = metrics)
+        return ChatDispatcher(store, themis, agents, audit, envelopes, defaultLocale, metrics = metrics)
     }
 
     fun typedActions(
