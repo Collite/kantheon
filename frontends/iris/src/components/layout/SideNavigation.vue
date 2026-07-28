@@ -6,6 +6,7 @@ import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import { useToast } from 'primevue/usetoast'
 import { useAuthStore } from '@/stores/auth'
+import TatrmanMark from '@/components/brand/TatrmanMark.vue'
 import { useLayoutStore } from '@/stores/layoutStore'
 import { clearPersistedLayout } from '@/stores/layoutPersistence'
 import {
@@ -185,12 +186,10 @@ const onPaneItemClick = (id: BottomPaneId) => {
       style="border-color: var(--p-surface-800);"
     >
       <div v-if="!collapsed" class="flex items-center gap-3 min-w-0">
-        <div
-          class="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
-          style="background-color: var(--p-primary-600);"
-        >
-          <i class="pi pi-bolt text-white" style="font-size: 1.05rem;"></i>
-        </div>
+        <!-- The Tatrman mark, not a tinted box: the rail is Stage Navy, which is the
+             surface the manual designs the mark for. `color: #fff` drives the mark's
+             `currentColor` structure (bar + rows); the head stays yellow either way. -->
+        <TatrmanMark class="h-8 w-8 shrink-0" style="color: #FFFFFF;" aria-hidden="true" />
         <span class="text-lg font-bold tracking-tight truncate">{{ t('nav.brand') }}</span>
         <InboxBadge />
       </div>

@@ -106,8 +106,34 @@ onMounted(async () => {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <!-- Logo -->
-            <img src="@/assets/logo.jpg" alt="Logo" class="h-10 w-auto rounded-lg object-contain" />
+            <!-- Tatrman mark (project/common/graphics/tatrman.html). Inlined so the
+                 structure inherits `currentColor` — charcoal on this white header;
+                 the head and middle row stay yellow, the strings stay grey. -->
+            <svg viewBox="0 0 240 240" role="img" aria-label="Tatrman"
+                 class="h-10 w-10 shrink-0 text-gray-700">
+              <defs>
+                <linearGradient id="tatrmanYellow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#FFCB2E" />
+                  <stop offset="1" stop-color="#F2A200" />
+                </linearGradient>
+              </defs>
+              <rect x="62" y="29.5" width="116" height="13" rx="6.5" fill="currentColor"
+                    transform="rotate(-7 120 36)" />
+              <g stroke="#96989B" stroke-width="2.4" stroke-linecap="round" fill="none">
+                <path d="M 78 41.5 L 95 119" />
+                <path d="M 120 36.5 L 120 70" />
+                <path d="M 162 31.5 L 152 136" />
+              </g>
+              <circle cx="120" cy="88" r="17" fill="url(#tatrmanYellow)" />
+              <circle cx="113.6" cy="86" r="2.3" fill="#4A4B4D" />
+              <circle cx="126.4" cy="86" r="2.3" fill="#4A4B4D" />
+              <rect x="93" y="112" width="52" height="13" rx="6.5" fill="currentColor"
+                    transform="rotate(-5 119 118.5)" />
+              <rect x="90" y="130" width="64" height="13" rx="6.5" fill="url(#tatrmanYellow)"
+                    transform="rotate(4 122 136.5)" />
+              <rect x="99" y="148" width="44" height="13" rx="6.5" fill="currentColor"
+                    transform="rotate(-3 121 154.5)" />
+            </svg>
             <h1 class="text-xl font-semibold text-gray-900">{{ t('header.title') }}</h1>
           </div>
 
@@ -121,7 +147,7 @@ onMounted(async () => {
               </div>
               <div class="flex flex-col">
                 <span class="text-sm font-medium text-gray-900 leading-none">{{ userName }}</span>
-                <a @click="authStore.logout()" class="text-xs text-indigo-600 hover:text-indigo-800 cursor-pointer mt-1 font-medium transition-colors">Sign Out</a>
+                <a @click="authStore.logout()" class="text-xs text-primary-700 hover:text-primary-800 cursor-pointer mt-1 font-medium transition-colors">Sign Out</a>
               </div>
             </div>
           </div>

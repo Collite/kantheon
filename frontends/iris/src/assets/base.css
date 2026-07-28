@@ -1,7 +1,17 @@
+/* Tatrman brand tokens (project/common/graphics/tatrman.html).
+   Kept as RGB triplets because Tailwind's `<alpha-value>` syntax needs them
+   channel-wise. The full ramps live in src/config/brand.ts + tailwind.config.js;
+   these are the named constants plain CSS reaches for. */
 :root {
-  --color-primary-500: 239 68 68;
-  --color-surface-50: 248 250 252;
-  --color-surface-900: 15 23 42;
+  --color-primary-500: 255 203 46; /* Tatrman Yellow  #FFCB2E */
+  --color-primary-600: 242 162 0;  /* Tatrman Yellow, deep stop #F2A200 */
+  --color-charcoal: 74 75 77;      /* #4A4B4D — structure, and the text ON yellow */
+  --color-mid-gray: 150 152 155;   /* #96989B — descriptors, dividers, strings */
+  --color-stage-navy: 22 40 63;    /* #16283F — "the stage" */
+  --color-ice: 203 221 244;        /* #CBDDF4 — secondary text on navy */
+
+  --color-surface-50: 248 249 250;
+  --color-surface-900: 22 40 63;
 }
 
 body {
