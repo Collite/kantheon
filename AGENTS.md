@@ -483,7 +483,7 @@ When writing code against a complex library, consult one of these **before** gue
   > Maintained independently since the fork; do not assume parity with the ai-platform original.
   ```
 - **Authoritative template:** [`docs/implementation/v1/fork/provenance-template.md`](./docs/implementation/v1/fork/provenance-template.md) — copy from there, do not retype. The current fork-point SHA is recorded in [`docs/architecture/fork/architecture.md`](./docs/architecture/fork/architecture.md) §1.
-- **Non-forked modules** (capabilities-mcp, themis, pythia, golem, iris-bff, iris FE, envelope-render, capabilities-client, hebe, charon, metis) get *no* provenance header — they were written in kantheon from the start.
+- **Non-forked modules** (capabilities-mcp, themis, pythia, golem, iris-bff, iris FE, envelope-render, capabilities-client, hebe, charon-mcp, metis) get *no* provenance header — they were written in kantheon from the start. *(CH-P3, 2026-07-27: `services/charon` itself is gone — unified into the open `tatrman-server`; only `tools/charon-mcp` remains here.)*
 - **Drift is accepted.** A bug fix in the ai-platform original does **not** propagate to the kantheon copy. The header keeps the diff reachable; double-maintenance is the cost of the fork (architecture §1).
 
 ---
