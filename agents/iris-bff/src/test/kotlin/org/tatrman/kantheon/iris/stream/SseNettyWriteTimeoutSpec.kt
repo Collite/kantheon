@@ -67,6 +67,16 @@ class SseNettyWriteTimeoutSpec :
                             serviceName = "st-p1-netty-test",
                             serverPort = 0, // ephemeral
                             engine = KtorEngine.NETTY,
+                            // PINNED to the old Ktor default (ST-P2·S2). This test's whole claim is
+                            // "survives a first event arriving long after the engine's write
+                            // timeout" — which requires the timeout to be SHORTER than the 15s
+                            // delay below. Since ktor-configurator 0.10.1 the library default is
+                            // 180s, so inheriting it would put the delay comfortably inside the cap
+                            // and this spec would pass even with the preamble deleted: green, and
+                            // measuring nothing. The heartbeat above still comes from
+                            // application.conf on purpose — that value IS ours to track; the engine
+                            // timeout is the library's, and the test must own it to stay honest.
+                            responseWriteTimeoutSeconds = 10,
                         ),
                     ) {
                         routing {

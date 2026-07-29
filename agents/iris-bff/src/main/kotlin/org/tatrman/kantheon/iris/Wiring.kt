@@ -57,6 +57,7 @@ import org.tatrman.kantheon.iris.routing.HttpThemisClient
 import org.tatrman.kantheon.iris.routing.RoutingEnvelopes
 import org.tatrman.kantheon.iris.routing.ThemisClient
 import org.tatrman.kantheon.iris.stream.IrisStreamMux
+import shared.ktor.KtorServerConfig
 
 private val log = LoggerFactory.getLogger("org.tatrman.kantheon.iris.Wiring")
 
@@ -93,7 +94,10 @@ class IrisComponents(
  * the server never reaches a serving state with an unmigrated schema, so
  * `/ready` returning true implies migrations completed.
  */
-fun buildComponents(config: Config): IrisComponents {
+fun buildComponents(
+    config: Config,
+    serverConfig: KtorServerConfig,
+): IrisComponents {
     val auth = buildAuth(config.getConfig("iris.auth"))
 
     // Audit signing key: loaded from the configured Secret ref (Stage 1.4); falls
@@ -120,11 +124,19 @@ fun buildComponents(config: Config): IrisComponents {
     val defaultLocale = config.getString("iris.locale")
     log.info("iris: default answer locale = {} (per-turn `locale` on the request wins)", defaultLocale)
     val heartbeatMs = config.getLong("iris.stream.heartbeat-s") * 1000
-    // Logged because the value is load-bearing and was previously invisible: it MUST stay
-    // below the engine's response-write timeout or streams are reaped before their first
-    // frame. TODO(ST-P2): add the resolved engine timeout here once KtorServerConfig
-    // carries it, so the whole invariant is legible from one pod log line.
-    log.info("iris stream: heartbeat={}ms (must stay under the engine response-write timeout)", heartbeatMs)
+    // Both halves of the invariant on one line, because the outage was invisible precisely
+    // because nothing logged them. The engine timeout used to be an inherited Ktor default
+    // (10s) that no config file mentioned; ST-P2 made it an explicit KtorServerConfig field,
+    // so it can now be read straight off a pod log rather than inferred from a stack trace.
+    //
+    // What to check when a stream dies: heartbeat must stay under the engine timeout, and the
+    // engine timeout caps time-to-first-byte for STREAMING responses. See the triage table on
+    // SseStream.respondSse and project/server/features/stream-timeouts/.
+    log.info(
+        "iris stream: heartbeat={}ms, engine response-write-timeout={}s",
+        heartbeatMs,
+        serverConfig.responseWriteTimeoutSeconds,
+    )
 
     // Phase 3 routing edge: every turn resolves through Themis, then dispatches to
     // the chosen agent's client. golem-v2 is the only registered client at Phase 3.
