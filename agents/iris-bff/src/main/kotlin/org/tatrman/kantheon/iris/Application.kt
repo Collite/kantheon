@@ -47,7 +47,7 @@ fun Application.module(
         )
     }
 
-    val components = buildComponents(config)
+    val components = buildComponents(config, serverConfig)
     installErrorPages()
 
     routing {

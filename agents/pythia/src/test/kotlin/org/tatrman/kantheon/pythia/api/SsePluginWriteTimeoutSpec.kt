@@ -77,16 +77,18 @@ class SsePluginWriteTimeoutSpec :
 
                 val server =
                     KtorServerBootstrap.createServer(
-                        // TODO(ST-P2·S2): this case depends on the engine's write timeout being
-                        // Ktor's 10s default, which it INHERITS from ktor-configurator 0.9.4.
-                        // ST-P2·S1 changes that default to 180s — when tatrman-server is bumped,
-                        // pass `responseWriteTimeoutSeconds = 10` explicitly here or this case
-                        // goes red for the wrong reason (the parameter does not exist in 0.9.4,
-                        // so it cannot be pinned yet). See review-077 R1.
                         KtorServerConfig(
                             serviceName = "st-p1-pythia-sse-test",
                             serverPort = 0,
                             engine = KtorEngine.NETTY,
+                            // PINNED, not inherited (ST-P2·S2, closing review-077 R1). This case
+                            // exists to prove the engine reaps a quiet handler, so it must own the
+                            // timeout it is proving. It used to inherit Ktor's 10s default via
+                            // ktor-configurator 0.9.4; since 0.10.1 the library default is 180s,
+                            // and inheriting that would have made this case hang for 15s and then
+                            // PASS the request — going red while reporting nothing about the
+                            // defect. The 15s delay below is what must exceed this value.
+                            responseWriteTimeoutSeconds = 10,
                         ),
                     ) {
                         installServer(SSE)
@@ -167,6 +169,14 @@ class SsePluginWriteTimeoutSpec :
                             serviceName = "st-p1-pythia-sse-fixed",
                             serverPort = 0,
                             engine = KtorEngine.NETTY,
+                            // Pinned for the same reason as the hazard case above, and it matters
+                            // MORE here. review-077 R1 said to leave this case inheriting, since it
+                            // "stays green either way" — but that is precisely the failure mode: at
+                            // the 180s library default the 15s delay never reaches any cap, so this
+                            // case would pass even with the preamble DELETED. It would look like a
+                            // regression net while catching nothing. At 10s the preamble is once
+                            // again the only reason the stream survives.
+                            responseWriteTimeoutSeconds = 10,
                         ),
                     ) {
                         installServer(SSE)

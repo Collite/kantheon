@@ -16,17 +16,35 @@ tatrman-translator        = "0.10.1"  # translate.v1 public (was 0.8.5 / proteus
 # The spine libs + proto stubs moved to tatrman-server (SV-P0); consumed as
 # org.tatrman:* artifacts from Maven Central (public). The GitHub Packages +
 # 0.0.1-LOCAL/mavenLocal interims are retired.
-tatrman-server            = "0.9.4"
+#
+# 0.9.4 -> 0.10.1 (ST-P2·S2, 2026-07-29): the long-outstanding re-cut happened
+# (tag server-libs/v0.10.1-RELEASE). This ref drives 9 modules — see the library entries below.
+#
+# The bump exists for ktor-configurator: its Netty branch now sets `responseWriteTimeoutSeconds`
+# explicitly (default 180s) instead of inheriting Ktor's default of 10s, which is a hard cap on
+# time-to-first-byte for STREAMING responses and took the Hartland demo down on 2026-07-29
+# (iris-bff's SSE socket reaped at exactly 10.0s while Themis was still resolving). kantheon's
+# own fix — the `: ready` preamble — shipped first and is what actually carries the estate; this
+# bump is the library-side guard so a FOURTH Netty service cannot rediscover the cliff.
+# Full write-up: project/server/features/stream-timeouts/.
+tatrman-server            = "0.10.1"
 # ttr-llm-client decoupled to 0.9.7 (golem gateway-2.0 cutover needs LlmGatewayEndpoint.apiKey +
 # the generic-tier executor). ttr-llm-client has NO proto deps (koog/ktor only), so it resolves
 # cleanly at 0.9.7 regardless of the proto line.
 #
-# The rest of server-libs stays 0.9.4 — but note the ORIGINAL reason no longer holds. It used to
-# be "0.9.7's ttr-server-proto transitively pins ttr-plan-proto:0.9.6-rc01, an RC absent from
-# Maven Central". That gap is CLOSED: ttr-plan-proto is published at 0.10.1 (2026-07-29) and this
-# catalog now consumes it directly. So server-libs is no longer blocked by a missing artifact —
-# it simply has not been re-cut yet. That re-cut is the standing gate on ST-P2·S2 and FZ-P3·S2
-# (project/server/features/{stream-timeouts,ttr-fuzzy-perf}/); it is Bora's tag to cut.
+# The ORIGINAL reason the rest of the spine sat at 0.9.4 is gone twice over. It used to be
+# "0.9.7's ttr-server-proto transitively pins ttr-plan-proto:0.9.6-rc01, an RC absent from Maven
+# Central" — that gap CLOSED when ttr-plan-proto published at 0.10.1 (2026-07-29). What remained
+# was simply that server-libs had not been re-cut; that is now done too, and `tatrman-server`
+# above moved to 0.10.1.
+#
+# ⚑ The three refs below are still OFF the main line, deliberately and separately. Because
+# `just publish bundle server-libs` cuts all 13 modules together, ttr-llm-client,
+# ttr-server-proto and ttr-validator-spi are ALSO available at 0.10.1 — so re-unifying them is
+# now possible. It was NOT done as part of ST-P2·S2: that effort needed ktor-configurator only,
+# and moving the proto/SPI line is a change with its own blast radius (CH-P3 and PL-P4 chose
+# these pins for reasons recorded below). Re-unification is a deliberate follow-up, not a
+# side effect of a timeout fix.
 tatrman-ttr-llm-client    = "0.9.7"
 # CH-P3 — ttr-server-proto decoupled to 0.10.0: the open Charon unification (arc CH) moved
 # transfer.v1 + metis.v1 INTO ttr-server-proto, and 0.10.0 is the first Central-clean cut of it
