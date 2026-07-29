@@ -21,7 +21,8 @@ import kotlinx.io.readString
  * ST-P1·S1 — the SSE response must be committed before any slow work runs.
  *
  * Ktor's Netty engine reaps a response that has produced no bytes within
- * `responseWriteTimeoutSeconds` (default **10s**). A Themis cold resolve is ~19-28s, so a
+ * `responseWriteTimeoutSeconds`, which was the unconfigured **10s** at the time of the
+ * outage (ST-P2 later made the shared bootstrap set 180s). A Themis cold resolve is ~19-28s, so a
  * stream that stays silent until its first heartbeat (which defaulted to 15s) had its
  * socket closed before a single header went out — surfacing to the user as a 502 with
  * `time_starttransfer=0`. See `project/server/features/stream-timeouts/`.
@@ -100,5 +101,9 @@ class SsePreambleSpec :
         }
     })
 
-/** Ktor's `NettyApplicationEngine.Configuration.responseWriteTimeoutSeconds` default. */
+/**
+ * The floor `iris.stream.heartbeat-s` must stay under — Ktor's *unconfigured*
+ * `NettyApplicationEngine.Configuration.responseWriteTimeoutSeconds`. Deliberately not raised to
+ * ST-P2's 180s: the floor encodes "survive even against a library build that predates ST-P2".
+ */
 private const val KTOR_NETTY_WRITE_TIMEOUT_FLOOR_S = 10L

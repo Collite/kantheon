@@ -40,8 +40,10 @@ fun Route.sseRoutes(
 ) {
     sse("/v1/investigations/{id}/events") {
         // Commit the response before any work — ST-P1·S2. Ktor's Netty engine reaps a
-        // response that has produced no bytes within `responseWriteTimeoutSeconds`
-        // (default 10s), and MEASURED 2026-07-29: the `sse { }` plugin does NOT commit on
+        // response that has produced no bytes within `responseWriteTimeoutSeconds` (Ktor's
+        // unconfigured default is 10s; since ST-P2 the shared `KtorServerBootstrap` sets it
+        // explicitly to 180s, which this service gets), and MEASURED 2026-07-29: the
+        // `sse { }` plugin does NOT commit on
         // session start, so it offers no protection of its own (SsePluginWriteTimeoutSpec
         // pins both halves). Today this handler is fast — authenticate, find, replay,
         // return — so it does not trip the cap; but that is a property of the current
