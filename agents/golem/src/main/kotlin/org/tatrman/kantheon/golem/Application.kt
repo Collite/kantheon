@@ -7,6 +7,8 @@ import io.ktor.server.application.ApplicationStarted
 import io.ktor.server.application.ApplicationStopping
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
+import org.tatrman.kantheon.golem.api.PING_INTERVAL_MS
 import org.tatrman.kantheon.golem.api.answerRoutes
 import org.tatrman.kantheon.golem.api.healthRoutes
 import org.tatrman.kantheon.golem.api.refreshRoutes
@@ -17,6 +19,8 @@ import shared.ktor.KtorServerConfig
 import shared.ktor.installKtorServerBase
 import shared.otel.OtelEndpointConfig
 import shared.otel.createOpenTelemetrySdk
+
+private val log = LoggerFactory.getLogger("org.tatrman.kantheon.golem.Application")
 
 fun main() {
     val config = ConfigFactory.load()
@@ -29,6 +33,17 @@ fun Application.module(
     serverConfig: KtorServerConfig,
 ) {
     installKtorServerBase(serverConfig)
+
+    // Both halves of the SSE invariant on one line (contracts §6). The 2026-07-29 outage was
+    // invisible precisely because neither number was ever logged: the engine timeout was an
+    // inherited library default no config file mentioned. Golem was never exposed — `SseAnswer`
+    // has always written its preamble first — but "we were fine" is not something you should
+    // have to take on faith from a pod that prints nothing.
+    log.info(
+        "golem stream: ping={}ms, engine response-write-timeout={}s",
+        PING_INTERVAL_MS,
+        serverConfig.responseWriteTimeoutSeconds,
+    )
 
     if (config.getBoolean("telemetry.enabled")) {
         createOpenTelemetrySdk(

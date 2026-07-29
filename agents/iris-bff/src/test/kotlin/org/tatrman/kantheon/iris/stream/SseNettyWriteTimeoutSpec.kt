@@ -26,10 +26,14 @@ import kotlin.time.Duration.Companion.seconds
  * ST-P1·S1·T2 — the regression test for the 2026-07-29 Hartland outage.
  *
  * Unlike [SsePreambleSpec], this stands up a **real Netty socket** through the same
- * [KtorServerBootstrap] production uses, because the defect lives in the engine:
- * `embeddedServer(Netty, ...)` is started with no `configure` block, so Ktor's
- * `responseWriteTimeoutSeconds` keeps its default of 10s and reaps any response that has
- * produced no bytes by then. `testApplication`'s in-memory engine cannot reproduce that.
+ * [KtorServerBootstrap] production uses, because the defect lives in the engine: it reaps any
+ * response that has produced no bytes within `responseWriteTimeoutSeconds`.
+ * `testApplication`'s in-memory engine cannot reproduce that.
+ *
+ * The timeout is **pinned at 10 below, not inherited** — see the comment at the constructor.
+ * At the time of the outage 10s was what the unconfigured engine gave you; ST-P2 changed the
+ * library default to 180s, and a spec that inherited that would sail past its own 15s delay
+ * and pass with the preamble deleted.
  *
  * The server deliberately runs the **shipped configuration** — the heartbeat is read from
  * `application.conf` rather than hardcoded — so this test tracks whatever the estate

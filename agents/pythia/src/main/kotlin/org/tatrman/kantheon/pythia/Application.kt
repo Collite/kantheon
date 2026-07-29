@@ -13,6 +13,7 @@ import io.ktor.server.sse.SSE
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import org.tatrman.kantheon.pythia.api.controlRoutes
 import org.tatrman.kantheon.pythia.api.healthRoutes
 import org.tatrman.kantheon.pythia.api.sseRoutes
@@ -23,6 +24,8 @@ import shared.ktor.KtorServerConfig
 import shared.ktor.installKtorServerBase
 import shared.otel.OtelEndpointConfig
 import shared.otel.createOpenTelemetrySdk
+
+private val log = LoggerFactory.getLogger("org.tatrman.kantheon.pythia.Application")
 
 fun main() {
     val config = ConfigFactory.load()
@@ -36,6 +39,15 @@ fun Application.module(
 ) {
     installKtorServerBase(serverConfig)
     install(SSE)
+
+    // Contracts §6. Pythia is the one Netty service with NO keepalive — safe only because
+    // `sseRoutes` never idles today (authenticate, replay a finite log, return). Saying so out
+    // loud is the point: the NATS live tail will make it idle, and at that moment this line is
+    // where someone finds the number the keepalive has to stay under.
+    log.info(
+        "pythia stream: no keepalive (handler never idles), engine response-write-timeout={}s",
+        serverConfig.responseWriteTimeoutSeconds,
+    )
 
     if (config.getBoolean("telemetry.enabled")) {
         createOpenTelemetrySdk(

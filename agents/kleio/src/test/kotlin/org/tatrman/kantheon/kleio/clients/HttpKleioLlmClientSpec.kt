@@ -85,14 +85,28 @@ class HttpKleioLlmClientSpec :
             answer.citedPageIds shouldBe listOf(3L)
         }
 
-        "still honors the top-level content fallback on the /v1 path" {
+        // Was "still honors the top-level content fallback on the /v1 path", and it had been RED
+        // since the day it was written (review-078 R6). The fallback it asserted does not exist:
+        // `5af7361` (LG-P6·S1) deliberately DELETED `?: root["content"]` from `extractContent` and
+        // rewrote its KDoc to say `choices[].message.content` only — the 2.0 `/v1` surface is a
+        // standard OpenAI chat.completion and has no top-level `content`. The later commit
+        // `b814697` then added a case asserting the behaviour that had just been removed on
+        // purpose. So the test was wrong, not the code; it is rewritten here to pin what the
+        // client actually contracts to do, which is the coverage LG-P6·S1 wanted anyway.
+        "a body with no choices[] is passed through verbatim rather than invented into an answer" {
             var url: String? = null
-            val client = mockClient("""{"content":"plain ungrounded text"}""", onRequest = { url = it })
+            val body = """{"content":"plain ungrounded text"}"""
+            val client = mockClient(body, onRequest = { url = it })
 
             val answer = runBlocking { client.answer("q?", listOf(chunk)) }
 
             url shouldContain "/v1/chat/completions"
-            answer.text shouldBe "plain ungrounded text"
+            // No `choices[0].message.content` and no `answer` key, so neither extraction step
+            // finds anything: the raw body surfaces as the answer text. Ugly on purpose — a
+            // malformed gateway reply should be visibly malformed, not silently unwrapped into
+            // something that reads like a grounded answer.
+            answer.text shouldBe body
             answer.citedPartIds shouldBe emptyList()
+            answer.citedPageIds shouldBe emptyList()
         }
     })

@@ -37,8 +37,12 @@ private val log = LoggerFactory.getLogger("org.tatrman.kantheon.iris.stream.SseS
  *
  * **Dies at exactly 10s — 502, `time_starttransfer=0`, and nginx logs *"upstream
  * prematurely closed connection while reading response header"*.**
- * Cause: Ktor Netty `responseWriteTimeoutSeconds` (default 10s), which caps
- * **time-to-first-byte**. The preamble above is what prevents this.
+ * Cause: Ktor Netty `responseWriteTimeoutSeconds`, which caps **time-to-first-byte**. The
+ * preamble above is what prevents this. Since ST-P2 the shared `KtorServerBootstrap` sets
+ * this explicitly to **180s**, so on a current iris-bff image a 10s death means one of two
+ * things and they need different fixes: a **stale image** predating ST-P2, or a service
+ * that starts Netty *directly* and so never sees the library value at all (that population
+ * is enumerated in `NettyStreamingGuardSpec`; sysifos-bff was one, review-078 R1).
  * Owner: this file, and ST-P2 in the shared `KtorServerBootstrap`.
  *
  * **HTTP 200, but the stream stops mid-answer at exactly 15s — `response_flags: UT` in
@@ -99,8 +103,10 @@ private suspend fun sseLoop(
     // so proxies and the engine see an open, healthy stream instead of a silent socket.
     //
     // Ktor's Netty engine reaps a response that has produced no bytes within
-    // `responseWriteTimeoutSeconds` (its default is 10s, and `KtorServerBootstrap` does not
-    // override it). A Themis cold resolve is ~19-28s, and the heartbeat below used to be
+    // `responseWriteTimeoutSeconds`. At the time of the outage that was Ktor's unconfigured
+    // 10s default; ST-P2 made `KtorServerBootstrap` set it explicitly to 180s, which is why
+    // this preamble is now belt to that braces rather than the only thing standing between
+    // us and a 502. A Themis cold resolve is ~19-28s, and the heartbeat below used to be
     // 15s — so the first frame arrived 5s after the engine had already closed the socket.
     // The user saw HTTP 502 ("upstream prematurely closed connection while reading response
     // header"); the server logged nothing but a late "lost its client stream after 0

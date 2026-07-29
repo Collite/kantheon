@@ -47,9 +47,11 @@ object SseEvents {
  *
  * **This is the estate's reference shape for SSE, and the `: ready` comment is load-bearing,
  * not decoration.** Ktor's Netty engine caps *time-to-first-byte* at
- * `responseWriteTimeoutSeconds` (default 10s) and the shared `KtorServerBootstrap` does not
- * override it, so a stream that stays silent while it computes has its socket closed before
- * a status line is ever written — the user gets a 502 and the server logs nothing useful.
+ * `responseWriteTimeoutSeconds`, so a stream that stays silent while it computes has its
+ * socket closed before a status line is ever written — the user gets a 502 and the server
+ * logs nothing useful. Golem now runs at 180s (ST-P2 made the shared `KtorServerBootstrap`
+ * set it explicitly, instead of inheriting Ktor's 10s); the preamble is what makes that
+ * number stop mattering, which is the point of writing it rather than tuning the timeout.
  * Because this function commits the response *before* awaiting [run], golem was never
  * exposed. iris-bff and pythia both had to be brought to this shape in ST-P1
  * (`project/server/features/stream-timeouts/`); if you are changing SSE here, do not remove
