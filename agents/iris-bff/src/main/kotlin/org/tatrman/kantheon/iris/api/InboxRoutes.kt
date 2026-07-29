@@ -70,7 +70,10 @@ fun Route.inboxRoutes(
     service: InboxService,
     hub: LifecycleHub,
     auth: BearerAuthenticator,
-    heartbeatMs: Long = 15_000,
+    // Fallback for callers that do not pass one (tests); production passes the configured
+    // value from Wiring. Kept in step with `iris.stream.heartbeat-s`, which MUST stay below
+    // Ktor Netty's 10s responseWriteTimeoutSeconds default — see SseStream.
+    heartbeatMs: Long = 5_000,
 ) {
     get("/v1/inbox") {
         val caller = call.requireCaller(auth) ?: return@get

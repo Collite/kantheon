@@ -25,6 +25,40 @@ private val log = LoggerFactory.getLogger("org.tatrman.kantheon.iris.stream.SseS
  * ticker every [heartbeatMs] on idle so proxies don't reap a long-running but
  * quiet dispatch. Writes from [body] and the heartbeat ticker are serialised on a
  * mutex. [body] receives an `emit(frame)` callback.
+ *
+ * A `": ready"` preamble is written **before** [body] runs, so the response is committed
+ * immediately rather than whenever the dispatch first produces something. That is not
+ * cosmetic — see below.
+ *
+ * ## A stream died. Which timeout was it?
+ *
+ * Three different cuts sit on this path and they are routinely mistaken for each other.
+ * Read the *shape* of the failure before changing anything:
+ *
+ * **Dies at exactly 10s — 502, `time_starttransfer=0`, and nginx logs *"upstream
+ * prematurely closed connection while reading response header"*.**
+ * Cause: Ktor Netty `responseWriteTimeoutSeconds` (default 10s), which caps
+ * **time-to-first-byte**. The preamble above is what prevents this.
+ * Owner: this file, and ST-P2 in the shared `KtorServerBootstrap`.
+ *
+ * **HTTP 200, but the stream stops mid-answer at exactly 15s — `response_flags: UT` in
+ * the Envoy access log.**
+ * Cause: Envoy's default per-route timeout. **Permanent estate config** — a
+ * `BackendTrafficPolicy` with `requestTimeout: 0s`. No code change here retires it.
+ * Owner: Olymp.
+ *
+ * **A typed `THEMIS_UNAVAILABLE` error envelope at 60s.**
+ * Cause: `iris.themis.timeout-ms` — the routing budget. Working as designed.
+ * Owner: nobody; this one is the system telling you the truth.
+ *
+ * The engine timeout caps time-to-first-byte only: once the response is committed, an idle
+ * gap does not trigger it (measured 2026-07-29). So the preamble is the load-bearing fix
+ * and [heartbeatMs] is defence-in-depth — it still earns its keep against *proxy* idle read
+ * timeouts, which are a fourth, separate family.
+ *
+ * Pinned by `SsePreambleSpec` (ordering + the heartbeat invariant) and
+ * `SseNettyWriteTimeoutSpec` (a real Netty socket). Full write-up:
+ * `project/server/features/stream-timeouts/`.
  */
 suspend fun ApplicationCall.respondSse(
     heartbeatMs: Long,
@@ -60,6 +94,20 @@ private suspend fun sseLoop(
             writer.write(frame)
             writer.flush()
         }
+
+    // Commit the response BEFORE any slow work: this flushes the status line and headers,
+    // so proxies and the engine see an open, healthy stream instead of a silent socket.
+    //
+    // Ktor's Netty engine reaps a response that has produced no bytes within
+    // `responseWriteTimeoutSeconds` (its default is 10s, and `KtorServerBootstrap` does not
+    // override it). A Themis cold resolve is ~19-28s, and the heartbeat below used to be
+    // 15s — so the first frame arrived 5s after the engine had already closed the socket.
+    // The user saw HTTP 502 ("upstream prematurely closed connection while reading response
+    // header"); the server logged nothing but a late "lost its client stream after 0
+    // event(s)". Byte-identical to golem's preamble in `SseAnswer.kt`, deliberately: one
+    // estate, one spelling. See `project/server/features/stream-timeouts/`.
+    write(": ready\n\n")
+
     val heartbeat =
         launch {
             while (isActive) {

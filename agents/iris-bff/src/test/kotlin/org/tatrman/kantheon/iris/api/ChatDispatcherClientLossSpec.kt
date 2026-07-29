@@ -1,11 +1,17 @@
 package org.tatrman.kantheon.iris.api
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
+import org.slf4j.LoggerFactory
+import ch.qos.logback.classic.Logger as LogbackLogger
 import org.tatrman.kantheon.envelope.v1.FormatEnvelope
 import org.tatrman.kantheon.envelope.v1.PendingClarification
 import org.tatrman.kantheon.iris.audit.Ed25519Signer
@@ -185,6 +191,78 @@ class ChatDispatcherClientLossSpec :
                 outcome.status shouldBe TurnStatus.FAILED
                 store.getTurns(session.sessionId).single().status shouldBe TurnStatus.FAILED
                 audit.all().size shouldBe 1
+            }
+        }
+
+        // ST-P1·S1·T6 — the zero-event case is a different animal and must log differently.
+        //
+        // "lost after 0 event(s)" means the client never received a single byte, which is the
+        // signature of the response being reaped before it was committed (Ktor Netty's
+        // responseWriteTimeoutSeconds, or a proxy read timeout). It used to be logged at INFO
+        // next to ordinary mid-stream disconnects, which is why the 2026-07-29 Hartland outage
+        // left no usable trace. See project/server/features/stream-timeouts/.
+        fun <T> withChatDispatcherLogs(block: (ListAppender<ILoggingEvent>) -> T): T {
+            val logger = LoggerFactory.getLogger(ChatDispatcher::class.java) as LogbackLogger
+            val appender = ListAppender<ILoggingEvent>().apply { start() }
+            logger.addAppender(appender)
+            return try {
+                block(appender)
+            } finally {
+                logger.detachAppender(appender)
+                appender.stop()
+            }
+        }
+
+        fun ListAppender<ILoggingEvent>.streamLossEvent(): ILoggingEvent =
+            list.single { it.formattedMessage.contains("lost its client stream") }
+
+        "a stream lost before ANY event reached the client logs at WARN" {
+            withChatDispatcherLogs { appender ->
+                runTest {
+                    val store = InMemorySessionStore()
+                    val audit = InMemoryAuditStore(Ed25519Signer())
+                    val themis = FakeThemisClient(responder = { clarificationResponse() })
+                    val session = store.createSession("maya", "hartland")
+
+                    dispatcher(store, audit, themis).runTurn(
+                        caller = CallerIdentity("maya", "hartland", "jwt-1"),
+                        sessionId = session.sessionId,
+                        question = "kolik prodali?",
+                        desiredFormat = null,
+                        correlationId = "corr-1",
+                        emit = DeadClient(acceptFirst = 0)::emit,
+                    )
+                }
+
+                val event = appender.streamLossEvent()
+                event.level shouldBe Level.WARN
+                event.formattedMessage shouldContain "after 0 event(s)"
+                // The message must name the fix, not just the symptom.
+                event.formattedMessage shouldContain "never received a byte"
+            }
+        }
+
+        "a stream lost mid-way stays at INFO — an ordinary disconnect is not an incident" {
+            withChatDispatcherLogs { appender ->
+                runTest {
+                    val store = InMemorySessionStore()
+                    val audit = InMemoryAuditStore(Ed25519Signer())
+                    val themis = FakeThemisClient(responder = { clarificationResponse() })
+                    val session = store.createSession("maya", "hartland")
+
+                    dispatcher(store, audit, themis).runTurn(
+                        caller = CallerIdentity("maya", "hartland", "jwt-1"),
+                        sessionId = session.sessionId,
+                        question = "kolik prodali?",
+                        desiredFormat = null,
+                        correlationId = "corr-1",
+                        emit = DeadClient(acceptFirst = 1)::emit,
+                    )
+                }
+
+                val event = appender.streamLossEvent()
+                event.level shouldBe Level.INFO
+                event.formattedMessage shouldContain "after 1 event(s)"
             }
         }
 

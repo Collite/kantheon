@@ -120,6 +120,11 @@ fun buildComponents(config: Config): IrisComponents {
     val defaultLocale = config.getString("iris.locale")
     log.info("iris: default answer locale = {} (per-turn `locale` on the request wins)", defaultLocale)
     val heartbeatMs = config.getLong("iris.stream.heartbeat-s") * 1000
+    // Logged because the value is load-bearing and was previously invisible: it MUST stay
+    // below the engine's response-write timeout or streams are reaped before their first
+    // frame. TODO(ST-P2): add the resolved engine timeout here once KtorServerConfig
+    // carries it, so the whole invariant is legible from one pod log line.
+    log.info("iris stream: heartbeat={}ms (must stay under the engine response-write timeout)", heartbeatMs)
 
     // Phase 3 routing edge: every turn resolves through Themis, then dispatches to
     // the chosen agent's client. golem-v2 is the only registered client at Phase 3.

@@ -14,7 +14,13 @@ import kotlinx.coroutines.sync.withLock
 import org.tatrman.kantheon.golem.v1.ConversationalResponse
 import java.io.Writer
 
-private const val PING_INTERVAL_MS = 5_000L
+/**
+ * SSE keepalive interval. MUST stay below Ktor Netty's 10s `responseWriteTimeoutSeconds`
+ * default — see `project/server/features/stream-timeouts/`. `internal` rather than
+ * `private` so the ST invariant guard can assert on this value instead of duplicating the
+ * number in a test that would then drift.
+ */
+internal const val PING_INTERVAL_MS = 5_000L
 
 /** The fixed Golem SSE event set (contracts §3, §10 Δ2(d)). `envelope`/`error` are terminal. */
 object SseEvents {
@@ -38,6 +44,17 @@ object SseEvents {
  * and the terminal `envelope` (or `error`). There is **no live-log `/log` stream** (removed
  * upstream Phase 8). The turn is awaited rather than truly node-streamed (Koog runs the graph
  * atomically); the event names + ordering match the contract so the FE consumes one surface.
+ *
+ * **This is the estate's reference shape for SSE, and the `: ready` comment is load-bearing,
+ * not decoration.** Ktor's Netty engine caps *time-to-first-byte* at
+ * `responseWriteTimeoutSeconds` (default 10s) and the shared `KtorServerBootstrap` does not
+ * override it, so a stream that stays silent while it computes has its socket closed before
+ * a status line is ever written — the user gets a 502 and the server logs nothing useful.
+ * Because this function commits the response *before* awaiting [run], golem was never
+ * exposed. iris-bff and pythia both had to be brought to this shape in ST-P1
+ * (`project/server/features/stream-timeouts/`); if you are changing SSE here, do not remove
+ * the preamble or raise [PING_INTERVAL_MS] to or above 10s — `NettyStreamingGuardSpec`
+ * fails if you do.
  */
 suspend fun ApplicationCall.streamAnswer(run: suspend () -> ConversationalResponse) {
     response.headers.append(HttpHeaders.CacheControl, "no-cache")
