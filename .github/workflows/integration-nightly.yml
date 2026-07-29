@@ -13,8 +13,12 @@
 name: integration-nightly
 
 on:
-  schedule:
-    - cron: "0 3 * * *"          # 03:00 UTC nightly
+  # schedule DISABLED pending Collite/kantheon#29 — the self-hosted `olymp-test` runner isn't
+  # picking up scheduled runs, so the nightly cancelled every night. Manual (workflow_dispatch)
+  # and release-tag runs still work; re-enable this once the runner + olymp test cluster are
+  # reliably available.
+  # schedule:
+  #   - cron: "0 3 * * *"          # 03:00 UTC nightly
   push:
     tags:
       - "*/v*"                    # release tags (per-service, e.g. query-mcp/v0.1.0)
