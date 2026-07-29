@@ -27,10 +27,25 @@ fun Route.sseRoutes(
     admission: Admission,
 ) {
     sse("/v1/investigations/{id}/events") {
-        // The SSE response commits (200, event-stream) once this handler runs, so an
-        // auth/visibility failure can't return a 403 here — instead we emit a single
-        // terminal `error` frame and close, so a client can tell "denied" from "idle"
-        // rather than seeing a silent empty 200.
+        // Commit the response before any work — ST-P1·S2. Ktor's Netty engine reaps a
+        // response that has produced no bytes within `responseWriteTimeoutSeconds`
+        // (default 10s), and MEASURED 2026-07-29: the `sse { }` plugin does NOT commit on
+        // session start, so it offers no protection of its own (SsePluginWriteTimeoutSpec
+        // pins both halves). Today this handler is fast — authenticate, find, replay,
+        // return — so it does not trip the cap; but that is a property of the current
+        // body, not of the endpoint. A slow `authenticate` (cold JWKS fetch) or the NATS
+        // live-tail landing later would both idle here, and the failure mode is silent:
+        // the socket closes with no status line and the user sees a 502.
+        //
+        // Rendered as `: ready`, byte-identical to golem's and iris-bff's preamble — one
+        // estate, one spelling. See `project/server/features/stream-timeouts/`.
+        send(ServerSentEvent(comments = "ready"))
+
+        // An auth/visibility failure can't return a 403 once the response is committed —
+        // instead we emit a single terminal `error` frame and close, so a client can tell
+        // "denied" from "idle" rather than seeing a silent empty 200. (That was already
+        // this endpoint's contract; the preamble above only makes the commit explicit
+        // rather than incidental.)
         val principal = admission.authenticate(call.request.headers["Authorization"])
         val id = call.parameters["id"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
         val rec = id?.let { investigations.findById(it) }
