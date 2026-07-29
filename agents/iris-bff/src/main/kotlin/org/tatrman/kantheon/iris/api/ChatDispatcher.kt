@@ -109,12 +109,29 @@ class ChatDispatcher(
             } catch (e: Throwable) {
                 // Transport-agnostic on purpose: this class must not know it is behind SSE.
                 open = false
-                log.info(
-                    "turn {} lost its client stream after {} event(s); finishing server-side: {}",
-                    turnId,
-                    seq - 1,
-                    e.message,
-                )
+                val delivered = seq - 1
+                if (delivered == 0L) {
+                    // Zero delivered events is a different animal from a mid-stream
+                    // disconnect: the client never received a single byte, which is the
+                    // signature of the response being reaped before it was committed
+                    // (Ktor Netty's responseWriteTimeoutSeconds, or a proxy read timeout).
+                    // It was previously logged at INFO alongside ordinary disconnects,
+                    // which is why the 2026-07-29 Hartland outage left no usable trace.
+                    log.warn(
+                        "turn {} lost its client stream after 0 event(s) — the client never received a byte; " +
+                            "check the SSE preamble and the engine write timeout " +
+                            "(project/server/features/stream-timeouts). Finishing server-side: {}",
+                        turnId,
+                        e.message,
+                    )
+                } else {
+                    log.info(
+                        "turn {} lost its client stream after {} event(s); finishing server-side: {}",
+                        turnId,
+                        delivered,
+                        e.message,
+                    )
+                }
             }
         }
 

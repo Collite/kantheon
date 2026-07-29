@@ -60,6 +60,20 @@ private suspend fun sseLoop(
             writer.write(frame)
             writer.flush()
         }
+
+    // Commit the response BEFORE any slow work: this flushes the status line and headers,
+    // so proxies and the engine see an open, healthy stream instead of a silent socket.
+    //
+    // Ktor's Netty engine reaps a response that has produced no bytes within
+    // `responseWriteTimeoutSeconds` (its default is 10s, and `KtorServerBootstrap` does not
+    // override it). A Themis cold resolve is ~19-28s, and the heartbeat below used to be
+    // 15s — so the first frame arrived 5s after the engine had already closed the socket.
+    // The user saw HTTP 502 ("upstream prematurely closed connection while reading response
+    // header"); the server logged nothing but a late "lost its client stream after 0
+    // event(s)". Byte-identical to golem's preamble in `SseAnswer.kt`, deliberately: one
+    // estate, one spelling. See `project/server/features/stream-timeouts/`.
+    write(": ready\n\n")
+
     val heartbeat =
         launch {
             while (isActive) {
