@@ -25,6 +25,9 @@ tatrman-ttr-llm-client    = "0.9.7"
 # from here, and drops its own transfer/metis proto copies. metis.proto stays Python-only (the
 # kantheon-native Metis service). The rest of the spine can re-unify to 0.10.0 as a separate step.
 tatrman-ttr-server-proto  = "0.10.0"
+# The ⑤ validator SPI (org.tatrman:ttr-validator-spi) from Maven Central — the open C-5-i plugin contract
+# the llm-guard plugin implements (published via tatrman `just publish bundle validator`).
+tatrman-ttr-validator-spi = "0.10.0"
 
 # Kotlin / coroutines / serialization
 kotlin                    = "2.3.0"
@@ -313,6 +316,7 @@ tatrman-keycloak-auth               = { module = "org.tatrman:keycloak-auth",   
 tatrman-ttr-meta-client             = { module = "org.tatrman:ttr-meta-client",                          version.ref = "tatrman-server" }
 tatrman-ttr-llm-client              = { module = "org.tatrman:ttr-llm-client",                           version.ref = "tatrman-ttr-llm-client" }
 tatrman-ttr-server-proto            = { module = "org.tatrman:ttr-server-proto",                         version.ref = "tatrman-ttr-server-proto" }
+tatrman-ttr-validator-spi           = { module = "org.tatrman:ttr-validator-spi",                        version.ref = "tatrman-ttr-validator-spi" }
 exposed-core                        = { module = "org.jetbrains.exposed:exposed-core",                    version.ref = "exposed" }
 exposed-jdbc                        = { module = "org.jetbrains.exposed:exposed-jdbc",                    version.ref = "exposed" }
 exposed-java-time                   = { module = "org.jetbrains.exposed:exposed-java-time",               version.ref = "exposed" }
