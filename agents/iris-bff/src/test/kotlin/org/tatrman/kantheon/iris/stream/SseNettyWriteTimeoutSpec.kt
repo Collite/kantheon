@@ -1,6 +1,7 @@
 package org.tatrman.kantheon.iris.stream
 
 import com.typesafe.config.ConfigFactory
+import io.kotest.core.Tag
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -37,13 +38,22 @@ import kotlin.time.Duration.Companion.seconds
  * line, which is precisely what users saw as `HTTP 502`.
  *
  * Costs ~16s of wall clock. That duration is intrinsic to the bug — it is the gap the fix
- * has to survive — not a sleep for convenience.
+ * has to survive — not a sleep for convenience. Tagged [Slow] so a fast local loop can
+ * skip it:
+ *
+ * ```
+ * KOTEST_TAGS='!Slow' ./gradlew :agents:iris-bff:test
+ * ```
+ *
+ * (Kotest reads the tag expression from the `KOTEST_TAGS` **environment** variable; the
+ * `kotest.tags` system property would have to be forwarded to the forked test JVM by the
+ * build, and it is not.) CI runs it — it is the regression net for the outage.
  */
 class SseNettyWriteTimeoutSpec :
     StringSpec({
 
         "a real Netty stream survives a first event that arrives long after the engine's write timeout"
-            .config(timeout = 90.seconds) {
+            .config(timeout = 90.seconds, tags = setOf(Slow)) {
                 // The production default, not a test constant: if someone raises heartbeat-s
                 // back above the engine cap, this test is what fails.
                 val heartbeatMs = ConfigFactory.load().getLong("iris.stream.heartbeat-s") * 1000
@@ -112,3 +122,11 @@ class SseNettyWriteTimeoutSpec :
                 }
             }
     })
+
+/**
+ * Marks a case whose wall-clock cost is intrinsic to what it measures — here, a real socket
+ * held open across the engine's 10s write-timeout cap. Excluded with `KOTEST_TAGS='!Slow'`.
+ * Deliberately declared per-module: `agents/` has no shared test source set, and one
+ * duplicated `Tag("Slow")` beats inventing one.
+ */
+private val Slow = Tag("Slow")

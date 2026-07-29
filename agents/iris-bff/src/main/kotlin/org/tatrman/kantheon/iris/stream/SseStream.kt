@@ -35,11 +35,21 @@ private val log = LoggerFactory.getLogger("org.tatrman.kantheon.iris.stream.SseS
  * Three different cuts sit on this path and they are routinely mistaken for each other.
  * Read the *shape* of the failure before changing anything:
  *
- * | Symptom | Cause | Owner |
- * |---|---|---|
- * | Dies at exactly **10s**; 502; `time_starttransfer=0`; nginx logs *"upstream prematurely closed connection while reading response header"* | Ktor Netty `responseWriteTimeoutSeconds` (default 10s, caps **time-to-first-byte**). The preamble above is what prevents this. | this file / ST-P2 in the shared `KtorServerBootstrap` |
- * | HTTP **200** but the stream stops mid-answer at exactly **15s**; `response_flags: UT` in the Envoy access log | Envoy's default per-route timeout. **Permanent estate config** — a `BackendTrafficPolicy` with `requestTimeout: 0s` in Olymp. No code change here retires it. | Olymp |
- * | A typed `THEMIS_UNAVAILABLE` error envelope at **60s** | `iris.themis.timeout-ms` — the routing budget. | working as designed |
+ * **Dies at exactly 10s — 502, `time_starttransfer=0`, and nginx logs *"upstream
+ * prematurely closed connection while reading response header"*.**
+ * Cause: Ktor Netty `responseWriteTimeoutSeconds` (default 10s), which caps
+ * **time-to-first-byte**. The preamble above is what prevents this.
+ * Owner: this file, and ST-P2 in the shared `KtorServerBootstrap`.
+ *
+ * **HTTP 200, but the stream stops mid-answer at exactly 15s — `response_flags: UT` in
+ * the Envoy access log.**
+ * Cause: Envoy's default per-route timeout. **Permanent estate config** — a
+ * `BackendTrafficPolicy` with `requestTimeout: 0s`. No code change here retires it.
+ * Owner: Olymp.
+ *
+ * **A typed `THEMIS_UNAVAILABLE` error envelope at 60s.**
+ * Cause: `iris.themis.timeout-ms` — the routing budget. Working as designed.
+ * Owner: nobody; this one is the system telling you the truth.
  *
  * The engine timeout caps time-to-first-byte only: once the response is committed, an idle
  * gap does not trigger it (measured 2026-07-29). So the preamble is the load-bearing fix

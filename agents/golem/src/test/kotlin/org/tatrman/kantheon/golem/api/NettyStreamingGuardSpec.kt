@@ -14,6 +14,12 @@ import java.io.File
  * keepalive under that cap. Getting this wrong is silent on the server and surfaces as a
  * 502 to the user; that is what took the Hartland demo down on 2026-07-29.
  *
+ * The scan covers the **whole repo** (excluding `frontends/`, `node_modules/` and build
+ * output), not just `agents/` — a Netty service can perfectly well arrive under `tools/`
+ * or `services/`, and a guard that advertises itself as estate-wide has to actually be.
+ * Note that it can only catch an *explicit* `KtorEngine.NETTY`; `KtorConfigFactory
+ * .fromConfig` defaults its engine to CIO, so that is the only way in today.
+ *
  * Three services use `KtorEngine.NETTY` today and all three have been reviewed:
  *
  *  - **golem** — `SseAnswer` writes `": ready"` before the turn starts, pings every
@@ -42,16 +48,25 @@ class NettyStreamingGuardSpec :
         "the set of KtorEngine.NETTY services is exactly the reviewed allow-list" {
             val repoRoot =
                 generateSequence(File(".").absoluteFile) { it.parentFile }
-                    .first { File(it, "settings.gradle.kts").exists() }
+                    .firstOrNull { File(it, "settings.gradle.kts").exists() }
+                    ?: error(
+                        "NettyStreamingGuardSpec scans repo source and could not find a parent " +
+                            "directory containing settings.gradle.kts, walking up from " +
+                            "${File(".").absolutePath}. This test must run with its working " +
+                            "directory inside the checkout.",
+                    )
 
             val netty =
-                File(repoRoot, "agents")
+                repoRoot
                     .walkTopDown()
                     .filter { it.isFile && it.extension == "kt" }
                     // Production wiring only: the ST specs themselves stand up Netty servers
                     // on purpose, and build output is not source.
                     .filter { "${File.separator}src${File.separator}main${File.separator}" in it.path }
                     .filter { "${File.separator}build${File.separator}" !in it.path }
+                    // Not source of ours, and walking them is slow.
+                    .filter { "${File.separator}node_modules${File.separator}" !in it.path }
+                    .filter { "${File.separator}frontends${File.separator}" !in it.path }
                     .filter { "KtorEngine.NETTY" in it.readText() }
                     .map { it.relativeTo(repoRoot).path.replace(File.separatorChar, '/') }
                     .toSortedSet()

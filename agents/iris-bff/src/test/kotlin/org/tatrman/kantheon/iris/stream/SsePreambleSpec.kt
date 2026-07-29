@@ -59,6 +59,13 @@ class SsePreambleSpec :
                     val firstLine = withTimeout(5_000) { channel.readUTF8Line() }
                     firstLine shouldBe ": ready"
 
+                    // The blank line is the SSE frame boundary. A preamble written as
+                    // `": ready\n"` would pass the assertion above while silently merging
+                    // into the following event block, so the terminator is pinned too.
+                    withClue("the `: ready` preamble must be terminated by a blank line — it is a whole SSE frame") {
+                        withTimeout(5_000) { channel.readUTF8Line() } shouldBe ""
+                    }
+
                     // The body is still parked — the preamble genuinely preceded it.
                     gate.isCompleted shouldBe false
 
