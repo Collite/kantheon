@@ -83,11 +83,15 @@ class PlanComposer(
         // so the model had to GUESS parameter names — a strong reasoner (gpt-5) would "helpfully" rename or
         // merge them (e.g. year_from+year_to → date_range), which then fails plan validation.
         val patterns =
-            model?.patternQueries?.joinToString("\n") { pq ->
-                val params =
-                    pq.parametersList.joinToString(", ") { p -> "${p.name}:${p.type}${if (p.optional) "?" else ""}" }
-                "- ${pq.objectDescriptor.localName}(${params})"
-            }?.ifBlank { "(none)" }
+            model
+                ?.patternQueries
+                ?.joinToString("\n") { pq ->
+                    val params =
+                        pq.parametersList.joinToString(
+                            ", ",
+                        ) { p -> "${p.name}:${p.type}${if (p.optional) "?" else ""}" }
+                    "- ${pq.objectDescriptor.localName}($params)"
+                }?.ifBlank { "(none)" }
                 ?: "(model not loaded)"
         val schema =
             model?.let { snap ->

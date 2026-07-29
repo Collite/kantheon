@@ -64,7 +64,7 @@ spec:
             - name: KLEIO_KALLIMACHOS_MCP_PORT
               value: "7262"
             - name: KLEIO_LLM_GATEWAY_HOST
-              value: llm-gateway
+              value: llm-gateway.ttr-server
           readinessProbe:
             httpGet:
               path: /ready
