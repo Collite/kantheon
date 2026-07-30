@@ -149,6 +149,17 @@ message RecordPointers {
   string sql_ref = 6; string sql_inline = 7;     // one of; inline when small
   string log_window_from = 8; string log_window_to = 9;   // ISO-8601
   ProtocolHints hints = 10;                       // agent block, verbatim (PT-25)
+
+  // Amendment A-1 (S1.2.T1): captures that were STRUCTURALLY unavailable at
+  // write time. Needed because "empty" and "not captured" are different facts —
+  // a query with no RLS rules legitimately yields an empty security_applied
+  // set, so emptiness alone cannot carry the degradation. The assembler turns
+  // each gap into a SourceReceipt (PT-13/S-6, P-4).
+  repeated CaptureGap capture_gaps = 11;
+}
+message CaptureGap {
+  string capture = 1;   // capture field name, e.g. "security_applied"
+  string reason  = 2;   // stable, human-readable; becomes the receipt detail
 }
 message RecordCaptures {
   bytes resolve_response = 1;    // serialized themis/v1 ResolveResponse (F2)

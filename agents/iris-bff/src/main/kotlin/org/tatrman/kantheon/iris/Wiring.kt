@@ -52,6 +52,10 @@ import org.tatrman.kantheon.iris.infra.ExposedAuditStore
 import org.tatrman.kantheon.iris.infra.ExposedFeedbackStore
 import org.tatrman.kantheon.iris.infra.ExposedSessionStore
 import org.tatrman.kantheon.iris.infra.IrisDatabase
+import org.tatrman.kantheon.iris.protocol.record.ExposedProtocolRecordStore
+import org.tatrman.kantheon.iris.protocol.record.InMemoryProtocolRecordStore
+import org.tatrman.kantheon.iris.protocol.record.ProtocolRecordStore
+import org.tatrman.kantheon.iris.protocol.record.ProtocolRecorder
 import org.tatrman.kantheon.iris.routing.AgentLabels
 import org.tatrman.kantheon.iris.routing.CapabilitiesAgentLabels
 import org.tatrman.kantheon.iris.routing.HttpThemisClient
@@ -156,6 +160,7 @@ fun buildComponents(
     fun chatDispatcher(
         store: SessionStore,
         audit: AuditStore,
+        records: ProtocolRecordStore,
     ): ChatDispatcher {
         // Two dispatch protocols, deliberately not the same one:
         //
@@ -174,7 +179,16 @@ fun buildComponents(
                     }
                 },
             )
-        return ChatDispatcher(store, themis, agents, audit, envelopes, defaultLocale, metrics = metrics)
+        return ChatDispatcher(
+            store,
+            themis,
+            agents,
+            audit,
+            envelopes,
+            defaultLocale,
+            metrics = metrics,
+            protocolRecorder = ProtocolRecorder(records, meterRegistry),
+        )
     }
 
     fun typedActions(
@@ -234,7 +248,7 @@ fun buildComponents(
         return IrisComponents(
             store = store,
             auth = auth,
-            dispatcher = chatDispatcher(store, audit),
+            dispatcher = chatDispatcher(store, audit, InMemoryProtocolRecordStore()),
             typedActions = typedActions(store, audit),
             reask = reaskHandler(feedback, audit),
             escalation = EscalationHandler(audit, metrics = metrics),
@@ -270,7 +284,7 @@ fun buildComponents(
     return IrisComponents(
         store = store,
         auth = auth,
-        dispatcher = chatDispatcher(store, audit),
+        dispatcher = chatDispatcher(store, audit, ExposedProtocolRecordStore(database.connection)),
         typedActions = typedActions(store, audit),
         reask = reaskHandler(feedback, audit),
         escalation = EscalationHandler(audit, metrics = metrics),
