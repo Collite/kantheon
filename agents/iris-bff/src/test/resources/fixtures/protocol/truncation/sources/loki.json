@@ -1,0 +1,15 @@
+{
+  "status": "OK",
+  "detail": "5 line(s)",
+  "groups": [
+    {
+      "serviceName": "golem-finance",
+      "lines": [
+        { "ts": "2026-07-30T09:00:02+02:00", "level": "ERROR", "body": "first error", "traceId": "0af7651916cd43dd8448eb211c80319c" },
+        { "ts": "2026-07-30T09:00:02+02:00", "level": "ERROR", "body": "second error", "traceId": "0af7651916cd43dd8448eb211c80319c" },
+        { "ts": "2026-07-30T09:00:03+02:00", "level": "ERROR", "body": "third error", "traceId": "0af7651916cd43dd8448eb211c80319c" }
+      ],
+      "droppedByCap": 40
+    }
+  ]
+}

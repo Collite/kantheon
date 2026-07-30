@@ -1,0 +1,172 @@
+{
+  "protocolId": "00000000-0000-4000-8000-0000000000ff",
+  "sessionId": "11111111-1111-4111-8111-111111111111",
+  "scope": {
+    "lastTurn": true
+  },
+  "header": {
+    "title": "Protocol — How did gross margin move in Q3? — last turn",
+    "userId": "maya",
+    "tenantId": "hartland",
+    "agentIds": ["golem-finance"],
+    "sessionCreatedAt": "2026-07-30T09:00:00+02:00",
+    "turnCountInScope": 1,
+    "turnCountTotal": 1
+  },
+  "turns": [{
+    "turnId": "3f2b1a00-0000-4000-8000-000000000001",
+    "seq": 1,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "How did gross margin move in Q3?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "2140"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "argsJson": "{\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "rationale": "lexical hit on \u0027gross margin\u0027 + explicit period",
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "llmCalls": {
+        "calls": [{
+          "callRef": "gw-100",
+          "purpose": "golem.compose_plan",
+          "requestedModel": "claude-opus-5",
+          "servedModel": "claude-opus-5",
+          "servedProvider": "azure",
+          "tokensPrompt": 1204,
+          "tokensCompletion": 88,
+          "durationMs": "910",
+          "ttfbMs": "310",
+          "costUsd": 0.0123,
+          "status": "SUCCESS",
+          "turnRef": "3f2b1a00-0000-4000-8000-000000000001"
+        }],
+        "unattributableCount": 1
+      }
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "plan": {
+        "relPlanText": "LogicalProject(period\u003d[$0], gross_margin\u003d[$1])\n  LogicalFilter(condition\u003d[OR(\u003d($0, \u00272026-Q2\u0027), \u003d($0, \u00272026-Q3\u0027))])\n    LogicalTableScan(table\u003d[[dbo, p_and_l]])"
+      }
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "truncated": true,
+      "serviceLogs": {
+        "groups": [{
+          "serviceName": "golem-finance",
+          "lines": [{
+            "ts": "2026-07-30T09:00:02+02:00",
+            "level": "ERROR",
+            "body": "first error",
+            "traceId": "0af7651916cd43dd8448eb211c80319c"
+          }],
+          "droppedByCap": 42
+        }]
+      }
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+        "items": [{
+          "source": "golem-finance",
+          "code": "ERROR",
+          "message": "first error"
+        }, {
+          "source": "golem-finance",
+          "code": "ERROR",
+          "message": "second error"
+        }, {
+          "source": "golem-finance",
+          "code": "ERROR",
+          "message": "third error"
+        }]
+      }
+    }]
+  }],
+  "receipts": {
+    "profileName": "default",
+    "sources": [{
+      "source": "records",
+      "status": "ok",
+      "detail": "1 record row(s)"
+    }, {
+      "source": "llm-gateway",
+      "status": "ok",
+      "detail": "1 call row(s)"
+    }, {
+      "source": "loki",
+      "status": "ok",
+      "detail": "5 line(s)"
+    }, {
+      "source": "tempo",
+      "status": "ok",
+      "detail": "2 span(s)"
+    }, {
+      "source": "translate-explain",
+      "status": "ok",
+      "detail": "plan carried"
+    }, {
+      "source": "capture:security_applied",
+      "status": "degraded",
+      "detail": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+    }],
+    "generatedBy": "iris-bff/1.0 hartland"
+  },
+  "schemaVersion": "protocol/v1.0",
+  "generatedAt": "2026-07-30T09:05:00+02:00"
+}

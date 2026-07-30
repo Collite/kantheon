@@ -1,0 +1,15 @@
+[
+  {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000001",
+    "seq": 1,
+    "question": "How did gross margin move in Q3?",
+    "agentId": "golem-finance",
+    "status": "done",
+    "origin": "user",
+    "startedAt": "2026-07-30T09:00:01+02:00",
+    "durationMs": 2140,
+    "routingOutcome": "routed",
+    "userId": "maya",
+    "tenantId": "hartland"
+  }
+]

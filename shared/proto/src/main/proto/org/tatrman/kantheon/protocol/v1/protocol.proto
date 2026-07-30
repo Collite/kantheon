@@ -109,6 +109,13 @@ message LlmCall {
   uint64 duration_ms = 10; uint64 ttfb_ms = 11; double cost_usd = 12;
   string status = 13;
   repeated LlmMessage messages = 14;        // bodies; role-filtered per config (PT-20/21)
+
+  // Amendment A-2 (S2.1 T4): the gateway row's own turn_ref, carried so the
+  // redaction floor can INDEPENDENTLY verify that a call belongs to a turn in
+  // this document. Without it the floor's cross-user drop could only trust the
+  // builder's attribution — and a security backstop that trusts the thing it is
+  // backstopping is not a backstop. Empty means the gateway row carried none.
+  string turn_ref = 15;
 }
 message LlmMessage { string role = 1; string content = 2; bool content_redacted = 3; }
 message QuerySection { string entity_query = 1; string query_kind = 2; }

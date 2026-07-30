@@ -1,0 +1,24 @@
+{
+  "status": "OK",
+  "detail": "2 span(s)",
+  "spans": [
+    {
+      "spanId": "aaaa000000000001",
+      "name": "POST /v1/answer",
+      "serviceName": "golem-finance",
+      "durationMs": 1980,
+      "attributes": { "call.purpose": "golem.compose_plan" }
+    },
+    {
+      "spanId": "aaaa000000000002",
+      "name": "query.run",
+      "serviceName": "ttr-query",
+      "durationMs": 180,
+      "attributes": {
+        "dispatch.target": "pg-hartland",
+        "dispatch.worker": "ttr-worker-postgres",
+        "result.row_count": "8"
+      }
+    }
+  ]
+}
