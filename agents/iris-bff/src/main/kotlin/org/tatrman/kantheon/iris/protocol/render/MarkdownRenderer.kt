@@ -116,14 +116,30 @@ class MarkdownRenderer(
         }
     }
 
-    /** contracts/T5: exactly `_…truncated — N more lines; source: <receipt ref>_`. */
+    /**
+     * The truncation marker (PT-10). contracts/T5 fixes the wording
+     * `_…truncated — N more lines; source: <ref>_`, which is written for the
+     * log case — logs are the only section truncated by a **line** count.
+     *
+     * SQL and prompt bodies are truncated by a **character** cap, and the
+     * document does not retain the original length, so there is no honest N to
+     * print. Emitting "0 more lines" there would state something false about the
+     * one thing this marker exists to be truthful about. Those sections
+     * therefore get a count-free variant naming the cap that bit
+     * (**Amendment A-4**).
+     */
     private fun truncationMarker(section: Section): String {
-        val dropped =
-            when (section.payloadCase) {
-                Section.PayloadCase.SERVICE_LOGS -> section.serviceLogs.groupsList.sumOf { it.droppedByCap }
-                else -> 0
+        val ref = SectionRegistry.shortName(section.key)
+        return when (section.payloadCase) {
+            Section.PayloadCase.SERVICE_LOGS -> {
+                val dropped = section.serviceLogs.groupsList.sumOf { it.droppedByCap }
+                "_…truncated — $dropped more lines; source: $ref" + "_"
             }
-        return "_…truncated — $dropped more lines; source: ${SectionRegistry.shortName(section.key)}_"
+
+            Section.PayloadCase.SQL -> "_…truncated by the sql-chars cap; source: $ref" + "_"
+            Section.PayloadCase.LLM_CALLS -> "_…truncated by the llm-message-chars cap; source: $ref" + "_"
+            else -> "_…truncated; source: $ref" + "_"
+        }
     }
 
     @Suppress("CyclomaticComplexMethod")

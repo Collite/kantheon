@@ -46,12 +46,33 @@ object LlmCallsSectionBuilder {
                 }
 
             val b = LlmCallsSection.newBuilder().setUnattributableCount(theirs.size)
-            mine.forEach { call -> b.addCalls(call.toProto(verbosity)) }
+            var truncated = false
+            mine.forEach { call ->
+                val (proto, bit) = call.toProto(verbosity, input.caps.llmMessageChars)
+                if (bit) truncated = true
+                b.addCalls(proto)
+            }
 
-            SectionShape.start(KEY, verbosity).setLlmCalls(b).build()
+            SectionShape
+                .start(KEY, verbosity)
+                .setTruncated(truncated)
+                .setLlmCalls(b)
+                .build()
         }
 
-    private fun GatewayCall.toProto(verbosity: Verbosity): LlmCall.Builder {
+    /**
+     * @return the call, and whether the `llm-message-chars` cap bit on any body.
+     *
+     * The cap is a *size* limit and is distinct from the redactor's digesting,
+     * which is a *policy* limit: one stops a single 400 kB prompt from swallowing
+     * the document, the other decides how much of it this reader may see. Both
+     * can apply, and a body that hits the cap is flagged `content_redacted` so
+     * the reader is never shown a truncated prompt as if it were whole.
+     */
+    private fun GatewayCall.toProto(
+        verbosity: Verbosity,
+        maxChars: Int,
+    ): Pair<LlmCall.Builder, Boolean> {
         val b =
             LlmCall
                 .newBuilder()
@@ -73,14 +94,26 @@ object LlmCallsSectionBuilder {
 
         // At summary the metrics stay and the bodies go — cost, latency and model
         // are the operator's view of a turn; the prose is the debugger's.
+        var truncated = false
         if (verbosity == Verbosity.VERBOSITY_FULL) {
-            if (promptText.isNotEmpty()) {
-                b.addMessages(LlmMessage.newBuilder().setRole("user").setContent(promptText))
+            fun message(
+                role: String,
+                text: String,
+            ) {
+                if (text.isEmpty()) return
+                val (body, bit) = SectionShape.cap(text, maxChars)
+                if (bit) truncated = true
+                b.addMessages(
+                    LlmMessage
+                        .newBuilder()
+                        .setRole(role)
+                        .setContent(body)
+                        .setContentRedacted(bit),
+                )
             }
-            if (responseText.isNotEmpty()) {
-                b.addMessages(LlmMessage.newBuilder().setRole("assistant").setContent(responseText))
-            }
+            message("user", promptText)
+            message("assistant", responseText)
         }
-        return b
+        return b to truncated
     }
 }
