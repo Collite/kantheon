@@ -5,11 +5,19 @@ import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.common.AttributeKey
 
 object ResolverOtel {
+    // NOTE (PT P0·S0.1 T3 census): this reports `service.name = "resolver-agent"`, a
+    // pre-fork name, so Themis's Loki/Tempo label does NOT match its module directory.
+    // Renaming would orphan existing dashboards and stored telemetry — left as a
+    // Bora call, recorded in the arc's census.
     private val serviceName = "resolver-agent"
 
-    val openTelemetry: OpenTelemetry by lazy {
+    /** Whether telemetry is on. Callers gate plugin installs on this (null SDK = no plugin). */
+    val enabled: Boolean by lazy {
         val config = ConfigFactory.load()
-        val enabled = config.hasPath("telemetry.enabled") && config.getBoolean("telemetry.enabled")
+        config.hasPath("telemetry.enabled") && config.getBoolean("telemetry.enabled")
+    }
+
+    val openTelemetry: OpenTelemetry by lazy {
         shared.otel.createOpenTelemetrySdk(
             shared.otel.OtelEndpointConfig(
                 serviceName = serviceName,
@@ -17,6 +25,34 @@ object ResolverOtel {
             ),
             enabled = enabled,
         )
+    }
+
+    /**
+     * **Load-bearing.** The shared `otel-config` lib builds its SDK without
+     * `setPropagators(...)`, so `getPropagators()` returns `NoopTextMapPropagator` and
+     * the Ktor telemetry plugins inject **no `traceparent`** — spans get created, every
+     * hop starts a fresh trace, and nothing looks wrong in code.
+     *
+     * Duplicated from iris-bff's and golem's copies (these modules share no library).
+     * The proper home is `otel-config` itself — see PT P0·S0.1 T5 notes.
+     */
+    fun OpenTelemetry.withW3CPropagators(): OpenTelemetry {
+        val delegate = this
+        val w3c =
+            io.opentelemetry.context.propagation.ContextPropagators
+                .create(
+                    io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
+                        .getInstance(),
+                )
+        return object : OpenTelemetry {
+            override fun getTracerProvider() = delegate.tracerProvider
+
+            override fun getMeterProvider() = delegate.meterProvider
+
+            override fun getLogsBridge() = delegate.logsBridge
+
+            override fun getPropagators() = w3c
+        }
     }
 
     val tracer = openTelemetry.getTracer(serviceName)

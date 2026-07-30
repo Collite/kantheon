@@ -8,6 +8,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
+import io.opentelemetry.api.OpenTelemetry
 import org.slf4j.LoggerFactory
 import org.tatrman.kantheon.capabilities.client.CapabilitiesReadClient
 import org.tatrman.kantheon.iris.action.EscalationHandler
@@ -97,6 +98,7 @@ class IrisComponents(
 fun buildComponents(
     config: Config,
     serverConfig: KtorServerConfig,
+    otel: OpenTelemetry? = null,
 ): IrisComponents {
     val auth = buildAuth(config.getConfig("iris.auth"))
 
@@ -109,7 +111,7 @@ fun buildComponents(
         )
 
     // Transitional new-golem /v2 dispatch (deleted at Golem cutover).
-    val client = GolemV2HttpClient(config.getString("iris.dispatch.golem-v2.base-url"))
+    val client = GolemV2HttpClient(config.getString("iris.dispatch.golem-v2.base-url"), otel = otel)
 
     // Agent-id → endpoint, for the ids Themis actually routes to (see [parseAgentEndpoints]).
     // These are native Golems; one HTTP client per endpoint, closed at shutdown.
@@ -117,7 +119,7 @@ fun buildComponents(
     if (extraAgentEndpoints.isNotEmpty()) {
         log.info("iris dispatch: native golem endpoints configured for {}", extraAgentEndpoints.keys)
     }
-    val golemClients = extraAgentEndpoints.mapValues { (_, baseUrl) -> GolemV1HttpClient(baseUrl) }
+    val golemClients = extraAgentEndpoints.mapValues { (_, baseUrl) -> GolemV1HttpClient(baseUrl, otel = otel) }
     val mux = IrisStreamMux()
     val golemMux = GolemV1Mux()
     // Fallback answer language for turns that carry none (the SPA sends the picker's value).
@@ -142,8 +144,8 @@ fun buildComponents(
     // the chosen agent's client. golem-v2 is the only registered client at Phase 3.
     val themisCfg = config.getConfig("iris.themis")
     val themis: ThemisClient =
-        HttpThemisClient(themisCfg.getString("base-url"), timeoutMs = themisCfg.getLong("timeout-ms"))
-    val capabilities = CapabilitiesReadClient(config.getString("iris.capabilities.base-url"))
+        HttpThemisClient(themisCfg.getString("base-url"), timeoutMs = themisCfg.getLong("timeout-ms"), otel = otel)
+    val capabilities = CapabilitiesReadClient(config.getString("iris.capabilities.base-url"), otel = otel)
     val labels: AgentLabels = CapabilitiesAgentLabels(capabilities)
     val envelopes = RoutingEnvelopes(labels)
 
@@ -202,7 +204,7 @@ fun buildComponents(
     val pythia: PythiaClient =
         if (pythiaUrl.isNotBlank()) {
             org.tatrman.kantheon.iris.inbox
-                .LivePythiaClient(pythiaUrl)
+                .LivePythiaClient(pythiaUrl, otel = otel)
         } else {
             FakePythiaClient()
         }

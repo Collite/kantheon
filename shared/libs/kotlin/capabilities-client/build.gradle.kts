@@ -19,12 +19,16 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
 
     implementation(libs.opentelemetry.api)
+    // KtorClientTelemetry on the outbound registry client (PT P0·S0.1).
+    implementation(libs.ktor.opentelemetry)
     implementation(libs.kotlin.logging)
 
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.wiremock)
     testImplementation(libs.mockk)
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.opentelemetry.sdk.testing)
 }
 
 publishing {

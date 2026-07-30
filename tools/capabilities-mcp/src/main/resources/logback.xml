@@ -1,10 +1,28 @@
+<!--
+  PT Phase 0 · Stage 0.1 T3 — capabilities-mcp declared a logback config but no
+  OTel appender, so although it created an SDK its log records never reached the
+  SdkLoggerProvider. Alloy does no pod-log scraping: lines reach Loki ONLY via
+  OTLP export. Console format left as-is; this adds the OTLP path only.
+-->
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
+
+  <!-- Forwards log records to SdkLoggerProvider → OTLP exporter. The SDK is installed
+       into this appender by OpenTelemetryAppender.install(sdk) inside
+       createOpenTelemetrySdk(). -->
+  <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <captureExperimentalAttributes>true</captureExperimentalAttributes>
+    <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+    <captureLoggerContext>true</captureLoggerContext>
+    <captureMdcAttributes>*</captureMdcAttributes>
+  </appender>
+
   <root level="INFO">
     <appender-ref ref="STDOUT" />
+    <appender-ref ref="OTEL" />
   </root>
 </configuration>

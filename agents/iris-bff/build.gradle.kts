@@ -106,8 +106,10 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(libs.logstash.logback.encoder)
 
-    // OpenTelemetry.
+    // OpenTelemetry — `ktor-opentelemetry` carries KtorServerTelemetry (server span)
+    // and KtorClientTelemetry (outbound spans + traceparent), both wired in PT P0·S0.1.
     implementation(libs.ktor.opentelemetry)
+    implementation(libs.opentelemetry.api)
     implementation(libs.micrometer.registry.prometheus)
 
     // Persistence: Postgres via Exposed + HikariCP, Flyway migrations.
@@ -126,4 +128,6 @@ dependencies {
     testImplementation(libs.ktor.client.content.negotiation)
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.kotlinx.coroutines.test)
+    // In-memory span exporter for the OTel wiring specs (no live collector in CI).
+    testImplementation(libs.opentelemetry.sdk.testing)
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PT Phase 0 · Stage 0.1 T3 — Golem had NO logback configuration, so it ran on
+  Logback's default console config and its log records never reached the OTel
+  SdkLoggerProvider. Alloy does no pod-log scraping: a service's lines reach Loki
+  ONLY if it exports OTLP log records, so the agent hop of every turn was invisible
+  in Loki.
+
+  Golem already declared both `otel-logback-appender` and `logstash-logback-encoder`
+  in its build — clearly the intended shape — so this mirrors iris-bff's config,
+  the healthiest in the estate.
+-->
+<configuration>
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+        </encoder>
+    </appender>
+
+    <!-- Forwards log records to SdkLoggerProvider → OTLP exporter. The SDK is installed
+         into this appender by OpenTelemetryAppender.install(sdk) inside
+         createOpenTelemetrySdk(). -->
+    <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+        <captureExperimentalAttributes>true</captureExperimentalAttributes>
+        <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+        <captureLoggerContext>true</captureLoggerContext>
+        <captureMdcAttributes>*</captureMdcAttributes>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="JSON_CONSOLE"/>
+        <appender-ref ref="OTEL"/>
+    </root>
+</configuration>
