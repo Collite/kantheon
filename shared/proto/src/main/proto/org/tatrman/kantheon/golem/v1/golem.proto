@@ -12,6 +12,7 @@ import "org/tatrman/kantheon/envelope/v1/envelope.proto";
 import "org/tatrman/kantheon/themis/v1/themis.proto";
 import "org/tatrman/kantheon/common/v1/handoff.proto";          // HandoffContext, ViewProvenance, EntityBinding
 import "org/tatrman/kantheon/common/v1/response_message.proto"; // kantheon Rule-6 stand-in (kantheon-architecture §4)
+import "org/tatrman/kantheon/protocol/v1/protocol.proto";       // ProtocolHints (PT arc, contracts §4 — additive)
 
 option java_multiple_files = true;
 option java_package = "org.tatrman.kantheon.golem.v1";
@@ -143,6 +144,14 @@ message ConversationalResponse {
   // the turn really used — Iris compares vs dispatched context (PD-4).
   org.tatrman.kantheon.common.v1.ViewProvenance current_view = 10;
   repeated org.tatrman.kantheon.common.v1.EntityBinding applied_context = 11;
+
+  // PT-25/S-5 (PT arc, contracts §4): the agent's own pointers into the turn's
+  // execution — plan ids, gateway call refs, the SQL it submitted, per-step
+  // timings. ADDITIVE: consumers that ignore it are unaffected, and 12 was the
+  // next free number (99 is reserved for Rule 6). The BFF stores this block
+  // verbatim in RecordPointers.hints — it is a hint, not an authority: the
+  // assembler cross-checks it against the federated sources.
+  org.tatrman.kantheon.protocol.v1.ProtocolHints protocol_hints = 12;
 
   repeated org.tatrman.kantheon.common.v1.ResponseMessage messages = 99;
 }

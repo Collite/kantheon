@@ -1,0 +1,165 @@
+// protocol/v1 — the /protocol session-protocol contract (PT arc, Phase 1 Stage 1.1).
+//
+// Authority: project/kantheon/features/protocol/implementation/contracts.md §1,
+// copied field-for-field / number-for-number. Three concerns share the package
+// because they share a lifecycle:
+//
+//   1. ProtocolDocument + sections — the assembled read model (PT-8, S-2/S-6),
+//      rendered server-side to markdown and shipped inside an envelope/v1.
+//   2. ProtocolRecord — the per-turn write-path row (PT-4/5/6, S-4): pointers
+//      into the federated sources plus the two in-band captures (F2/F7).
+//   3. ProtocolHints — the agent-supplied block (PT-25, S-5) that rides
+//      additively on agent responses and is stored verbatim in the record.
+//
+// Layering: this file imports NOTHING. Section payloads deliberately carry
+// their own flattened view types (EntityBindingView, not common/v1
+// EntityBinding) — the document is a rendering contract, and coupling it to the
+// agent protos would drag themis/v1 and its transitive imports into every
+// protocol consumer, the same trap envelope/v1 avoided in the 2026-06-12
+// cohesion review. golem/v1 imports THIS file for `protocol_hints`; the reverse
+// direction is forbidden.
+//
+// No Rule-6 `messages = 99` field: nothing here is a service response. The REST
+// surface (contracts §3) answers with ProtocolResponseDto wrapping an
+// envelope/v1 FormatEnvelope, which carries its own Rule-6 channel.
+syntax = "proto3";
+
+package org.tatrman.kantheon.protocol.v1;
+
+option java_multiple_files = true;
+option java_package = "org.tatrman.kantheon.protocol.v1";
+
+// =========================================================================
+// Document model — what the renderer walks (PT-8, S-2..S-6)
+// =========================================================================
+
+message ProtocolDocument {
+  string protocol_id       = 1;   // uuid of this generation (receipts refer to it)
+  string session_id        = 2;
+  Scope  scope             = 3;
+  SessionHeader header     = 4;
+  repeated ProtocolTurn turns = 5;
+  ReceiptsSection receipts = 6;   // MANDATORY (PT-13); renderer places it last
+  string schema_version    = 7;   // "protocol/v1.<minor>"
+  string generated_at      = 8;   // ISO-8601 with offset (S-8)
+}
+
+message Scope {
+  oneof kind { bool last_turn = 1; bool whole_session = 2; uint32 last_n = 3; }
+}
+
+message SessionHeader {
+  string title       = 1;         // "Protocol — <session title> — <scope>" (S-8)
+  string user_id     = 2;
+  string tenant_id   = 3;
+  repeated string agent_ids = 4;
+  string session_created_at = 5;
+  uint32 turn_count_in_scope = 6;
+  uint32 turn_count_total    = 7;
+}
+
+message ProtocolTurn {
+  string turn_id  = 1;
+  uint32 seq      = 2;
+  repeated Section sections = 3;  // registry order (S-2)
+}
+
+message Section {
+  string key = 1;                 // stable registry key, contracts §2
+  SectionStatus status = 2;
+  Verbosity applied_verbosity = 3;
+  bool truncated = 4;             // caps hit (PT-10); details in receipts + inline marker
+  oneof payload {
+    HeaderSection      header       = 10;
+    ResolutionSection  resolution   = 11;
+    LlmCallsSection    llm_calls    = 12;
+    QuerySection       query        = 13;
+    PlanSection        plan         = 14;
+    SqlSection         sql          = 15;
+    SecuritySection    security     = 16;
+    ExecutionSection   execution    = 17;
+    ServiceLogsSection service_logs = 18;
+    ErrorsSection      errors       = 19;
+    ParticipantsSection participants = 20; // session scope
+  }
+}
+
+enum SectionStatus { SECTION_OK = 0; SECTION_DEGRADED = 1; SECTION_OFF = 2; }
+enum Verbosity     { VERBOSITY_OFF = 0; VERBOSITY_SUMMARY = 1; VERBOSITY_FULL = 2; }
+
+message HeaderSection {
+  string question = 1; string agent_id = 2; string routing_outcome = 3;
+  string status = 4; string origin = 5; string started_at = 6; uint64 duration_ms = 7;
+}
+message ResolutionSection {                 // F2 capture rendered
+  string function_id = 1; string args_json = 2;
+  repeated EntityBindingView bindings = 3;
+  double confidence = 4; string rationale = 5;
+  int32 layer_hit = 6; bool needs_user_pick_shown = 7;
+  repeated string alternates_offered = 8;
+}
+message EntityBindingView { string mention = 1; string bound_ref = 2; double confidence = 3; }
+message LlmCallsSection { repeated LlmCall calls = 1; uint32 unattributable_count = 2; }
+message LlmCall {
+  string call_ref = 1;                      // gateway row id
+  string purpose = 2;                       // node/agent-supplied label from hints
+  string requested_model = 3; string served_model = 4; string served_provider = 5;
+  string fallback_from = 6; bool cached = 7;
+  uint32 tokens_prompt = 8; uint32 tokens_completion = 9;
+  uint64 duration_ms = 10; uint64 ttfb_ms = 11; double cost_usd = 12;
+  string status = 13;
+  repeated LlmMessage messages = 14;        // bodies; role-filtered per config (PT-20/21)
+}
+message LlmMessage { string role = 1; string content = 2; bool content_redacted = 3; }
+message QuerySection { string entity_query = 1; string query_kind = 2; }
+message PlanSection  { string rel_plan_text = 1; bool reconstructed = 2; /* S-1 label */ }
+message SqlSection   { string sql = 1; string dialect = 2; string engine_label = 3; bool literals_masked = 4; }
+message SecuritySection { repeated SecurityRuleView rules = 1; string policy_source = 2; }
+message SecurityRuleView { string rule_id = 1; string description = 2; string predicate = 3; bool predicate_masked = 4; }
+message ExecutionSection { string dispatch_target = 1; string worker = 2; int64 row_count = 3; uint64 duration_ms = 4; }
+message ServiceLogsSection { repeated ServiceLogGroup groups = 1; }
+message ServiceLogGroup { string service_name = 1; repeated LogLine lines = 2; uint32 dropped_by_cap = 3; }
+message LogLine { string ts = 1; string level = 2; string body = 3; string trace_id = 4; }
+message ErrorsSection { repeated ErrorItem items = 1; }
+message ErrorItem { string source = 1; string code = 2; string message = 3; }
+message ParticipantsSection { repeated string user_ids = 1; repeated string agent_ids = 2; }
+message ReceiptsSection {                    // PT-13/S-6: never off, always last
+  string profile_name = 1;
+  repeated SourceReceipt sources = 2;
+  string generated_by = 3;                   // estate + assembler version
+}
+message SourceReceipt {
+  string source = 1;                         // "records" | "llm-gateway" | "loki" | "tempo" | "translate-explain" | ...
+  string status = 2;                         // "ok" | "degraded" | "skipped-by-config"
+  string detail = 3;                         // why degraded, counts, query refs
+}
+
+// ---- turn record (PT-4/5/6, S-4) — logical schema; storage is per-estate ----
+message ProtocolRecord {
+  string turn_id = 1;
+  RecordPointers pointers = 2;
+  RecordCaptures captures = 3;
+  string schema_version = 4;
+}
+message RecordPointers {
+  string trace_id = 1; string correlation_id = 2;
+  string gateway_turn_ref = 3;
+  repeated string plan_ids = 4;
+  repeated string llm_call_refs = 5;
+  string sql_ref = 6; string sql_inline = 7;     // one of; inline when small
+  string log_window_from = 8; string log_window_to = 9;   // ISO-8601
+  ProtocolHints hints = 10;                       // agent block, verbatim (PT-25)
+}
+message RecordCaptures {
+  bytes resolve_response = 1;    // serialized themis/v1 ResolveResponse (F2)
+  bytes security_applied = 2;    // serialized validate.v1 security_applied set / legacy EvaluatePoliciesResponse (F7)
+}
+
+// ---- agent hints (PT-25/S-5) — additive on agent responses ----
+message ProtocolHints {
+  repeated string plan_ids = 1;
+  repeated string llm_call_refs = 2;
+  string sql_ref = 3; string sql_inline = 4;
+  repeated HintTiming timings = 5;
+}
+message HintTiming { string step = 1; uint64 duration_ms = 2; }
