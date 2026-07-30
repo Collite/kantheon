@@ -14,6 +14,7 @@ import org.tatrman.kantheon.iris.api.actionRoutes
 import org.tatrman.kantheon.iris.api.artifactRoutes
 import org.tatrman.kantheon.iris.api.auditRoutes
 import org.tatrman.kantheon.iris.api.chatRoutes
+import org.tatrman.kantheon.iris.api.protocolRoutes
 import org.tatrman.kantheon.iris.api.discoverRoutes
 import org.tatrman.kantheon.iris.api.feedbackRoutes
 import org.tatrman.kantheon.iris.api.inboxRoutes
@@ -59,6 +60,7 @@ fun Application.module(
         healthRoutes(components.readiness)
         sessionRoutes(components.store, components.auth, components.golemClient, components.staticChips)
         chatRoutes(components.store, components.auth, components.dispatcher, components.heartbeatMs)
+        protocolRoutes(components.store, components.auth, components.protocolAssembler)
         actionRoutes(
             components.store,
             components.auth,

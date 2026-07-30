@@ -53,6 +53,13 @@ export const SLASH_COMMANDS: SlashCommandSpec[] = [
     acceptsArg: true,
   },
   {
+    name: 'protocol',
+    descriptionKey: 'slash.protocol',
+    kind: 'request',
+    argHint: '[session|N]',
+    acceptsArg: true,
+  },
+  {
     name: 'export',
     descriptionKey: 'slash.export',
     kind: 'client',
@@ -93,4 +100,37 @@ export const filterSlashCommands = (raw: string): SlashCommandSpec[] => {
   const partial = (raw.slice(1).split(/\s+/)[0] ?? '').toLowerCase()
   if (!partial) return SLASH_COMMANDS
   return SLASH_COMMANDS.filter((c) => c.name.startsWith(partial))
+}
+
+/** What `/protocol` was asked for. Mirrors the BFF's `protocol/v1 Scope` oneof. */
+export type ProtocolScope = 'last' | 'session' | { lastN: number }
+
+/**
+ * Parse `/protocol`'s argument.
+ *
+ * `null` means **invalid**, and the caller must show a hint and send NOTHING.
+ * Silently coercing a typo — `/protocol 3.5` quietly becoming `last` — would
+ * hand the user a document about a different scope than they asked for, which
+ * is worse than a refusal on a surface whose whole purpose is to be trusted.
+ *
+ * Rejected deliberately: `0` and negatives (not a small scope, a mistake),
+ * decimals, and anything with leading zeros or stray characters.
+ */
+export function parseProtocolArg(raw: string | undefined): ProtocolScope | null {
+  const a = (raw ?? '').trim().toLowerCase()
+  if (a === '') return 'last'
+  // `last` is accepted as an explicit spelling of the default. The task list
+  // listed only bare/`session`/N, but rejecting `/protocol last` would refuse an
+  // unambiguous request that maps exactly onto the default — the silent-coercion
+  // hazard this parser guards against simply does not arise for it.
+  if (a === 'last') return 'last'
+  if (a === 'session') return 'session'
+  if (/^[1-9]\d*$/.test(a)) return { lastN: Number(a) }
+  return null
+}
+
+/** Filename slug for a downloaded protocol: `last` | `session` | `last-<N>`. */
+export function protocolScopeSlug(scope: ProtocolScope): string {
+  if (scope === 'last' || scope === 'session') return scope
+  return `last-${scope.lastN}`
 }

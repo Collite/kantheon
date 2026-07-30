@@ -11,7 +11,8 @@
     "emptyTitle": "No tabs open yet",
     "emptyBody": "Promote tables, charts, or markdown answers here from the chat. Look for the open-in-tab icon on a chat bubble's footer.",
     "tabPanelsHeader": "Panels",
-    "closeTabAria": "Close {title}"
+    "closeTabAria": "Close {title}",
+    "saveTabAria": "Download {title} as markdown"
   },
   "chat": {
     "copy": "Copy",
@@ -177,7 +178,14 @@
     "resetFailed": "Reset failed",
     "undone": "Conversation restored",
     "undoFailed": "Nothing to undo",
-    "sqlUnavailable": "SQL dry-run is not available yet (arrives in Phase 3)"
+    "sqlUnavailable": "SQL dry-run is not available yet (arrives in Phase 3)",
+    "protocol": "Render this session's execution path as a protocol document",
+    "protocolUsage": "Usage: /protocol [session|N] — bare = last turn",
+    "protocolBadScope": "That scope is not valid",
+    "protocolForbidden": "You are not a member of this session",
+    "protocolNoSession": "Session not found",
+    "protocolFailed": "Could not build the protocol",
+    "protocolDownloaded": "Protocol downloaded"
   },
   "errors": {
     "agentFailed": "Failed to get response from agent.",

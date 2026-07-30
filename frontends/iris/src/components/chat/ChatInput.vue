@@ -15,6 +15,9 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
+import { useLayoutStore } from '@/stores/layoutStore'
+import { requestProtocol, ProtocolRequestError } from '@/services/protocol'
+import { protocolFilename } from '@/components/tabs/downloadMarkdown'
 import { useConfirm } from 'primevue/useconfirm'
 import SlashCommandPopup from './SlashCommandPopup.vue'
 import {
@@ -22,6 +25,9 @@ import {
   SLASH_COMMANDS,
   filterSlashCommands,
   parseSlashInput,
+  parseProtocolArg,
+  protocolScopeSlug,
+  type ProtocolScope,
   type SlashCommandSpec,
 } from './slashCommands'
 import { useChatStore } from '@/stores/chatStore'
@@ -49,6 +55,8 @@ const session = useAgentSession()
 const history = usePromptHistory()
 const chatStore = useChatStore()
 const toast = useToast()
+const layoutStore = useLayoutStore()
+const protocolInFlight = ref(false)
 const confirm = useConfirm()
 const { t } = useI18n()
 
@@ -273,6 +281,19 @@ const runSlashCommand = async (raw: string): Promise<boolean> => {
       session.prompt.value = ''
       return true
 
+    case 'protocol': {
+      const scope = parseProtocolArg(arg)
+      if (scope === null) {
+        // Invalid argument sends NOTHING. Coercing a typo would hand the user a
+        // document about a different scope than they asked for.
+        toast.add({ severity: 'warn', summary: t('slash.protocolUsage'), life: 3000 })
+        return true
+      }
+      session.prompt.value = ''
+      await handleProtocol(scope)
+      return true
+    }
+
     case 'sql':
       // Stage 2.3 slash audit: the v1 turn request carries no `dryRun` field, so
       // arming `dryRunNext` was a silent no-op. Surface that it's not wired yet
@@ -287,6 +308,41 @@ const runSlashCommand = async (raw: string): Promise<boolean> => {
       return true
   }
   return false
+}
+
+// -------- /protocol [session|N] -----------------------------------------
+
+/**
+ * Ask the BFF for the session protocol and promote it into a tab.
+ *
+ * The transcript is deliberately untouched: a protocol is a document *about*
+ * the conversation, not a turn in it, so appending it would make the next
+ * protocol include the previous one.
+ */
+const handleProtocol = async (scope: ProtocolScope) => {
+  protocolInFlight.value = true
+  try {
+    const { title, envelope } = await requestProtocol(session.sessionId.value, scope)
+    // add() deep-copies; the envelope is passed through unmodified.
+    layoutStore.openEnvelopeInTab(envelope as unknown as FormatEnvelope, {
+      title,
+      downloadName: protocolFilename(session.sessionId.value, protocolScopeSlug(scope)),
+    })
+  } catch (err) {
+    const status = err instanceof ProtocolRequestError ? err.status : 0
+    const summary =
+      status === 400
+        ? t('slash.protocolBadScope')
+        : status === 403
+          ? t('slash.protocolForbidden')
+          : status === 404
+            ? t('slash.protocolNoSession')
+            : t('slash.protocolFailed')
+    console.warn('[protocol] request failed', err)
+    toast.add({ severity: 'error', summary, detail: (err as Error).message, life: 3000 })
+  } finally {
+    protocolInFlight.value = false
+  }
 }
 
 // -------- /export <md|csv> ----------------------------------------------

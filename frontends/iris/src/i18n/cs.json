@@ -11,7 +11,8 @@
     "emptyTitle": "Žádné panely nejsou otevřeny",
     "emptyBody": "Přesouvejte sem tabulky, grafy nebo markdown odpovědi z chatu. Hledejte ikonu \"otevřít v panelu\" v zápatí bublin chatu.",
     "tabPanelsHeader": "Panely",
-    "closeTabAria": "Zavřít {title}"
+    "closeTabAria": "Zavřít {title}",
+    "saveTabAria": "Stáhnout {title} jako markdown"
   },
   "chat": {
     "copy": "Kopírovat",
@@ -177,7 +178,14 @@
     "resetFailed": "Smazání selhalo",
     "undone": "Konverzace obnovena",
     "undoFailed": "Není co vrátit",
-    "sqlUnavailable": "Náhled SQL zatím není dostupný (přijde ve fázi 3)"
+    "sqlUnavailable": "Náhled SQL zatím není dostupný (přijde ve fázi 3)",
+    "protocol": "Vykreslí průběh této relace jako protokol",
+    "protocolUsage": "Použití: /protocol [session|N] — bez argumentu = poslední dotaz",
+    "protocolBadScope": "Neplatný rozsah",
+    "protocolForbidden": "Nejste členem této relace",
+    "protocolNoSession": "Relace nenalezena",
+    "protocolFailed": "Protokol se nepodařilo sestavit",
+    "protocolDownloaded": "Protokol stažen"
   },
   "errors": {
     "agentFailed": "Nepodařilo se získat odpověď od agenta.",

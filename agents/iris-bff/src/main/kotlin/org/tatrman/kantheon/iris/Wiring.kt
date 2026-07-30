@@ -3,7 +3,11 @@ package org.tatrman.kantheon.iris
 import com.typesafe.config.Config
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.HttpStatusCode
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -55,6 +59,11 @@ import org.tatrman.kantheon.iris.infra.IrisDatabase
 import org.tatrman.kantheon.iris.protocol.record.ExposedProtocolRecordStore
 import org.tatrman.kantheon.iris.protocol.record.InMemoryProtocolRecordStore
 import org.tatrman.kantheon.iris.protocol.record.ProtocolRecordStore
+import org.tatrman.kantheon.iris.protocol.sources.GatewayLogsClient
+import org.tatrman.kantheon.iris.protocol.sources.LokiClient
+import org.tatrman.kantheon.iris.protocol.sources.TempoClient
+import org.tatrman.kantheon.iris.protocol.assemble.ProtocolAssembler
+import org.tatrman.kantheon.iris.protocol.config.ProtocolConfig
 import org.tatrman.kantheon.iris.protocol.record.ProtocolRecorder
 import org.tatrman.kantheon.iris.routing.AgentLabels
 import org.tatrman.kantheon.iris.routing.CapabilitiesAgentLabels
@@ -65,6 +74,13 @@ import org.tatrman.kantheon.iris.stream.IrisStreamMux
 import shared.ktor.KtorServerConfig
 
 private val log = LoggerFactory.getLogger("org.tatrman.kantheon.iris.Wiring")
+
+/**
+ * Per-source read timeout. Deliberately short: /protocol is a debug surface a
+ * user is waiting on, and a source that has not answered in this long is better
+ * reported as degraded in the receipts than waited for.
+ */
+private const val PROTOCOL_SOURCE_TIMEOUT_MS = 8_000L
 
 /** The wired-up components for a running iris-bff (declarative; keeps Application.kt thin). */
 class IrisComponents(
@@ -84,6 +100,8 @@ class IrisComponents(
     val signer: Ed25519Signer,
     val capabilities: CapabilitiesReadClient,
     val metrics: RoutingMetrics,
+    /** PT: the /protocol read path. */
+    val protocolAssembler: ProtocolAssembler,
     val staticChips: StaticChipSource,
     val golemClient: GolemV2Client,
     val readiness: Readiness,
@@ -196,6 +214,34 @@ fun buildComponents(
         audit: AuditStore,
     ): TypedActionDispatcher = TypedActionDispatcher(store, client, audit, mux, metrics)
 
+    // PT read path. Source clients are built only where a base URL is configured;
+    // an unconfigured source is `skipped-by-config` in the receipts, not an error
+    // — so a deployment that has not wired Loki still serves /protocol.
+    fun protocolAssembler(records: ProtocolRecordStore): ProtocolAssembler {
+        val cfg = ProtocolConfig.from(config)
+        // One shared Ktor client for the read sources. Separate from the dispatch
+        // clients: these are best-effort observability reads, and a slow Loki must
+        // not sit on the same connection pool a user's turn is waiting on.
+        val sourceHttp =
+            HttpClient(CIO) {
+                install(HttpTimeout) { requestTimeoutMillis = PROTOCOL_SOURCE_TIMEOUT_MS }
+                otel?.let { sdk -> install(KtorClientTelemetry) { setOpenTelemetry(sdk) } }
+            }
+
+        fun httpOrNull(baseUrl: String) = baseUrl.takeIf { it.isNotBlank() }?.let { sourceHttp }
+        return ProtocolAssembler(
+            records = records,
+            config = cfg,
+            gateway = httpOrNull(cfg.sources.gatewayBaseUrl)?.let { GatewayLogsClient(cfg.sources.gatewayBaseUrl, it) },
+            loki = httpOrNull(cfg.sources.lokiBaseUrl)?.let { LokiClient(cfg.sources.lokiBaseUrl, it) },
+            tempo = httpOrNull(cfg.sources.tempoBaseUrl)?.let { TempoClient(cfg.sources.tempoBaseUrl, it) },
+            // ttr-translate's gRPC stub is not wired into iris-bff yet; the S-1
+            // fallback stays off until it is, and says so in the receipts.
+            explain = null,
+            registry = meterRegistry,
+        )
+    }
+
     fun reaskHandler(
         feedback: FeedbackStore,
         audit: AuditStore,
@@ -245,10 +291,12 @@ fun buildComponents(
         // see the same rows the write paths produce (the Exposed branch shares one DB).
         val audit = InMemoryAuditStore(signer)
         val feedback: FeedbackStore = InMemoryFeedbackStore()
+        val inMemoryRecords = InMemoryProtocolRecordStore()
         return IrisComponents(
             store = store,
             auth = auth,
-            dispatcher = chatDispatcher(store, audit, InMemoryProtocolRecordStore()),
+            dispatcher = chatDispatcher(store, audit, inMemoryRecords),
+            protocolAssembler = protocolAssembler(inMemoryRecords),
             typedActions = typedActions(store, audit),
             reask = reaskHandler(feedback, audit),
             escalation = EscalationHandler(audit, metrics = metrics),
@@ -281,10 +329,12 @@ fun buildComponents(
     val audit = ExposedAuditStore(database.connection, signer)
     val feedback: FeedbackStore = ExposedFeedbackStore(database.connection)
     val artifacts: ArtifactStore = ExposedArtifactStore(database.connection)
+    val exposedRecords = ExposedProtocolRecordStore(database.connection)
     return IrisComponents(
         store = store,
         auth = auth,
-        dispatcher = chatDispatcher(store, audit, ExposedProtocolRecordStore(database.connection)),
+        dispatcher = chatDispatcher(store, audit, exposedRecords),
+        protocolAssembler = protocolAssembler(exposedRecords),
         typedActions = typedActions(store, audit),
         reask = reaskHandler(feedback, audit),
         escalation = EscalationHandler(audit, metrics = metrics),

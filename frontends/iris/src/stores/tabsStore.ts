@@ -19,6 +19,12 @@ export interface PromotedPanelData {
   sourceMessageId?: string
   format: FormatEnvelope
   displayState?: DisplayState
+  /**
+   * Filename the panel should be saved under, when it knows better than the
+   * tab header does. `/protocol` sets it because the contracted name needs the
+   * session id and scope, neither of which is visible from a tab header.
+   */
+  downloadName?: string
 }
 
 interface AddInput {
@@ -26,6 +32,7 @@ interface AddInput {
   format: FormatEnvelope
   sourceMessageId?: string
   displayState?: DisplayState
+  downloadName?: string
 }
 
 let counter = 0
@@ -50,6 +57,7 @@ export const useTabsStore = defineStore('tabs', () => {
       sourceMessageId: input.sourceMessageId,
       format: deepCopy(input.format),
       displayState: input.displayState ? deepCopy(input.displayState) : undefined,
+      downloadName: input.downloadName,
     }
     return panelId
   }
