@@ -3,10 +3,21 @@
 # https://docs.gradle.org/current/userguide/version_catalogs.html
 
 [versions]
-# The whole org.tatrman:* spine is on the uniform 0.9.4 Maven Central line
-# (SV-P1 S4 public debut; repointed off GitHub Packages 2026-07-12, review-input ⚑2).
-tatrman-modeler           = "0.9.4"
-tatrman-ttr-metadata      = "0.9.4"
+# The TTR TOOLCHAIN line (the `tatrman` repo): ttr-parser/writer/semantics via `tatrman-modeler`,
+# and the metadata bundle (ttr-metadata + ttr-metadata-git) via `tatrman-ttr-metadata`. These two
+# refs MUST move together — ttr-metadata `api`s the grammar artifacts, so a mismatch is an
+# unresolvable build, not a soft skew.
+#
+# 0.9.4 -> 0.11.0 (2026-07-30 catalog unification). This is a two-minor jump and it was verified,
+# not assumed: full `build` + `test --rerun-tasks` green across the repo.
+#
+# ⚠️ Do NOT pin the metadata bundle at 0.10.3 or 0.10.4. Both were published to Central WITHOUT a
+# matching grammar cut — `ttr-parser` exists only at 0.9.4 and 0.11.0 — so they resolve to a
+# non-existent org.tatrman:ttr-parser:0.10.x. That exact pin had `:services:veles:compileKotlin`
+# failing on tatrman-platform's master for three days (2026-07-27 -> 2026-07-30). When bumping,
+# confirm `ttr-parser` has the version on Central first.
+tatrman-modeler           = "0.11.0"
+tatrman-ttr-metadata      = "0.11.0"
 # ttr-plan-proto + ttr-translator are published at 0.10.1 (Bora, 2026-07-29) — this ref drives
 # BOTH (see the library entries below). tatrman-server already pins 0.10.1 for the same two
 # artifacts, so this bump re-aligns kantheon with the server repo rather than leading it.
@@ -28,33 +39,29 @@ tatrman-translator        = "0.10.1"  # translate.v1 public (was 0.8.5 / proteus
 # bump is the library-side guard so a FOURTH Netty service cannot rediscover the cliff.
 # Full write-up: project/server/features/stream-timeouts/.
 tatrman-server            = "0.10.1"
-# ttr-llm-client decoupled to 0.9.7 (golem gateway-2.0 cutover needs LlmGatewayEndpoint.apiKey +
-# the generic-tier executor). ttr-llm-client has NO proto deps (koog/ktor only), so it resolves
-# cleanly at 0.9.7 regardless of the proto line.
+# RE-UNIFIED 2026-07-30. These two used to be held off the main line for reasons that have all
+# since expired, so they are now simply the server-libs line:
 #
-# The ORIGINAL reason the rest of the spine sat at 0.9.4 is gone twice over. It used to be
-# "0.9.7's ttr-server-proto transitively pins ttr-plan-proto:0.9.6-rc01, an RC absent from Maven
-# Central" — that gap CLOSED when ttr-plan-proto published at 0.10.1 (2026-07-29). What remained
-# was simply that server-libs had not been re-cut; that is now done too, and `tatrman-server`
-# above moved to 0.10.1.
+#   - ttr-llm-client 0.9.7 -> 0.10.1. It was pulled AHEAD to 0.9.7 for the golem gateway-2.0
+#     cutover (LlmGatewayEndpoint.apiKey + the generic-tier executor) while the rest of the spine
+#     was stuck at 0.9.4. The spine has caught up and passed it.
+#   - ttr-server-proto 0.10.0 -> 0.10.1. CH-P3 moved transfer.v1 + metis.v1 into this artifact and
+#     0.10.0 was its first Central-clean cut (0.9.7/0.9.8 were poisoned by the ttr-plan-proto
+#     0.9.6-rc01 transitive). kantheon consumes org.tatrman.transfer.v1.* (Pythia's CharonClient)
+#     and org.tatrman.metis.v1.* from here; metis.proto stays Python-only.
 #
-# ⚑ The three refs below are still OFF the main line, deliberately and separately. Because
-# `just publish bundle server-libs` cuts all 13 modules together, ttr-llm-client,
-# ttr-server-proto and ttr-validator-spi are ALSO available at 0.10.1 — so re-unifying them is
-# now possible. It was NOT done as part of ST-P2·S2: that effort needed ktor-configurator only,
-# and moving the proto/SPI line is a change with its own blast radius (CH-P3 and PL-P4 chose
-# these pins for reasons recorded below). Re-unification is a deliberate follow-up, not a
-# side effect of a timeout fix.
-tatrman-ttr-llm-client    = "0.9.7"
-# CH-P3 — ttr-server-proto decoupled to 0.10.0: the open Charon unification (arc CH) moved
-# transfer.v1 + metis.v1 INTO ttr-server-proto, and 0.10.0 is the first Central-clean cut of it
-# (its ttr-plan-proto transitive is 0.10.1, not the 0.9.6-rc01 that blocked the spine at 0.9.4).
-# kantheon consumes org.tatrman.transfer.v1.* (Pythia's CharonClient) + org.tatrman.metis.v1.* (Kotlin)
-# from here, and drops its own transfer/metis proto copies. metis.proto stays Python-only (the
-# kantheon-native Metis service). The rest of the spine can re-unify to 0.10.0 as a separate step.
-tatrman-ttr-server-proto  = "0.10.0"
+# Both reasons the spine sat at 0.9.4 are gone: the 0.9.6-rc01 Central gap closed when
+# ttr-plan-proto published 0.10.1, and the outstanding server-libs re-cut happened
+# (server-libs/v0.10.1-RELEASE). Since `just publish bundle server-libs` cuts all 13 modules
+# together, holding these apart no longer buys anything — a divergence here is now a deliberate
+# choice rather than an inherited constraint.
+tatrman-ttr-llm-client    = "0.10.1"
+tatrman-ttr-server-proto  = "0.10.1"
 # The ⑤ validator SPI (org.tatrman:ttr-validator-spi) from Maven Central — the open C-5-i plugin contract
 # the llm-guard plugin implements (published via tatrman `just publish bundle validator`).
+#
+# 0.10.0 is NOT stale: this artifact ships from the tatrman repo on its own `validator` bundle, and
+# 0.10.0 is the latest published. It moves on that bundle's schedule, not server-libs'.
 tatrman-ttr-validator-spi = "0.10.0"
 
 # Kotlin / coroutines / serialization
