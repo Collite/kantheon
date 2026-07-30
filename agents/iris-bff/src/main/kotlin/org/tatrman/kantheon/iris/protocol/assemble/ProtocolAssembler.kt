@@ -1,0 +1,218 @@
+package org.tatrman.kantheon.iris.protocol.assemble
+
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import org.slf4j.LoggerFactory
+import org.tatrman.kantheon.iris.protocol.config.ProtocolConfig
+import org.tatrman.kantheon.iris.protocol.model.DocumentBuilder
+import org.tatrman.kantheon.iris.protocol.record.ProtocolRecordStore
+import org.tatrman.kantheon.iris.protocol.redact.RedactionChain
+import org.tatrman.kantheon.iris.protocol.sections.TurnFacts
+import org.tatrman.kantheon.iris.protocol.sources.ExplainClient
+import org.tatrman.kantheon.iris.protocol.sources.ExplainSource
+import org.tatrman.kantheon.iris.protocol.sources.GatewayLogsClient
+import org.tatrman.kantheon.iris.protocol.sources.GatewaySource
+import org.tatrman.kantheon.iris.protocol.sources.LokiClient
+import org.tatrman.kantheon.iris.protocol.sources.LokiSource
+import org.tatrman.kantheon.iris.protocol.sources.ProtocolSources
+import org.tatrman.kantheon.iris.protocol.sources.SourceOutcome
+import org.tatrman.kantheon.iris.protocol.sources.SourceStatus
+import org.tatrman.kantheon.iris.protocol.sources.TempoClient
+import org.tatrman.kantheon.iris.protocol.sources.TempoSource
+import org.tatrman.kantheon.protocol.v1.ProtocolDocument
+import org.tatrman.kantheon.protocol.v1.ProtocolRecord
+import org.tatrman.kantheon.protocol.v1.Scope
+import org.tatrman.kantheon.protocol.v1.SectionStatus
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.UUID
+
+private val log = LoggerFactory.getLogger(ProtocolAssembler::class.java)
+
+/**
+ * Turns a scope into a rendered-ready [ProtocolDocument] (architecture §3.1).
+ *
+ * The pipeline is fixed and its order is load-bearing:
+ * **records → sources (parallel) → build → redact (floor, then config) → receipts last.**
+ *
+ * **It cannot fail into an error shape.** Every source is fetched in its own
+ * isolated coroutine and every failure becomes a `Degraded` outcome that lands in
+ * the receipts; there is no path from "a source was down" to "the request 500s"
+ * (P-4). The only thing that can legitimately fail is *finding no turns at all*,
+ * and that is the caller's 404, not this class's exception.
+ */
+class ProtocolAssembler(
+    private val records: ProtocolRecordStore,
+    private val config: ProtocolConfig,
+    private val gateway: GatewayLogsClient?,
+    private val loki: LokiClient?,
+    private val tempo: TempoClient?,
+    private val explain: ExplainClient?,
+    private val registry: MeterRegistry = SimpleMeterRegistry(),
+    private val clock: () -> Instant = Instant::now,
+    private val ids: () -> UUID = UUID::randomUUID,
+    private val estate: String = "kantheon",
+    private val assemblerVersion: String = "1.0",
+) {
+    /** What the caller asked for; `turns` are supplied by the route from the session store. */
+    data class Request(
+        val sessionId: UUID,
+        val scope: Scope,
+        val turns: List<TurnFacts>,
+        val bearer: String,
+        val turnCountTotal: Int = turns.size,
+        val sessionCreatedAt: String = "",
+        val profileName: String? = null,
+    )
+
+    suspend fun assemble(req: Request): ProtocolDocument {
+        val startNanos = System.nanoTime()
+        val scopeLabel = req.scope.label()
+
+        val inScope = selectTurns(req)
+        val recordsByTurn =
+            inScope
+                .mapNotNull { runCatching { records.readByTurnId(UUID.fromString(it.turnId)) }.getOrNull() }
+                .associateBy { it.turnId }
+
+        val sources = fetchSources(inScope, recordsByTurn, req.bearer)
+
+        val doc =
+            DocumentBuilder.build(
+                DocumentBuilder.Request(
+                    protocolId = ids().toString(),
+                    sessionId = req.sessionId.toString(),
+                    scope = req.scope,
+                    generatedAt = OffsetDateTime.ofInstant(clock(), ZoneOffset.UTC).format(ISO),
+                    turns =
+                        inScope.map { f ->
+                            DocumentBuilder.TurnInput(
+                                facts = f,
+                                record = recordsByTurn[f.turnId] ?: ProtocolRecord.getDefaultInstance(),
+                            )
+                        },
+                    sources = sources,
+                    config = config,
+                    profileName = req.profileName,
+                    turnCountTotal = req.turnCountTotal,
+                    sessionCreatedAt = req.sessionCreatedAt,
+                    estate = estate,
+                    assemblerVersion = assemblerVersion,
+                ),
+            )
+
+        val profile = config.profile(req.profileName)
+        val redacted = RedactionChain.standard().redact(doc, profile)
+
+        recordMetrics(redacted, scopeLabel, startNanos)
+        return redacted
+    }
+
+    /** contracts §3.1 scope semantics; `lastN` takes the most recent N, oldest→newest. */
+    private fun selectTurns(req: Request): List<TurnFacts> =
+        when (req.scope.kindCase) {
+            Scope.KindCase.LAST_TURN -> req.turns.takeLast(1)
+            Scope.KindCase.LAST_N ->
+                req.turns.takeLast(
+                    req.scope.lastN
+                        .toInt()
+                        .coerceAtLeast(0),
+                )
+            else -> req.turns
+        }
+
+    /**
+     * All four sources concurrently, each in its own `async` with its own failure
+     * isolation. Sequential fetching would make a protocol cost the SUM of four
+     * network round trips on a debug surface a user is waiting on.
+     */
+    private suspend fun fetchSources(
+        turns: List<TurnFacts>,
+        recordsByTurn: Map<String, ProtocolRecord>,
+        bearer: String,
+    ): ProtocolSources =
+        coroutineScope {
+            // Correlate on the FIRST in-scope turn that has pointers. A session-scope
+            // document spans many traces; v1 fetches the primary turn's context rather
+            // than fanning out per turn, and the receipts say how much was consulted.
+            val anchor = turns.firstNotNullOfOrNull { recordsByTurn[it.turnId] } ?: ProtocolRecord.getDefaultInstance()
+            val p = anchor.pointers
+
+            val gatewayJob =
+                async {
+                    gateway?.fetch(p.gatewayTurnRef, p.traceId, config.caps.serviceLogsLines, bearer)
+                        ?: SourceOutcome.SkippedByConfig
+                }
+            val lokiJob =
+                async {
+                    loki?.fetch(p.traceId, p.logWindowFrom, p.logWindowTo, config.caps.serviceLogsLines, bearer)
+                        ?: SourceOutcome.SkippedByConfig
+                }
+            val tempoJob = async { tempo?.fetch(p.traceId, bearer) ?: SourceOutcome.SkippedByConfig }
+            val explainJob =
+                async {
+                    // Only reconstruct when the turn carried no plan of its own (S-1).
+                    if (p.planIdsCount > 0) {
+                        SourceOutcome.SkippedByConfig
+                    } else {
+                        explain?.explainSql(p.sqlInline) ?: SourceOutcome.SkippedByConfig
+                    }
+                }
+
+            ProtocolSources(
+                gateway = gatewayJob.await().fold({ it }, { GatewaySource(status = it.first, detail = it.second) }),
+                loki = lokiJob.await().fold({ it }, { LokiSource(status = it.first, detail = it.second) }),
+                tempo = tempoJob.await().fold({ it }, { TempoSource(status = it.first, detail = it.second) }),
+                explain = explain?.toSource(explainJob.await()) ?: ExplainSource(),
+            )
+        }
+
+    private fun recordMetrics(
+        doc: ProtocolDocument,
+        scope: String,
+        startNanos: Long,
+    ) {
+        val degraded =
+            doc.turnsList.flatMap { it.sectionsList }.filter { it.status == SectionStatus.SECTION_DEGRADED }
+        val outcome = if (degraded.isEmpty()) "ok" else "degraded"
+
+        registry.counter("iris_protocol_generate_total", "scope", scope, "outcome", outcome).increment()
+        registry
+            .timer("iris_protocol_generate_duration_ms", "scope", scope)
+            .record(java.time.Duration.ofNanos(System.nanoTime() - startNanos))
+        degraded.forEach {
+            registry.counter("iris_protocol_section_degraded_total", "key", it.key).increment()
+        }
+        if (degraded.isNotEmpty()) {
+            log.info("protocol assembled with {} degraded section(s): {}", degraded.size, degraded.map { it.key })
+        }
+    }
+
+    private companion object {
+        val ISO: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+
+        fun Scope.label(): String =
+            when (kindCase) {
+                Scope.KindCase.LAST_TURN -> "last"
+                Scope.KindCase.WHOLE_SESSION -> "session"
+                Scope.KindCase.LAST_N -> "lastN"
+                else -> "unspecified"
+            }
+
+        /** Ok → payload; anything else → the (status, detail) an empty source should carry. */
+        inline fun <T> SourceOutcome<T>.fold(
+            onOk: (T) -> T,
+            onOther: (Pair<SourceStatus, String>) -> T,
+        ): T =
+            when (this) {
+                is SourceOutcome.Ok -> onOk(payload)
+                is SourceOutcome.Degraded -> onOther(SourceStatus.DEGRADED to reason)
+                SourceOutcome.SkippedByConfig ->
+                    onOther(SourceStatus.SKIPPED_BY_CONFIG to "source not configured")
+            }
+    }
+}
