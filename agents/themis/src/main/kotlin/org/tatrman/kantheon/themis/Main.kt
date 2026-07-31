@@ -32,6 +32,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
+import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.serverConfig
@@ -155,7 +156,18 @@ fun main(): Unit =
         val appServerConfig =
             serverConfig {
                 module {
-                    installMcpKtorBase(mcpKtorConfig, ResolverOtel.openTelemetry)
+                    // The W3C-PROPAGATING instance, not the raw SDK. `installMcpKtorBase`
+                    // installs KtorServerTelemetry with whatever it is handed, and the raw
+                    // SDK carries a NoopTextMapPropagator — so the server created spans and
+                    // extracted nothing: an incoming `traceparent` was dropped and every
+                    // resolve became its own ROOT trace, disconnected from the turn that
+                    // asked for it. Observed live as `resolver-agent POST /v1/resolve` at
+                    // the top of a 4-span trace of its own, while the BFF's trace showed
+                    // only a 14.7s outbound call into nothing.
+                    //
+                    // Same defect PT-P0 fixed for iris-bff's server side; Themis had the
+                    // client half (line ~99) and this one argument short of the other.
+                    installMcpKtorBase(mcpKtorConfig, otel ?: OpenTelemetry.noop())
                     routing {
                         route("v1") {
                             post("resolve") {
