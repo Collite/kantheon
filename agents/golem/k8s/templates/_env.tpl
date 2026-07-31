@@ -23,6 +23,15 @@
   value: {{ .Values.telemetry.serviceName | quote }}
 - name: OTEL_ENABLED_GOLEM
   value: {{ .Values.telemetry.enabled | quote }}
+{{- if and .Values.telemetry.enabled .Values.telemetry.otlpHost }}
+# HOST + GRPC_PORT are what otel-config actually reads; absent them it exports to
+# localhost:4317 and silently retries forever. See agents/iris-bff/k8s/templates/_env.tpl
+# for the full note — same gap, same fix, and golem is the far end of the turn's trace.
+- name: OTEL_EXPORTER_OTLP_HOST
+  value: {{ .Values.telemetry.otlpHost | quote }}
+- name: OTEL_EXPORTER_OTLP_GRPC_PORT
+  value: {{ .Values.telemetry.otlpGrpcPort | quote }}
+{{- end }}
 {{- if .Values.shem.configMapName }}
 - name: GOLEM_SHEM_DIR
   value: {{ .Values.shem.mountPath | quote }}

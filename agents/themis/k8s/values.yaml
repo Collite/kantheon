@@ -31,7 +31,14 @@ resources:
 # render only when enabled. Leave disabled for test runs.
 telemetry:
   enabled: false
+  # DEPRECATED and inert — otel-config reads HOST + GRPC_PORT, never OTLP_ENDPOINT.
+  # Kept so an overlay still setting it does not fail a schema check; it does nothing.
   endpoint: ""
+  otlpHost: ""
+  otlpGrpcPort: 4317
+  # NOTE: themis reports itself as `resolver-agent` at runtime (pre-fork name), so this
+  # value is not what lands in Loki/Tempo. Reconciling the two is a standing decision —
+  # renaming orphans dashboards — not something to change while wiring the exporter.
   serviceName: themis-mcp
   protocol: grpc
 

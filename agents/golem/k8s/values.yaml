@@ -62,9 +62,13 @@ velesGate:
   image: busybox:1.36
 
 # OpenTelemetry export (golem's own toggle). Off by default.
+# Off by default; an overlay that enables it MUST also set `otlpHost` (otel-config falls
+# back to localhost and exports into the void — see templates/_env.tpl).
 telemetry:
   enabled: false
   serviceName: golem
+  otlpHost: ""
+  otlpGrpcPort: 4317
 
 readinessProbe:
   path: /ready
