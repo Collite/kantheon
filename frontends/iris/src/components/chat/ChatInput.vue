@@ -282,6 +282,15 @@ const runSlashCommand = async (raw: string): Promise<boolean> => {
       return true
 
     case 'protocol': {
+      // One at a time. A protocol fans out to three federated sources with an 8s
+      // timeout each, and because the transcript is deliberately untouched the
+      // user sees nothing happen until the tab opens — which invites a second
+      // firing of the most expensive command in the surface.
+      if (protocolInFlight.value) {
+        session.prompt.value = ''
+        toast.add({ severity: 'info', summary: t('slash.protocolInFlight'), life: 2000 })
+        return true
+      }
       const scope = parseProtocolArg(arg)
       if (scope === null) {
         // Invalid argument sends NOTHING. Coercing a typo would hand the user a
@@ -578,8 +587,8 @@ const clearSelection = () => session.clearSelection()
         />
         <Button
           type="submit"
-          :loading="disabled"
-          :disabled="!session.prompt.value.trim() || disabled"
+          :loading="disabled || protocolInFlight"
+          :disabled="!session.prompt.value.trim() || disabled || protocolInFlight"
           icon="pi pi-send"
           :label="sendLabel"
           :aria-label="sendLabel"

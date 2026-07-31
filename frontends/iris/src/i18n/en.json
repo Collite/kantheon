@@ -185,6 +185,7 @@
     "protocolForbidden": "You are not a member of this session",
     "protocolNoSession": "Session not found",
     "protocolFailed": "Could not build the protocol",
+    "protocolInFlight": "A protocol is already being built…",
     "protocolDownloaded": "Protocol downloaded"
   },
   "errors": {

@@ -8,12 +8,15 @@ import io.kotest.matchers.string.shouldNotContain
 import org.tatrman.kantheon.iris.protocol.config.ProtocolProfile
 import org.tatrman.kantheon.protocol.v1.ErrorItem
 import org.tatrman.kantheon.protocol.v1.ErrorsSection
+import org.tatrman.kantheon.protocol.v1.HeaderSection
 import org.tatrman.kantheon.protocol.v1.LlmCall
 import org.tatrman.kantheon.protocol.v1.LlmCallsSection
 import org.tatrman.kantheon.protocol.v1.LlmMessage
 import org.tatrman.kantheon.protocol.v1.LogLine
+import org.tatrman.kantheon.protocol.v1.PlanSection
 import org.tatrman.kantheon.protocol.v1.ProtocolDocument
 import org.tatrman.kantheon.protocol.v1.ProtocolTurn
+import org.tatrman.kantheon.protocol.v1.QuerySection
 import org.tatrman.kantheon.protocol.v1.Section
 import org.tatrman.kantheon.protocol.v1.SectionStatus
 import org.tatrman.kantheon.protocol.v1.ServiceLogGroup
@@ -334,6 +337,81 @@ class RedactorSpec :
 
             val sql = "SELECT secret_sauce FROM recipes WHERE id = 7"
             FloorRedactor.scrub(sql) shouldBe sql
+        }
+
+        // review-079 R4. The floor used to cover six payload cases and fall through
+        // for HEADER, QUERY and PLAN — the last of which is the single most likely
+        // place in the document for a data source to name itself, since under S-1 it
+        // is the translator's own per-stage output.
+        "a connection string is masked wherever it appears, not only in logs" {
+            val leak = "postgres://svc:hunter2@pg-hartland:5432/finance"
+
+            val redacted =
+                RedactionChain.standard().redact(
+                    doc(
+                        Section
+                            .newBuilder()
+                            .setKey("protocol.section.header")
+                            .setStatus(SectionStatus.SECTION_OK)
+                            .setAppliedVerbosity(Verbosity.VERBOSITY_FULL)
+                            .setHeader(HeaderSection.newBuilder().setQuestion("connect to $leak please"))
+                            .build(),
+                        Section
+                            .newBuilder()
+                            .setKey("protocol.section.query")
+                            .setStatus(SectionStatus.SECTION_OK)
+                            .setAppliedVerbosity(Verbosity.VERBOSITY_FULL)
+                            .setQuery(QuerySection.newBuilder().setEntityQuery("read from $leak"))
+                            .build(),
+                        Section
+                            .newBuilder()
+                            .setKey("protocol.section.plan")
+                            .setStatus(SectionStatus.SECTION_OK)
+                            .setAppliedVerbosity(Verbosity.VERBOSITY_FULL)
+                            .setPlan(PlanSection.newBuilder().setRelPlanText("LogicalTableScan(source=[$leak])"))
+                            .build(),
+                    ),
+                    ProtocolProfile(),
+                )
+
+            val sections = redacted.getTurns(0).sectionsList
+            sections.single { it.key.endsWith("header") }.header.question shouldNotContain "hunter2"
+            sections.single { it.key.endsWith("query") }.query.entityQuery shouldNotContain "hunter2"
+            sections.single { it.key.endsWith("plan") }.plan.relPlanText shouldNotContain "hunter2"
+            sections.single { it.key.endsWith("plan") }.plan.relPlanText shouldContain FloorRedactor.MASK
+
+            // ...and the section still says what it is — the mask replaces the URI,
+            // not the surrounding text.
+            sections.single { it.key.endsWith("plan") }.plan.relPlanText shouldContain "LogicalTableScan"
+        }
+
+        "a credential pasted into chat is masked in the question, as it is in the prompt" {
+            // Otherwise the same string is masked in the LLM body and printed verbatim
+            // in the header two sections above, which makes the floor look unreliable
+            // exactly where a reader can see both.
+            val pasted = "my api_key=AKIAIOSFODNN7EXAMPLE, why does it fail?"
+            val redacted =
+                RedactionChain.standard().redact(
+                    doc(
+                        Section
+                            .newBuilder()
+                            .setKey("protocol.section.header")
+                            .setStatus(SectionStatus.SECTION_OK)
+                            .setAppliedVerbosity(Verbosity.VERBOSITY_FULL)
+                            .setHeader(HeaderSection.newBuilder().setQuestion(pasted))
+                            .build(),
+                    ),
+                    ProtocolProfile(),
+                )
+
+            val question =
+                redacted
+                    .getTurns(0)
+                    .getSections(0)
+                    .header
+                    .question
+            question shouldNotContain "AKIAIOSFODNN7EXAMPLE"
+            question shouldContain "why does it fail?"
         }
 
         "redaction is total: an empty document round-trips unchanged" {

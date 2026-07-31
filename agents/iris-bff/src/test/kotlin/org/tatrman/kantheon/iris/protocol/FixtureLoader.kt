@@ -28,7 +28,18 @@ object FixtureLoader {
     val ROOT: File = File("src/test/resources/fixtures/protocol")
 
     val CASES: List<String> =
-        listOf("H1-full", "H3-operator", "degraded-loki", "reconstructed-plan", "truncation", "session-split")
+        listOf(
+            "H1-full",
+            "H3-operator",
+            "degraded-loki",
+            "reconstructed-plan",
+            "truncation",
+            "session-split",
+            // Hostile content in every field the renderer fences or tables. The other
+            // six cases all carry well-behaved text, so they prove the renderer's
+            // shape and nothing about its resistance (review-079 R2/R3).
+            "injection",
+        )
 
     /** The files contracts §9 requires, plus `turns.json` (A-3). */
     val REQUIRED_FILES: List<String> =

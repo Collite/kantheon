@@ -302,4 +302,55 @@ class ProtocolAssemblerSpec :
                     .status shouldBe "degraded"
             }
         }
+
+        // review-079 R7. The assembler used to read one record per turn, so a
+        // session-scope protocol cost one DB round trip per turn on a surface the
+        // user is waiting on — while `readForSession`, built for exactly this, was
+        // called only from tests.
+        "a multi-turn scope reads the records in ONE query, not one per turn" {
+            runTest {
+                var byId = 0
+                var bySession = 0
+                val counting =
+                    object : org.tatrman.kantheon.iris.protocol.record.ProtocolRecordStore {
+                        override fun write(record: org.tatrman.kantheon.protocol.v1.ProtocolRecord) = Unit
+
+                        override fun readByTurnId(turnId: UUID): org.tatrman.kantheon.protocol.v1.ProtocolRecord? {
+                            byId++
+                            return null
+                        }
+
+                        override fun readForSession(
+                            sessionId: UUID,
+                            lastN: Int?,
+                        ): List<org.tatrman.kantheon.protocol.v1.ProtocolRecord> {
+                            bySession++
+                            return FixtureLoader.records("session-split")
+                        }
+                    }
+
+                val splitCase = "session-split"
+                val doc =
+                    ProtocolAssembler(
+                        records = counting,
+                        config = FixtureLoader.config(splitCase),
+                        gateway = null,
+                        loki = null,
+                        tempo = null,
+                        explain = null,
+                        clock = { Instant.parse("2026-07-30T07:05:00Z") },
+                    ).assemble(
+                        ProtocolAssembler.Request(
+                            sessionId = UUID.fromString("11111111-1111-4111-8111-111111111111"),
+                            scope = Scope.newBuilder().setWholeSession(true).build(),
+                            turns = FixtureLoader.turns(splitCase),
+                            bearer = "test-bearer",
+                        ),
+                    )
+
+                bySession shouldBe 1
+                byId shouldBe 0
+                doc.turnsCount shouldBe FixtureLoader.turns(splitCase).size
+            }
+        }
     })

@@ -186,24 +186,31 @@ class ProtocolRoutesSpec :
             }
         }
 
-        "non-member bearer returns 403" {
+        "someone else's session is 404, indistinguishable from one that does not exist" {
+            // A-6 / review-079 R11. A 403 would say "this exists and is not yours",
+            // which turns the endpoint into an existence oracle for any session id a
+            // caller can guess or overhear. The two answers must be byte-identical.
             val h = Harness()
             testApplication {
                 application { testModule(h) }
-                val res = client.protocol(h.session.sessionId, """{"scope":"last"}""", who = "someone-else")
-                res.status shouldBe HttpStatusCode.Forbidden
+                val theirs = client.protocol(h.session.sessionId, """{"scope":"last"}""", who = "someone-else")
+                val nothing = client.protocol(UUID.randomUUID(), """{"scope":"last"}""", who = "someone-else")
+
+                theirs.status shouldBe HttpStatusCode.NotFound
+                nothing.status shouldBe HttpStatusCode.NotFound
+                theirs.bodyAsText() shouldBe nothing.bodyAsText()
             }
         }
 
-        "a non-member gets 403 even with a malformed scope — authorization resolves first" {
-            // Otherwise the status line becomes an oracle: 400 would tell an outsider
-            // the session exists, while 403 tells them nothing they did not supply.
+        "an outsider gets 404 even with a malformed scope — authorization resolves first" {
+            // Otherwise the status line becomes an oracle the other way round: a 400
+            // would tell an outsider the session exists before they ever named a scope.
             val h = Harness()
             testApplication {
                 application { testModule(h) }
                 client
                     .protocol(h.session.sessionId, """{"scope":"garbage"}""", who = "someone-else")
-                    .status shouldBe HttpStatusCode.Forbidden
+                    .status shouldBe HttpStatusCode.NotFound
             }
         }
 

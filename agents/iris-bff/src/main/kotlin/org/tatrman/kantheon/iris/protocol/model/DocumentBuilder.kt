@@ -84,14 +84,7 @@ object DocumentBuilder {
                         ExecutionSectionBuilder.build(input),
                         ServiceLogsSectionBuilder.build(input),
                         ErrorsSectionBuilder.build(input),
-                    ) +
-                        if (sessionScope) {
-                            listOf(
-                                ParticipantsSectionBuilder.build(req.turns.map { it.facts }, input),
-                            )
-                        } else {
-                            emptyList()
-                        }
+                    )
 
                 // The spine is the registry's, not the list literal's — a builder added
                 // out of order above would still render in contract order, and a missing
@@ -107,6 +100,24 @@ object DocumentBuilder {
 
         val records = req.turns.map { it.record }.filter { it != ProtocolRecord.getDefaultInstance() }
 
+        // Participants is built ONCE for the whole document (A-5). It needs a
+        // SectionInput for its verbosity resolution, so it borrows the first turn's
+        // — the profile and caps are document-wide, and the section reads neither
+        // the record nor the sources.
+        val participants =
+            req.turns.firstOrNull()?.let { first ->
+                ParticipantsSectionBuilder.build(
+                    req.turns.map { it.facts },
+                    SectionInput(
+                        record = first.record,
+                        sources = req.sources,
+                        turn = first.facts,
+                        profile = profile,
+                        caps = req.config.caps,
+                    ),
+                )
+            }
+
         return ProtocolDocument
             .newBuilder()
             .setProtocolId(req.protocolId)
@@ -114,6 +125,7 @@ object DocumentBuilder {
             .setScope(req.scope)
             .setHeader(header(req, profileTitle(req)))
             .addAllTurns(turns)
+            .apply { if (sessionScope && participants != null) setParticipants(participants) }
             .setReceipts(
                 ReceiptsSectionBuilder.build(
                     records = records,

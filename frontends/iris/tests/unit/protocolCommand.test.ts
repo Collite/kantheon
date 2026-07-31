@@ -139,7 +139,7 @@ describe('/protocol — panel download', () => {
     const { downloadMarkdown } = await import('@/components/tabs/downloadMarkdown')
 
     const markdown = '# Protocol\n\nline two\n'
-    let captured: { name?: string; blobText?: string } = {}
+    const captured: { name?: string; blobText?: string } = {}
 
     const created: string[] = []
     vi.stubGlobal('URL', {

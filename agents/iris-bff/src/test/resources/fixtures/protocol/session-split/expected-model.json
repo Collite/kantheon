@@ -88,13 +88,6 @@
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
       }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
-      }
     }]
   }, {
     "turnId": "3f2b1a00-0000-4000-8000-000000000002",
@@ -170,13 +163,6 @@
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
-      }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
       }
     }]
   }, {
@@ -254,13 +240,6 @@
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
       }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
-      }
     }]
   }, {
     "turnId": "3f2b1a00-0000-4000-8000-000000000004",
@@ -336,13 +315,6 @@
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
-      }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
       }
     }]
   }, {
@@ -420,13 +392,6 @@
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
       }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
-      }
     }]
   }, {
     "turnId": "3f2b1a00-0000-4000-8000-000000000006",
@@ -502,13 +467,6 @@
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
-      }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
       }
     }]
   }, {
@@ -586,13 +544,6 @@
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
       }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
-      }
     }]
   }, {
     "turnId": "3f2b1a00-0000-4000-8000-000000000008",
@@ -668,13 +619,6 @@
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
-      }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
       }
     }]
   }, {
@@ -752,13 +696,6 @@
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
       }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
-      }
     }]
   }, {
     "turnId": "3f2b1a00-0000-4000-8000-000000000010",
@@ -834,13 +771,6 @@
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
-      }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
       }
     }]
   }, {
@@ -918,13 +848,6 @@
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
       }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
-      }
     }]
   }, {
     "turnId": "3f2b1a00-0000-4000-8000-000000000012",
@@ -1000,13 +923,6 @@
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
-      }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
       }
     }]
   }, {
@@ -1084,13 +1000,6 @@
       "appliedVerbosity": "VERBOSITY_FULL",
       "errors": {
       }
-    }, {
-      "key": "protocol.section.participants",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "participants": {
-        "userIds": ["maya"],
-        "agentIds": ["golem-finance"]
-      }
     }]
   }],
   "receipts": {
@@ -1123,5 +1032,13 @@
     "generatedBy": "iris-bff/1.0 hartland"
   },
   "schemaVersion": "protocol/v1.0",
-  "generatedAt": "2026-07-30T09:05:00+02:00"
+  "generatedAt": "2026-07-30T09:05:00+02:00",
+  "participants": {
+    "key": "protocol.section.participants",
+    "appliedVerbosity": "VERBOSITY_FULL",
+    "participants": {
+      "userIds": ["maya"],
+      "agentIds": ["golem-finance"]
+    }
+  }
 }

@@ -31,10 +31,14 @@ class SectionRegistrySpec :
                 )
         }
 
-        "participants only in session scope; receipts in both scopes and always last" {
+        "participants and receipts are both document-level — in NEITHER turn spine" {
+            // A-5 / review-079 R5. Participants used to ride the session-scope spine,
+            // which rendered the identical block under every turn heading (13 times in
+            // the 13-turn fixture). It is one fact about the conversation, so the
+            // document carries it once and the renderer places it.
             SectionRegistry.spineFor(sessionScope = false) shouldContainExactly SectionRegistry.turnSpine
-            SectionRegistry.spineFor(sessionScope = true) shouldContainExactly
-                SectionRegistry.turnSpine + SectionRegistry.PARTICIPANTS
+            SectionRegistry.spineFor(sessionScope = true) shouldContainExactly SectionRegistry.turnSpine
+            SectionRegistry.spineFor(sessionScope = true) shouldNotContain SectionRegistry.PARTICIPANTS
 
             // Receipts is in NEITHER spine: the renderer appends it, so no builder
             // and no profile can position it, drop it, or reorder it.

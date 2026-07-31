@@ -62,19 +62,20 @@ fun Route.protocolRoutes(
                         ErrorBody("invalid_session_id", "sessionId must be a UUID"),
                     )
 
-            // Order matters and is contractual: 404 before 403 before 400. A
-            // non-member must not be able to distinguish "your scope was malformed"
-            // from "that session exists", so authorization resolves first.
-            val session =
-                store.getSession(sessionId)
-                    ?: return@post call.respond(
-                        HttpStatusCode.NotFound,
-                        ErrorBody("session_not_found", "No such session"),
-                    )
-            if (session.userId != caller.userId) {
+            // Authorization resolves BEFORE the body is parsed, so a caller cannot
+            // distinguish "your scope was malformed" from "that session exists".
+            //
+            // And "not yours" answers 404, not 403 (contracts amendment A-6). A 403
+            // says *this session exists and you may not have it*, which turns the
+            // endpoint into an existence oracle for any session id a caller can
+            // guess or overhear. Every other iris-bff session route already collapses
+            // the two cases — `ChatRoutes.ownedSession` — and a debug surface is not
+            // the place to start leaking what the primary surfaces withhold.
+            val session = store.getSession(sessionId)
+            if (session == null || session.userId != caller.userId) {
                 return@post call.respond(
-                    HttpStatusCode.Forbidden,
-                    ErrorBody("not_a_member", "Caller is not a member of this session"),
+                    HttpStatusCode.NotFound,
+                    ErrorBody("session_not_found", "No such session"),
                 )
             }
 

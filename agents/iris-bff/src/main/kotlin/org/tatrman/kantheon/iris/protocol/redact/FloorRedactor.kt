@@ -14,8 +14,12 @@ import org.tatrman.kantheon.protocol.v1.Section
  * (should this reader see prompt bodies? should SQL literals be masked?) belong
  * to [ConfigRedactor], one layer up.
  *
- * The patterns below are matched on the whole document's free text — log bodies,
- * error messages, prompts, SQL. Being aggressive here is the correct bias: a
+ * The patterns below are matched on every free-text field the document carries —
+ * questions, log bodies, error messages, prompts, entity queries, plans, SQL and
+ * RLS predicates. Fields holding only identifiers, labels or counts (execution
+ * targets, participant ids) are deliberately left alone; see [scrubSection],
+ * where that is a stated case rather than a fall-through. Being aggressive on the
+ * text is the correct bias: a
  * false positive costs a reader one obscured string, a false negative leaks a
  * credential into a document designed to be shared.
  */
@@ -115,6 +119,25 @@ object FloorRedactor : ProtocolRedactor {
                 r.rationale = scrub(r.rationale)
             }
 
+            // The user's own prose. A credential pasted into chat is masked in the
+            // prompt body two sections down; printing it verbatim here would make the
+            // floor look unreliable exactly where a reader can see both.
+            Section.PayloadCase.HEADER ->
+                section.headerBuilder.question = scrub(section.headerBuilder.question)
+
+            // Model-authored text carrying user-supplied filter values.
+            Section.PayloadCase.QUERY ->
+                section.queryBuilder.entityQuery = scrub(section.queryBuilder.entityQuery)
+
+            // The single most likely place in the document for a connection string:
+            // under S-1 this is ttr-translate's per-stage canonical form, and a plan
+            // stage names the data source it reads from.
+            Section.PayloadCase.PLAN ->
+                section.planBuilder.relPlanText = scrub(section.planBuilder.relPlanText)
+
+            // EXECUTION (dispatch target, worker, counts) and PARTICIPANTS (ids) carry
+            // labels and numbers, never free text — deliberately not scrubbed rather
+            // than accidentally uncovered.
             else -> Unit
         }
     }

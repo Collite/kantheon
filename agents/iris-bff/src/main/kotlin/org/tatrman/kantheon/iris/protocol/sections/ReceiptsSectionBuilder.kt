@@ -92,9 +92,17 @@ object ReceiptsSectionBuilder {
             "llm-gateway" -> s.gateway.detail.ifBlank { "${s.gateway.items.size} call row(s)" }
             "loki" -> s.loki.detail.ifBlank { "${s.loki.groups.sumOf { g -> g.lines.size }} line(s)" }
             "tempo" -> s.tempo.detail.ifBlank { "${s.tempo.spans.size} span(s)" }
+            // The blank-detail fallback has to follow the STATUS, not guess. With the
+            // client unwired the source is `skipped-by-config` with no detail, and the
+            // old fallback answered "plan carried" — a claim about the plan on a line
+            // that means "we never looked" (review-079 R13).
             "translate-explain" ->
                 s.explain.detail.ifBlank {
-                    if (s.explain.reconstructed) "plan reconstructed (S-1)" else "plan carried"
+                    when {
+                        s.explain.status == SourceStatus.SKIPPED_BY_CONFIG -> "not wired in this deployment"
+                        s.explain.reconstructed -> "plan reconstructed (S-1)"
+                        else -> "plan carried"
+                    }
                 }
             else -> ""
         }

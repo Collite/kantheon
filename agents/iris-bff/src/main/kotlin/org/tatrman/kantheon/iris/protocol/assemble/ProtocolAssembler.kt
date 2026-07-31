@@ -74,10 +74,7 @@ class ProtocolAssembler(
         val scopeLabel = req.scope.label()
 
         val inScope = selectTurns(req)
-        val recordsByTurn =
-            inScope
-                .mapNotNull { runCatching { records.readByTurnId(UUID.fromString(it.turnId)) }.getOrNull() }
-                .associateBy { it.turnId }
+        val recordsByTurn = readRecords(req, inScope)
 
         val sources = fetchSources(inScope, recordsByTurn, req.bearer)
 
@@ -110,6 +107,41 @@ class ProtocolAssembler(
 
         recordMetrics(redacted, scopeLabel, startNanos)
         return redacted
+    }
+
+    /**
+     * The in-scope records, keyed by turn.
+     *
+     * **One query for a multi-turn scope.** `readForSession` exists precisely for
+     * this — it orders by `seq` and excludes discarded turns in SQL — and reading
+     * turn-by-turn instead would cost one round trip per turn on the surface a
+     * user is waiting on (review-079 R7). A single-turn scope still goes by id:
+     * fetching a whole session's rows to keep one of them would be the same
+     * mistake pointed the other way.
+     *
+     * A store failure is not fatal here. Records missing from the map become
+     * default instances downstream, the sections degrade, and the receipts say
+     * `records` was short — the same shape as a scope whose turns were never
+     * captured.
+     */
+    private fun readRecords(
+        req: Request,
+        inScope: List<TurnFacts>,
+    ): Map<String, ProtocolRecord> {
+        val wanted = inScope.map { it.turnId }.toSet()
+        if (wanted.isEmpty()) return emptyMap()
+
+        val rows =
+            if (wanted.size == 1) {
+                inScope.mapNotNull { runCatching { records.readByTurnId(UUID.fromString(it.turnId)) }.getOrNull() }
+            } else {
+                runCatching { records.readForSession(req.sessionId, lastN = null) }
+                    .onFailure { log.warn("protocol: record read failed for session {}", req.sessionId, it) }
+                    .getOrDefault(emptyList())
+            }
+        // Filter to the scope: `readForSession` answers for the whole session, and a
+        // `lastN` document must not carry records for turns it does not narrate.
+        return rows.filter { it.turnId in wanted }.associateBy { it.turnId }
     }
 
     /** contracts §3.1 scope semantics; `lastN` takes the most recent N, oldest→newest. */

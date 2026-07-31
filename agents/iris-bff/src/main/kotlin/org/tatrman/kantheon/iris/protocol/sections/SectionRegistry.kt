@@ -31,7 +31,14 @@ object SectionRegistry {
             "${PREFIX}errors",
         )
 
-    /** Session scope only — a single turn has exactly one participant pair. */
+    /**
+     * Session scope only — a single turn has exactly one participant pair. It is
+     * **document-level, not part of the turn spine** (contracts §2, amendment
+     * A-5): it states who took part in the conversation, which is one fact about
+     * the document, not one fact per turn. Carrying it in [turnSpine] rendered
+     * the identical block under every turn heading — 13 times in a 13-turn
+     * document — which the golden corpus then blessed as expected output.
+     */
     const val PARTICIPANTS: String = "${PREFIX}participants"
 
     /**
@@ -52,6 +59,14 @@ object SectionRegistry {
     /** Full registry key for a HOCON short name; null when the name is not a registry key. */
     fun keyForShortName(name: String): String? = "$PREFIX$name".takeIf { it in configurableKeys || it == RECEIPTS }
 
-    /** Render order for a scope. Receipts is appended by the renderer, never by a builder. */
-    fun spineFor(sessionScope: Boolean): List<String> = if (sessionScope) turnSpine + PARTICIPANTS else turnSpine
+    /**
+     * Render order **inside a turn**. Participants and receipts are both
+     * document-level and are placed by the renderer, never by a turn's spine.
+     *
+     * The parameter is kept so callers still declare the scope they are building
+     * for; the turn spine is the same either way, and saying so here is cheaper
+     * than every caller learning that it is.
+     */
+    @Suppress("UNUSED_PARAMETER")
+    fun spineFor(sessionScope: Boolean): List<String> = turnSpine
 }

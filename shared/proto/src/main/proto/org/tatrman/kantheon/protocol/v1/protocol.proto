@@ -42,6 +42,10 @@ message ProtocolDocument {
   ReceiptsSection receipts = 6;   // MANDATORY (PT-13); renderer places it last
   string schema_version    = 7;   // "protocol/v1.<minor>"
   string generated_at      = 8;   // ISO-8601 with offset (S-8)
+  // Session-scope only, ONE per document (contracts §2 + amendment A-5). It lives
+  // here rather than in the turn spine because it is a fact about the whole
+  // conversation: carried per turn it rendered identically under every heading.
+  Section participants     = 9;
 }
 
 message Scope {

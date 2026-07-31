@@ -81,11 +81,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 _none_
 
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
-
 ## Turn 2 — And by channel?
 <a id="turn-2"></a>
 
@@ -140,11 +135,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 ### Errors
 
 _none_
-
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
 
 ## Turn 3 — Show me the top 5 products
 <a id="turn-3"></a>
@@ -201,11 +191,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 _none_
 
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
-
 ## Turn 4 — What about returns?
 <a id="turn-4"></a>
 
@@ -260,11 +245,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 ### Errors
 
 _none_
-
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
 
 ## Turn 5 — Compare to last year
 <a id="turn-5"></a>
@@ -321,11 +301,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 _none_
 
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
-
 ## Turn 6 — Which region lagged?
 <a id="turn-6"></a>
 
@@ -380,11 +355,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 ### Errors
 
 _none_
-
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
 
 ## Turn 7 — Break out by month
 <a id="turn-7"></a>
@@ -441,11 +411,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 _none_
 
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
-
 ## Turn 8 — Why did August dip?
 <a id="turn-8"></a>
 
@@ -500,11 +465,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 ### Errors
 
 _none_
-
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
 
 ## Turn 9 — Show the cost side
 <a id="turn-9"></a>
@@ -561,11 +521,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 _none_
 
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
-
 ## Turn 10 — Any one-offs?
 <a id="turn-10"></a>
 
@@ -620,11 +575,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 ### Errors
 
 _none_
-
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
 
 ## Turn 11 — Normalise for FX
 <a id="turn-11"></a>
@@ -681,11 +631,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 _none_
 
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
-
 ## Turn 12 — Summarise the quarter
 <a id="turn-12"></a>
 
@@ -740,11 +685,6 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 ### Errors
 
 _none_
-
-### Participants
-
-- **Users:** maya
-- **Agents:** golem-finance
 
 ## Turn 13 — And the outlook?
 <a id="turn-13"></a>
@@ -801,7 +741,7 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 _none_
 
-### Participants
+## Participants
 
 - **Users:** maya
 - **Agents:** golem-finance
