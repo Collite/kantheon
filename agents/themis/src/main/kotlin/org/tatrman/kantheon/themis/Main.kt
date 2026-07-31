@@ -32,6 +32,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.serverConfig
 import io.ktor.server.cio.CIO
@@ -91,10 +92,15 @@ fun main(): Unit =
         val cache = ResolverCache(appConfig.cache)
         val tokenManager = HmacTokenManager(appConfig)
         val llmGatewayClient = LlmGatewayClient(appConfig.llmGateway.toLlmGatewayEndpoint())
-        val fuzzyServiceClient = FuzzyServiceClient(appConfig.fuzzy)
+        // PT P0·S0.1 T5 — one SDK, W3C-propagating, threaded into every outbound hop.
+        // ResolverOtel returns a noop SDK when `telemetry.enabled=false`; `otel` is null
+        // in that case so no plugin is installed at all.
+        val otel = if (ResolverOtel.enabled) with(ResolverOtel) { openTelemetry.withW3CPropagators() } else null
+        val fuzzyServiceClient = FuzzyServiceClient(appConfig.fuzzy, otel)
         val capabilitiesClient =
             CapabilitiesReadClient(
                 endpoint = "http://${appConfig.capabilities.host}:${appConfig.capabilities.port}",
+                otel = otel,
             )
         // Fail-fast: refuse to start if the agent registry is empty/unreachable.
         assertRoutableAgentsAvailable(capabilitiesClient)
@@ -111,6 +117,8 @@ fun main(): Unit =
                     connectTimeoutMillis = 5_000
                     socketTimeoutMillis = appConfig.nlp.timeoutMs
                 }
+                // PT P0·S0.1 T5 — the NLP hop joins the turn's trace.
+                otel?.let { sdk -> install(KtorClientTelemetry) { setOpenTelemetry(sdk) } }
             }
         val nlpClient = NlpClient(httpClient, "http://${appConfig.nlp.host}:${appConfig.nlp.port}")
 

@@ -38,6 +38,9 @@ dependencies {
     implementation(libs.jackson.dataformat.yaml)
 
     // Logging
+    // OTel Logback appender — declared by logback.xml so records reach the OTLP
+    // exporter (PT P0·S0.1 T3).
+    api(libs.otel.logback.appender)
     implementation(libs.logback.classic)
     implementation(libs.kotlin.logging)
 

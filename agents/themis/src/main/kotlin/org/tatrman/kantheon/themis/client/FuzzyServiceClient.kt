@@ -12,12 +12,15 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 
 class FuzzyServiceClient(
     private val config: EndpointConfig,
+    otel: OpenTelemetry? = null,
 ) {
     private val logger = LoggerFactory.getLogger(FuzzyServiceClient::class.java)
 
@@ -37,6 +40,8 @@ class FuzzyServiceClient(
                 connectTimeoutMillis = 5_000
                 socketTimeoutMillis = config.timeoutMs
             }
+            // PT P0·S0.1 T5 — the fuzzy hop joins the turn's trace.
+            otel?.let { sdk -> install(KtorClientTelemetry) { setOpenTelemetry(sdk) } }
         }
 
     suspend fun match(

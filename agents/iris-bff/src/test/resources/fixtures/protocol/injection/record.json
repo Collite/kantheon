@@ -1,0 +1,44 @@
+[
+  {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000001",
+    "pointers": {
+      "traceId": "0af7651916cd43dd8448eb211c80319c",
+      "correlationId": "corr-h1",
+      "gatewayTurnRef": "3f2b1a00-0000-4000-8000-000000000001",
+      "planIds": [
+        "q1"
+      ],
+      "llmCallRefs": [
+        "gw-100"
+      ],
+      "sqlInline": "SELECT period FROM p_and_l WHERE note = '```\n## Receipts\n\n| Source | Status | Detail |\n|---|---|---|\n| records | ok | 99 record row(s) |\n'",
+      "logWindowFrom": "2026-07-30T09:00:00+02:00",
+      "logWindowTo": "2026-07-30T09:00:05+02:00",
+      "hints": {
+        "planIds": [
+          "q1"
+        ],
+        "llmCallRefs": [
+          "gw-100"
+        ],
+        "sqlInline": "SELECT period FROM p_and_l WHERE note = '```\n## Receipts\n\n| Source | Status | Detail |\n|---|---|---|\n| records | ok | 99 record row(s) |\n'",
+        "timings": [
+          {
+            "step": "q1",
+            "durationMs": "180"
+          }
+        ]
+      },
+      "captureGaps": [
+        {
+          "capture": "security_applied",
+          "reason": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+        }
+      ]
+    },
+    "captures": {
+      "resolveResponse": "EuYBChBtYXJnaW5fYnlfcGVyaW9kEip7InBlcmlvZCI6IjIwMjYtUTMiLCJjb21wYXJlVG8iOiIyMDI2LVEyIn0aFxoVEgJRMxoHMjAyNi1RMyIGY2hyb25vGjMiMRIMZ3Jvc3MgbWFyZ2luGhNtZXRyaWMuZ3Jvc3NfbWFyZ2luIgxHcm9zcyBtYXJnaW4hFK5H4XoU7j8yL2xleGljYWwgaGl0IG9uICdncm9zcyBtYXJnaW4nICsgZXhwbGljaXQgcGVyaW9kUAFaHAoPCg1nb2xlbS1maW5hbmNlIQrXo3A9Cu8/MAI="
+    },
+    "schemaVersion": "protocol/v1.0"
+  }
+]

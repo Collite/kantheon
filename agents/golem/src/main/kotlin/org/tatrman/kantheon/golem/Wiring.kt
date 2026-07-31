@@ -1,6 +1,8 @@
 package org.tatrman.kantheon.golem
 
 import com.typesafe.config.Config
+import io.opentelemetry.api.OpenTelemetry
+import org.tatrman.kantheon.golem.otel.withCallPurpose
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -72,6 +74,7 @@ private fun buildAnswerSurface(
     config: Config,
     model: GolemModelSubsystem,
     turns: TurnsRepository,
+    otel: OpenTelemetry?,
 ): AnswerSurface? {
     val shem = model.shem ?: return null
     val promptStore = model.promptStore ?: return null
@@ -86,7 +89,7 @@ private fun buildAnswerSurface(
             ),
         )
     val promptExecutor = LlmGatewayPromptExecutor(llmClient)
-    val queryClient = QueryQueryClient(url = config.getString("golem.query.url"))
+    val queryClient = QueryQueryClient(url = config.getString("golem.query.url"), otel = otel)
     val formatConfig =
         FormatConfig(
             chartOnCompare = config.getBoolean("golem.format.chartOnCompare"),
@@ -96,7 +99,12 @@ private fun buildAnswerSurface(
         )
     // Chip top-up via a CHEAP completion (generic "mini" tier); failures degrade to no extra chips.
     val llmTopup =
-        LlmTopupChips(formatConfig) { prompt -> llmClient.complete(prompt, model = "mini").getOrNull() }
+        LlmTopupChips(formatConfig) { prompt ->
+            // T6: label the call so it is attributable in the protocol's LLM-calls section.
+            otel.withCallPurpose("golem.format.chip-topup") {
+                llmClient.complete(prompt, model = "mini").getOrNull()
+            }
+        }
     val formatEnricher = FormatEnricher(formatConfig, llmTopup)
     val deps =
         GolemGraphDeps(
@@ -146,7 +154,10 @@ class GolemReadiness(
  * the pod never reaches a serving state with an unmigrated schema, so `/ready`
  * returning true implies migrations completed.
  */
-fun buildComponents(config: Config): GolemComponents {
+fun buildComponents(
+    config: Config,
+    otel: OpenTelemetry? = null,
+): GolemComponents {
     val model = GolemModelSubsystem.fromConfig(config)
     val registration =
         model.shem?.let { ShemRegistration(it, ShemRegistration.endpointFrom(config)) }
@@ -154,7 +165,7 @@ fun buildComponents(config: Config): GolemComponents {
     if (!config.getBoolean("golem.db.enabled")) {
         log.info("golem using in-memory turns repository (golem.db.enabled = false)")
         val turns = InMemoryTurnsRepository()
-        val surface = buildAnswerSurface(config, model, turns)
+        val surface = buildAnswerSurface(config, model, turns, otel)
         return GolemComponents(
             turns = turns,
             model = model,
@@ -173,7 +184,7 @@ fun buildComponents(config: Config): GolemComponents {
     val migration = database.migrateAndConnect()
     log.info("golem schema ready: version={} applied={}", migration.version, migration.applied)
     val turns = ExposedTurnsRepository(database.connection)
-    val surface = buildAnswerSurface(config, model, turns)
+    val surface = buildAnswerSurface(config, model, turns, otel)
     return GolemComponents(
         turns = turns,
         model = model,

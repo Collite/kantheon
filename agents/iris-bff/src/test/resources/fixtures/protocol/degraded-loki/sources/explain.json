@@ -1,0 +1,6 @@
+{
+  "status": "OK",
+  "detail": "plan carried",
+  "relPlanText": "LogicalProject(period=[$0], gross_margin=[$1])\n  LogicalFilter(condition=[OR(=($0, '2026-Q2'), =($0, '2026-Q3'))])\n    LogicalTableScan(table=[[dbo, p_and_l]])",
+  "reconstructed": false
+}

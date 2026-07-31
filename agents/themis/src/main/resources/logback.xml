@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PT Phase 0 · Stage 0.1 T3 — Themis had NO logback configuration at all, so it ran
+  on Logback's default console config and its log records never reached the OTel
+  SdkLoggerProvider. Alloy does no pod-log scraping: a service's lines reach Loki
+  ONLY if it exports OTLP log records, so Themis was invisible in Loki.
+
+  The console format is deliberately left as a plain pattern (what the default gave)
+  — this change adds the OTLP path, it does not restyle Themis's stdout.
+-->
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Forwards log records to SdkLoggerProvider → OTLP exporter. The SDK is installed
+         into this appender by OpenTelemetryAppender.install(sdk) inside
+         createOpenTelemetrySdk(); with telemetry disabled the appender simply gets a
+         noop SDK and drops records. -->
+    <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+        <captureExperimentalAttributes>true</captureExperimentalAttributes>
+        <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+        <captureLoggerContext>true</captureLoggerContext>
+        <captureMdcAttributes>*</captureMdcAttributes>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="OTEL"/>
+    </root>
+</configuration>

@@ -16,22 +16,30 @@ import shared.ktor.KtorConfigFactory
 import shared.ktor.KtorEngine
 import shared.ktor.KtorServerBootstrap
 import shared.ktor.KtorServerConfig
+import io.opentelemetry.api.OpenTelemetry
+import org.tatrman.kantheon.golem.otel.createGolemOtel
+import org.tatrman.kantheon.golem.otel.installGolemServerTelemetry
 import shared.ktor.installKtorServerBase
-import shared.otel.OtelEndpointConfig
-import shared.otel.createOpenTelemetrySdk
 
 private val log = LoggerFactory.getLogger("org.tatrman.kantheon.golem.Application")
 
 fun main() {
     val config = ConfigFactory.load()
     val serverConfig = KtorConfigFactory.fromConfig(config, "golem", 7420, KtorEngine.NETTY)
-    KtorServerBootstrap.createServer(serverConfig) { module(config, serverConfig) }.start(wait = true)
+    // One SDK per process, threaded into the server plugin and the outbound tool
+    // clients, so the agent hop joins the turn's trace (GI-7 / PT Phase 0).
+    val otel = createGolemOtel(config)
+    KtorServerBootstrap.createServer(serverConfig) { module(config, serverConfig, otel) }.start(wait = true)
 }
 
 fun Application.module(
     config: Config,
     serverConfig: KtorServerConfig,
+    otel: OpenTelemetry? = null,
 ) {
+    // Before the base install, so the SERVER span wraps the rest of the pipeline —
+    // and so an incoming `traceparent` from the BFF is continued, not dropped.
+    installGolemServerTelemetry(otel)
     installKtorServerBase(serverConfig)
 
     // Both halves of the SSE invariant on one line (contracts §6). The 2026-07-29 outage was
@@ -45,16 +53,7 @@ fun Application.module(
         serverConfig.responseWriteTimeoutSeconds,
     )
 
-    if (config.getBoolean("telemetry.enabled")) {
-        createOpenTelemetrySdk(
-            OtelEndpointConfig(
-                serviceName = "golem",
-                protocol = System.getenv("GOLEM_OTEL_PROTOCOL") ?: "grpc",
-            ),
-        )
-    }
-
-    val components = buildComponents(config)
+    val components = buildComponents(config, otel)
     installErrorPages()
 
     routing {

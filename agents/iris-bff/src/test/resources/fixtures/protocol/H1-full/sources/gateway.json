@@ -1,0 +1,38 @@
+{
+  "status": "OK",
+  "detail": "1 call row(s)",
+  "items": [
+    {
+      "id": "gw-100",
+      "turnRef": "3f2b1a00-0000-4000-8000-000000000001",
+      "traceId": "0af7651916cd43dd8448eb211c80319c",
+      "requestedModel": "claude-opus-5",
+      "servedModel": "claude-opus-5",
+      "servedProvider": "azure",
+      "cached": false,
+      "tokensPrompt": 1204,
+      "tokensCompletion": 88,
+      "durationMs": 910,
+      "ttfbMs": 310,
+      "costUsd": 0.0123,
+      "status": "SUCCESS",
+      "createdAt": "2026-07-30T09:00:02+02:00",
+      "promptText": "You are a finance analyst. Question: How did gross margin move in Q3?",
+      "responseText": "Gross margin rose 1.8pp quarter over quarter.",
+      "purpose": "golem.compose_plan"
+    },
+    {
+      "id": "gw-999",
+      "turnRef": "someone-elses-turn",
+      "traceId": "ffffffffffffffffffffffffffffffff",
+      "servedModel": "claude-opus-5",
+      "servedProvider": "azure",
+      "tokensPrompt": 10,
+      "tokensCompletion": 10,
+      "durationMs": 50,
+      "status": "SUCCESS",
+      "promptText": "another tenant's question",
+      "responseText": "another tenant's answer"
+    }
+  ]
+}

@@ -56,6 +56,23 @@ internal object IrisTurns : Table("iris_turns") {
     }
 }
 
+/**
+ * PT arc `V3__create_iris_protocol_records.sql`. `turn_id` is both PK and FK —
+ * one record per turn, cascading with it. The two JSONB columns are canonical
+ * proto JSON produced by
+ * [org.tatrman.kantheon.iris.protocol.record.ProtocolRecordJson]; like the other
+ * mappings here they are carried as raw strings (the codec, not Exposed, owns
+ * the shape).
+ */
+internal object IrisProtocolRecords : Table("iris_protocol_records") {
+    val turnId = uuid("turn_id").references(IrisTurns.turnId)
+    val pointers = jsonb("pointers", { it }, { it })
+    val captures = jsonb("captures", { it }, { it })
+    val schemaVersion = text("schema_version")
+    val createdAt = timestampWithTimeZone("created_at")
+    override val primaryKey = PrimaryKey(turnId)
+}
+
 internal object IrisV2Threads : Table("iris_v2_threads") {
     val sessionId = uuid("session_id").references(IrisSessions.sessionId)
     val v2ThreadId = text("v2_thread_id")

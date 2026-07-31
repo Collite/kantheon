@@ -127,6 +127,8 @@ dependencies {
     implementation(libs.flyway.pgsql)
 
     testImplementation(libs.bundles.kotest)
+    testImplementation(libs.opentelemetry.sdk.testing)
+    testImplementation(libs.ktor.client.mock)
     testImplementation(libs.mockk)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlinx.coroutines.test)

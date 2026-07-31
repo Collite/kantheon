@@ -9,45 +9,44 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.opentelemetry.api.OpenTelemetry
 import org.tatrman.kantheon.iris.api.actionRoutes
 import org.tatrman.kantheon.iris.api.artifactRoutes
 import org.tatrman.kantheon.iris.api.auditRoutes
 import org.tatrman.kantheon.iris.api.chatRoutes
+import org.tatrman.kantheon.iris.api.protocolRoutes
 import org.tatrman.kantheon.iris.api.discoverRoutes
 import org.tatrman.kantheon.iris.api.feedbackRoutes
 import org.tatrman.kantheon.iris.api.inboxRoutes
 import org.tatrman.kantheon.iris.api.healthRoutes
 import org.tatrman.kantheon.iris.api.sessionRoutes
+import org.tatrman.kantheon.iris.otel.createIrisOtel
+import org.tatrman.kantheon.iris.otel.installIrisServerTelemetry
 import shared.ktor.KtorConfigFactory
 import shared.ktor.KtorEngine
 import shared.ktor.KtorServerBootstrap
 import shared.ktor.KtorServerConfig
 import shared.ktor.installKtorServerBase
-import shared.otel.OtelEndpointConfig
-import shared.otel.createOpenTelemetrySdk
 
 fun main() {
     val config = ConfigFactory.load()
     val serverConfig = KtorConfigFactory.fromConfig(config, "iris-bff", 7410, KtorEngine.NETTY)
-    KtorServerBootstrap.createServer(serverConfig) { module(config, serverConfig) }.start(wait = true)
+    // One SDK per process, threaded into the server plugin and every outbound
+    // client, so a turn's hops share one trace (GI-7 / PT Phase 0).
+    val otel = createIrisOtel(config)
+    KtorServerBootstrap.createServer(serverConfig) { module(config, serverConfig, otel) }.start(wait = true)
 }
 
 fun Application.module(
     config: Config,
     serverConfig: KtorServerConfig,
+    otel: OpenTelemetry? = null,
 ) {
+    // Before the base install, so the SERVER span wraps the rest of the pipeline.
+    installIrisServerTelemetry(otel)
     installKtorServerBase(serverConfig)
 
-    if (config.getBoolean("telemetry.enabled")) {
-        createOpenTelemetrySdk(
-            OtelEndpointConfig(
-                serviceName = "iris-bff",
-                protocol = System.getenv("IRIS_BFF_OTEL_PROTOCOL") ?: "grpc",
-            ),
-        )
-    }
-
-    val components = buildComponents(config, serverConfig)
+    val components = buildComponents(config, serverConfig, otel)
     installErrorPages()
 
     routing {
@@ -61,6 +60,7 @@ fun Application.module(
         healthRoutes(components.readiness)
         sessionRoutes(components.store, components.auth, components.golemClient, components.staticChips)
         chatRoutes(components.store, components.auth, components.dispatcher, components.heartbeatMs)
+        protocolRoutes(components.store, components.auth, components.protocolAssembler)
         actionRoutes(
             components.store,
             components.auth,
