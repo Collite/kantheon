@@ -211,6 +211,15 @@ data class SourceConfig(
     val gatewayBaseUrl: String = "",
     val lokiBaseUrl: String = "",
     val tempoBaseUrl: String = "",
+    /**
+     * Loki tenant for `X-Scope-OrgID`. Empty = single-tenant Loki, header omitted.
+     *
+     * Not derivable and not guessable: a Loki with `auth_enabled: true` rejects every
+     * query without it (401), and the tenant id is whatever the collector writes under
+     * — `hartland` on that estate, something else on the next. Found the hard way: the
+     * client shipped without it and every live query 401'd.
+     */
+    val lokiTenant: String = "",
     val translateExplainEnabled: Boolean = true,
 ) {
     companion object {
@@ -220,6 +229,7 @@ data class SourceConfig(
                 SourceConfig(
                     gatewayBaseUrl = c.stringOr("gateway-base-url", d.gatewayBaseUrl),
                     lokiBaseUrl = c.stringOr("loki-base-url", d.lokiBaseUrl),
+                    lokiTenant = c.stringOr("loki-tenant", d.lokiTenant),
                     tempoBaseUrl = c.stringOr("tempo-base-url", d.tempoBaseUrl),
                     translateExplainEnabled =
                         if (c.hasPath("translate-explain")) {

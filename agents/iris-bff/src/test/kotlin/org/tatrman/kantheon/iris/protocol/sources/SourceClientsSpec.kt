@@ -117,11 +117,92 @@ class SourceClientsSpec :
                     )
 
                 seen!!.encodedPath shouldBe "/loki/api/v1/query_range"
-                seen!!.parameters["query"] shouldBe """{trace_id="0af7651916cd43dd8448eb211c80319c"}"""
+                // Stream selector + structured-metadata filter, NOT `{trace_id="..."}`:
+                // the OTLP ingest path stores trace_id as structured metadata, so a
+                // label selector on it matches no stream at all (live finding, hartland).
+                seen!!.parameters["query"] shouldBe
+                    """{service_name=~".+"} | trace_id="0af7651916cd43dd8448eb211c80319c""""
                 // Nanoseconds, not millis or seconds — Loki's unit for start/end.
                 seen!!.parameters["start"] shouldBe "1785402000000000000"
                 seen!!.parameters["end"] shouldBe "1785402005000000000"
                 seen!!.parameters["limit"] shouldBe "200"
+            }
+        }
+
+        // Live finding (hartland): Loki runs `auth_enabled: true` and the collector writes
+        // under a tenant, so a query without X-Scope-OrgID is a flat 401 regardless of the
+        // bearer. The tenant is deployment-specific, hence config rather than a constant.
+        "loki: a configured tenant rides as X-Scope-OrgID; blank sends no header" {
+            runTest {
+                var withTenant: io.ktor.http.Headers? = null
+                var without: io.ktor.http.Headers? = null
+
+                val tenanted =
+                    client { req ->
+                        withTenant = req.headers
+                        respond("""{"data":{"result":[]}}""", HttpStatusCode.OK, jsonHeaders)
+                    }
+                val plain =
+                    client { req ->
+                        without = req.headers
+                        respond("""{"data":{"result":[]}}""", HttpStatusCode.OK, jsonHeaders)
+                    }
+
+                LokiClient("http://loki", tenanted, tenant = "hartland")
+                    .fetch("t1", "2026-07-30T09:00:00Z", "2026-07-30T09:00:05Z", 10, "jwt")
+                LokiClient("http://loki", plain)
+                    .fetch("t1", "2026-07-30T09:00:00Z", "2026-07-30T09:00:05Z", 10, "jwt")
+
+                withTenant!!["X-Scope-OrgID"] shouldBe "hartland"
+                // Absent, not empty: an empty tenant header is itself a 400 on some setups.
+                without!!["X-Scope-OrgID"] shouldBe null
+            }
+        }
+
+        "loki: a 401 with no tenant configured says so in the receipt" {
+            runTest {
+                val out =
+                    LokiClient("http://loki", client { respond("no org id", HttpStatusCode.Unauthorized) })
+                        .fetch("t1", "2026-07-30T09:00:00Z", "2026-07-30T09:00:05Z", 10, "jwt")
+
+                // The receipt detail is where an operator looks first; "HTTP 401" alone
+                // sends them to the bearer, which is the wrong place.
+                (out as SourceOutcome.Degraded).reason shouldContain "no loki-tenant configured"
+            }
+        }
+
+        "loki: a stream's declared severity beats scanning the line text" {
+            runTest {
+                // OTLP ingest labels each stream with severity_text (Loki adds
+                // detected_level), and streams are split by label set — so severity is a
+                // property of the stream, not of the individual line. Scanning text got
+                // this wrong in both directions: prose mentioning "ERROR" read as an
+                // error, and a stack trace's continuation lines read as INFO.
+                val body =
+                    """
+                    {"data":{"result":[
+                      {"stream":{"service_name":"golem","severity_text":"ERROR"},
+                       "values":[["1785402002000000000","connection reset by peer"],
+                                 ["1785402003000000000","    at org.example.Thing.run(Thing.kt:42)"]]},
+                      {"stream":{"service_name":"iris-bff","detected_level":"warn"},
+                       "values":[["1785402004000000000","retrying once"]]},
+                      {"stream":{"service_name":"themis"},
+                       "values":[["1785402005000000000","the ERROR budget is fine"]]}
+                    ]}}
+                    """.trimIndent()
+
+                val out =
+                    LokiClient("http://loki", client { respond(body, HttpStatusCode.OK, jsonHeaders) })
+                        .fetch("t1", "2026-07-30T09:00:00Z", "2026-07-30T09:00:05Z", 50, "jwt")
+
+                out as SourceOutcome.Ok
+                val byService = out.payload.groups.associateBy { it.serviceName }
+                byService["golem"]!!.lines.map { it.level } shouldBe listOf("ERROR", "ERROR")
+                // Case-insensitive: Loki's detected_level is lowercase.
+                byService["iris-bff"]!!.lines.single().level shouldBe "WARN"
+                // No label — falls back to the text scan, which here reads the word in
+                // prose. Documented, not ideal: the fallback is best-effort by nature.
+                byService["themis"]!!.lines.single().level shouldBe "ERROR"
             }
         }
 
@@ -135,7 +216,7 @@ class SourceClientsSpec :
                 val body =
                     """
                     {"data":{"result":[
-                      {"stream":{"service_name":"golem-finance","trace_id":"t1"},
+                      {"stream":{"service_name":"golem-finance"},
                        "values":[["1785402002000000000","INFO plan composed"],
                                  ["1785402003000000000","WARN param defaulted"],
                                  ["1785402004000000000","ERROR boom"]]}
@@ -155,9 +236,13 @@ class SourceClientsSpec :
                 g.lines.size shouldBe 2
                 // The cap bit, and the overflow is COUNTED rather than dropped silently.
                 g.droppedByCap shouldBe 1
-                // Level is recovered from the line so the summary filter has something
-                // to work with; Loki carries no level label by default.
+                // No severity label on this stream, so the level falls back to scanning
+                // the line — the path that still covers non-OTLP log shippers.
                 g.lines.map { it.level } shouldBe listOf("INFO", "WARN")
+                // Every line carries the trace we filtered on. It is NOT read back off
+                // the stream labels: trace_id is structured metadata and is not returned
+                // as a label, so that lookup silently produced "" against a real Loki.
+                g.lines.map { it.traceId }.distinct() shouldBe listOf("t1")
             }
         }
 
