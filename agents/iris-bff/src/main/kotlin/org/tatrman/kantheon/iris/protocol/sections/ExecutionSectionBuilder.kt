@@ -26,9 +26,18 @@ object ExecutionSectionBuilder {
             if (tempo.status != SourceStatus.OK) {
                 return@guarded SectionShape.start(KEY, verbosity, SectionStatus.SECTION_DEGRADED).build()
             }
+            // ONLY a span that names a dispatch target counts. The previous fallback —
+            // "otherwise take the longest span" — produced a section that was confidently
+            // wrong on a live cluster: with the tatrman-server hops untraced, the longest
+            // span is the BFF's own request, so the document reported
+            // `Worker: iris-bff, Duration: 17403 ms` — the whole TURN's duration presented
+            // as the query's, and the BFF named as the thing that executed it.
+            //
+            // A section with nothing to say must degrade and let the receipts explain
+            // (P-4). Guessing is the one failure mode this document cannot afford: a
+            // reader can work with "unavailable", but not with a plausible falsehood.
             val span =
                 tempo.spans.firstOrNull { it.attributes.containsKey(ATTR_TARGET) }
-                    ?: tempo.spans.maxByOrNull { it.durationMs }
                     ?: return@guarded SectionShape.start(KEY, verbosity, SectionStatus.SECTION_DEGRADED).build()
 
             SectionShape

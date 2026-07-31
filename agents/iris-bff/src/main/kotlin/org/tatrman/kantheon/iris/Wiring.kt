@@ -242,6 +242,7 @@ fun buildComponents(
             // fallback stays off until it is, and says so in the receipts.
             explain = null,
             registry = meterRegistry,
+            estate = cfg.estate,
         )
     }
 

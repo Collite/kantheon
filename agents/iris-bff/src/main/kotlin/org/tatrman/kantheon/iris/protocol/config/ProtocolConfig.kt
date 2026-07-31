@@ -25,6 +25,13 @@ data class ProtocolConfig(
     val caps: ProtocolCaps = ProtocolCaps(),
     val sessionSplitThreshold: Int = 12,
     val sources: SourceConfig = SourceConfig(),
+    /**
+     * The estate this deployment belongs to, printed in the receipts' `generated_by`.
+     * It answers "which cluster produced this document?" for a reader holding an
+     * exported .md — so a hard-coded value is worse than useless: every estate's
+     * documents claimed to come from the same one.
+     */
+    val estate: String = "kantheon",
 ) {
     /** The named profile, falling back to [defaultProfile] then to shipped defaults. */
     fun profile(name: String? = null): ProtocolProfile =
@@ -59,6 +66,7 @@ data class ProtocolConfig(
                 }
             return ProtocolConfig(
                 defaultProfile = c.stringOr("default-profile", defaults.defaultProfile),
+                estate = c.stringOr("estate", defaults.estate),
                 profiles = profiles.ifEmpty { defaults.profiles },
                 caps = if (c.hasPath("caps")) ProtocolCaps.from(c.getConfig("caps")) else defaults.caps,
                 sessionSplitThreshold = c.intOr("session-split-threshold", defaults.sessionSplitThreshold),

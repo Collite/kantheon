@@ -168,7 +168,11 @@ class MarkdownRenderer(
                 sb.line("- **Status:** ${h.status}")
                 sb.line("- **Origin:** ${h.origin}")
                 if (h.startedAt.isNotBlank()) sb.line("- **Started:** ${h.startedAt}")
-                sb.line("- **Duration:** ${h.durationMs} ms")
+                // Omitted rather than printed as zero. `iris_turns` stores no per-turn
+                // duration, so this is 0 on every live document — and next to the
+                // execution section's real number it read as a broken field rather than
+                // an absent one. A line that is not there asks no questions; "0 ms" does.
+                if (h.durationMs > 0) sb.line("- **Duration:** ${h.durationMs} ms")
             }
 
             Section.PayloadCase.RESOLUTION -> {
