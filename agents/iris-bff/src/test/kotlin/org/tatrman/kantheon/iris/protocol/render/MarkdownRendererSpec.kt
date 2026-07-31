@@ -199,6 +199,20 @@ class MarkdownRendererSpec :
             row shouldContain "a \\| b \\| c"
         }
 
+        "the overview omits a duration it does not have, rather than printing 0 ms" {
+            // `iris_turns` stores no per-turn duration, so this is 0 on every live
+            // document. Printed next to the execution section's real number it read as a
+            // broken field; absent, it asks nothing.
+            val req = FixtureLoader.request("H1-full")
+            val zeroed =
+                req.copy(turns = req.turns.map { t -> t.copy(facts = t.facts.copy(durationMs = 0)) })
+            val md = MarkdownRenderer().render(DocumentBuilder.build(zeroed))
+
+            md shouldNotContain "**Duration:** 0 ms"
+            // ...and a real duration is still shown.
+            MarkdownRenderer().render(DocumentBuilder.build(req)) shouldContain "**Duration:** 2140 ms"
+        }
+
         "a degraded section says so once, not twice" {
             // Regression guard: the first generated pass emitted "_unavailable — see
             // receipts_" followed by a redundant "_no content_" under every degraded

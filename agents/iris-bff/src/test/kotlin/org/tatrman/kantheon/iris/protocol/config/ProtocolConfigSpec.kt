@@ -139,4 +139,11 @@ class ProtocolConfigSpec :
             // parsing throws inside, and the loader answers with shipped defaults.
             cfg("""iris.protocol { caps = "nope" }""") shouldBe ProtocolConfig()
         }
+        "estate is configurable — the receipts must name the cluster that produced the document" {
+            // Was a constructor default, so every estate's exported .md claimed to come
+            // from "kantheon". A reader holding the file has no other way to tell.
+            ProtocolConfig.from(ConfigFactory.parseString("iris.protocol { estate = \"hartland\" }")).estate shouldBe
+                "hartland"
+            ProtocolConfig().estate shouldBe "kantheon"
+        }
     })

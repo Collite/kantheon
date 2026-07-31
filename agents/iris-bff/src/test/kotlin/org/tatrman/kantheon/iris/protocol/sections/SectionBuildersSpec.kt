@@ -135,6 +135,58 @@ class SectionBuildersSpec :
             PlanSectionBuilder.build(input(sources = reconstructed)).plan.reconstructed shouldBe true
         }
 
+        // Live finding (hartland): the explain client is unwired in that deployment, and
+        // the section vanished from the document entirely — no heading, no explanation,
+        // with the only trace a line in the receipts. The profile had asked for
+        // `plan = full`.
+        "plan: an UNWIRED source degrades in place; only the PROFILE may switch it off" {
+            val unwired =
+                FixtureLoader.sources(case).copy(
+                    explain =
+                        org.tatrman.kantheon.iris.protocol.sources.ExplainSource(
+                            status = org.tatrman.kantheon.iris.protocol.sources.SourceStatus.SKIPPED_BY_CONFIG,
+                        ),
+                )
+
+            // Degraded, NOT off: the heading survives and says it is unavailable (P-4).
+            PlanSectionBuilder.build(input(sources = unwired)).status shouldBe SectionStatus.SECTION_DEGRADED
+
+            // The operator's own `off` is still honoured, and still yields SECTION_OFF.
+            val off = ProtocolProfile(sections = mapOf(PlanSectionBuilder.KEY to Verbosity.VERBOSITY_OFF))
+            PlanSectionBuilder.build(input(sources = unwired, profile = off)).status shouldBe
+                SectionStatus.SECTION_OFF
+        }
+
+        // Live finding (hartland): with the tatrman-server hops untraced, no span carried
+        // `dispatch.target`, so the old "otherwise take the longest span" fallback picked
+        // the BFF's own request and the document stated `Worker: iris-bff` with the whole
+        // TURN's duration as the query's. Confidently wrong beats absent, and this
+        // document cannot afford that.
+        "execution: no dispatch span -> degraded, never the longest span as a guess" {
+            val noDispatch =
+                FixtureLoader.sources(case).copy(
+                    tempo =
+                        org.tatrman.kantheon.iris.protocol.sources.TempoSource(
+                            status = org.tatrman.kantheon.iris.protocol.sources.SourceStatus.OK,
+                            spans =
+                                listOf(
+                                    org.tatrman.kantheon.iris.protocol.sources.SpanData(
+                                        spanId = "a",
+                                        name = "POST /v1/chat/stream",
+                                        serviceName = "iris-bff",
+                                        durationMs = 17403,
+                                    ),
+                                ),
+                        ),
+                )
+
+            val e = ExecutionSectionBuilder.build(input(sources = noDispatch))
+            e.status shouldBe SectionStatus.SECTION_DEGRADED
+            // Nothing invented from the span that happened to be longest.
+            e.execution.worker shouldBe ""
+            e.execution.durationMs shouldBe 0
+        }
+
         "security: capture-absent marker -> degraded, and its reason is carried (Amendment A-1)" {
             val s = SecuritySectionBuilder.build(input())
 
