@@ -233,7 +233,10 @@ fun buildComponents(
             records = records,
             config = cfg,
             gateway = httpOrNull(cfg.sources.gatewayBaseUrl)?.let { GatewayLogsClient(cfg.sources.gatewayBaseUrl, it) },
-            loki = httpOrNull(cfg.sources.lokiBaseUrl)?.let { LokiClient(cfg.sources.lokiBaseUrl, it) },
+            loki =
+                httpOrNull(cfg.sources.lokiBaseUrl)?.let {
+                    LokiClient(cfg.sources.lokiBaseUrl, it, cfg.sources.lokiTenant)
+                },
             tempo = httpOrNull(cfg.sources.tempoBaseUrl)?.let { TempoClient(cfg.sources.tempoBaseUrl, it) },
             // ttr-translate's gRPC stub is not wired into iris-bff yet; the S-1
             // fallback stays off until it is, and says so in the receipts.
