@@ -20,11 +20,23 @@ describe('/protocol — registry entry', () => {
   })
 
   it('has en and cs descriptions', async () => {
-    const en = (await import('@/i18n/en.json')).default as Record<string, Record<string, string>>
-    const cs = (await import('@/i18n/cs.json')).default as Record<string, Record<string, string>>
-    for (const k of ['protocol', 'protocolUsage', 'protocolBadScope', 'protocolForbidden', 'protocolNoSession', 'protocolFailed']) {
-      expect(en.slash[k], `en.slash.${k}`).toBeTruthy()
-      expect(cs.slash[k], `cs.slash.${k}`).toBeTruthy()
+    // Through `unknown`: the imported JSON has a precise literal type that does not
+    // overlap the index signature, and `vue-tsc --build` (which type-checks tests,
+    // unlike a `-p tsconfig.app.json` run) rejects the direct assertion.
+    type Messages = Record<string, Record<string, string> | undefined>
+    const en = (await import('@/i18n/en.json')).default as unknown as Messages
+    const cs = (await import('@/i18n/cs.json')).default as unknown as Messages
+    for (const k of [
+      'protocol',
+      'protocolUsage',
+      'protocolBadScope',
+      'protocolForbidden',
+      'protocolNoSession',
+      'protocolFailed',
+      'protocolInFlight',
+    ]) {
+      expect(en.slash?.[k], `en.slash.${k}`).toBeTruthy()
+      expect(cs.slash?.[k], `cs.slash.${k}`).toBeTruthy()
     }
   })
 })
@@ -115,11 +127,12 @@ describe('/protocol — service call shape', () => {
     const out = await requestProtocol('sess-1', { lastN: 3 })
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    const [url, init] = fetchMock.mock.calls[0]
+    const call = fetchMock.mock.calls[0] as [string, RequestInit]
+    const [url, init] = call
     expect(String(url)).toContain('/v1/session/sess-1/protocol')
     expect(init.method).toBe('POST')
     // The wire shape the BFF parses (contracts §3.1).
-    expect(JSON.parse(init.body)).toEqual({ scope: { lastN: 3 } })
+    expect(JSON.parse(String(init.body))).toEqual({ scope: { lastN: 3 } })
     expect(out.protocolId).toBe('p1')
   })
 
