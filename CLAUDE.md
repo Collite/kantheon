@@ -64,59 +64,11 @@ ai-platform owned *capabilities*, kantheon owned *agents*. The fork dissolves th
 
 ## 3. Repo layout
 
-```
-kantheon/
-├── agents/
-│   ├── iris-bff/                    # Kotlin + Ktor
-│   ├── themis/                      # Kotlin + Koog (post-extraction from ai-platform; migrates in Phase 2 Stage 2.3)
-│   ├── pythia/                      # Kotlin + Koog
-│   ├── golem/                       # Kotlin + Koog (template; one pod per Shem)
-│   └── hebe/                        # Kotlin + Koog (moved in 2026-06-12; arc planned — root-build merge is Phase 1)
-├── services/
-│   │                                # (charon/ REMOVED at CH-P3 2026-07-27 — unified into open tatrman-server;
-│   │                                #  consumed by version, tools/charon-mcp stays as the MCP wrapper)
-│   ├── metis/                       # model estimation (Python; pre-fork arrival) + tools/metis-mcp
-│   ├── kallimachos/                 # DocWH corpus warehouse (read path) + tools/kallimachos-mcp
-│   ├── pinakes/                     # DocWH write path — pipeline manager + asset catalog + lineage
-│   ├── report-renderer/             # XLSX/PPTX/PDF/HTML rendering for the Midas domain (functional)
-│   └── ── the read spine (ariadne/theseus/echo/kadmos/proteus/kyklop/argos/prometheus + workers/{brontes,steropes,arges})
-│      # EXTRACTED to the tatrman-server repo (2026-07, SV-P0/P1) as Veles / ttr-{query,fuzzy,nlp,translate,dispatch,validate,llm-gateway} + ttr-worker-{mssql,polars,postgres}
-├── infra/                           # off-constellation infrastructure (fork Phase 5; no personas)
-│   └── ── whois/health/backstage    # EXTRACTED to tatrman-server (whois → ttr-identity); landing stays in frontends/
-├── frontends/
-│   ├── iris/                        # Vue 3 SPA (extracted from golem/frontend/)
-│   └── landing/                     # multilingual landing page / dispatcher (fork: frontends/landing; rebranded)
-├── tools/
-│   └── capabilities-mcp/            # Kotlin + Ktor + MCP SDK
-├── shared/
-│   ├── proto/
-│   │   └── src/main/proto/org/tatrman/kantheon/
-│   │       ├── common/v1/               # ResponseMessage stand-in, AgentId, handoff/provenance types
-│   │       ├── capabilities/v1/
-│   │       ├── envelope/v1/
-│   │       ├── themis/v1/
-│   │       ├── pythia/v1/
-│   │       ├── golem/v1/
-│   │       ├── iris/v1/
-│   │       └── hebe/v1/                 # lands Hebe arc Phase 4
-│   └── libs/
-│       ├── kotlin/
-│       │   ├── capabilities-client/    # client for tools/capabilities-mcp
-│       │   └── envelope-render/        # server-side envelope rendering helpers
-│       └── ts/
-│           └── envelope-ts/            # TS bindings + render helpers for Iris FE
-├── docs/                                # see §5
-├── deployment/local/                    # local-infra (Postgres / Wiremock / etc.)
-├── gradle/libs.versions.toml            # central version catalog — no hardcoded versions
-├── settings.gradle.kts
-├── build.gradle.kts
-├── justfile                             # mirrors ai-platform's justfile
-├── .github/workflows/ci.yml             # init → lint-check → test-all
-├── CLAUDE.md                            # this file
-├── AGENTS.md                            # tech stack + dev hints
-├── EXAMPLES.md                          # canonical code patterns
-└── README.md
-```
+`ls` the root for the current tree — `agents/`, `services/`, `infra/`, `frontends/`,
+`tools/`, `shared/{proto,libs}`, `docs/`, `deployment/local/`. What the tree does
+**not** tell you is in §1 and §2: the read spine and `infra/{whois,health,backstage}`
+were extracted to `tatrman-server`, and `services/charon` was removed at CH-P3
+(2026-07-27) in favour of the open Charon, with `tools/charon-mcp` kept as the wrapper.
 
 Each Kotlin module follows the standard layout (`src/main/kotlin/`, `src/main/resources/`, `src/test/kotlin/`, `build.gradle.kts`). Deployable services additionally carry `k8s/{base,overlays/local}/` with Kustomize manifests (`imagePullPolicy: Never` in the local overlay). Each agent gets an `eval/` corpus directory and an externalised `prompts/` directory.
 
@@ -148,49 +100,15 @@ All constellation/agent protos live under `org.tatrman.kantheon.<package>.v1`. *
 
 ## 5. Documentation structure
 
-Docs are organised into three top-level areas: *what we're building*, *how it's built*, *what we're building right now*. See [`docs/README.md`](./docs/README.md) for the full index.
+Docs are organised into three top-level areas: `design/` (*what we decided to build,
+and why*), `architecture/` (*how it is built* — one folder per agent/service, each
+with `architecture.md` + `contracts.md`), and `implementation/` (*what we're building
+right now* — `plan.md` + per-stage task lists under `v1/<arc>/`). `ls docs/` for the
+current set; [`docs/README.md`](./docs/README.md) is the full index.
 
-```
-docs/
-├── design/                       # what we decided to build, and why
-│   ├── README.md
-│   ├── iris/                     # FE + BFF design (brainstorming, briefs, design)
-│   ├── themis/                   # routing + question-understanding design
-│   ├── pythia/                   # analytical investigator design
-│   └── golem/                    # per-domain Q&A template design
-│
-├── architecture/                 # how it is built — technical architecture, contracts, deployment
-│   ├── README.md
-│   ├── kantheon-architecture.md  # the overall constellation architecture (cross-cutting)
-│   ├── kantheon-security.md      # authorization + audit (PD-8 resolution, 2026-06-12; cross-cutting)
-│   ├── themis/                   # architecture.md + contracts.md (first arc applied)
-│   ├── iris/                     # architecture.md + contracts.md (owns envelope/v1; planned 2026-06-12)
-│   ├── pythia/                   # architecture.md + contracts.md (planned 2026-06-12)
-│   ├── golem/                    # architecture.md + contracts.md (planned 2026-06-12)
-│   ├── charon/                   # architecture.md + contracts.md (planned 2026-06-12; first migrated service)
-│   ├── metis/                    # architecture.md + contracts.md (planned 2026-06-12; second migrated service, Python)
-│   ├── hebe/                     # architecture.md + contracts.md + standalone-v1-architecture.md (arc planned 2026-06-12)
-│   ├── capabilities-mcp/         # design companion
-│   ├── fork/                     # the platform fork (architecture.md + contracts.md; decided 2026-06-12)
-│   └── midas/                    # Midas arc (brief + architecture + contracts)
-│
-└── implementation/               # what we're building right now — plans, task lists, status
-    ├── README.md
-    ├── planning-conventions.md   # task / stage / phase hierarchy (cross-cutting)
-    ├── kantheon-v1.1.md          # deferred-items ledger (cross-cutting; "deferred to v1.1/v1.x/v2" decisions land here)
-    └── v1/
-        ├── aip-v1-*.md           # ai-platform status / gap-closure (cross-cutting prereqs)
-        ├── next-steps.md
-        ├── fork/                 # plan.md — the platform fork; runs before Iris execution (2026-06-12)
-        ├── themis/               # plan.md + per-stage task lists (first arc applied; mid-Stage 2.4; + fork switch-over stage)
-        ├── iris/                 # plan.md (next arc — order Iris → Golem → Pythia locked 2026-06-12)
-        ├── golem/                # plan.md (second arc; ports new-golem v2)
-        ├── pythia/               # plan.md (third arc; unparked 2026-06-12) + v1.5-backlog.md
-        ├── charon/               # plan.md (independent arc; charon/v0.3.0 gates Pythia Phase 4)
-        ├── metis/                # plan.md (independent arc; metis/v0.3.0 gates Pythia Phase 4 Stage 4.2)
-        ├── hebe/                 # plan.md (independent arc P1–P3; P4 gated by iris-bff) + standalone/ M0–M10 history
-        └── midas/                # plan.md (parallel arc)
-```
+> **Task tracking moved 2026-07-14** — plans, task lists, STATUS.md and phase-exit
+> reviews now live in `collite-gh/project/kantheon/`, not here (see the banner at
+> the top of this file). What stays in `docs/` is architecture, design and manuals.
 
 **Where to start when returning to the project:**
 
@@ -203,46 +121,19 @@ docs/
 
 ## 6. Planning conventions (summary)
 
-Full spec at [`docs/implementation/planning-conventions.md`](./docs/implementation/planning-conventions.md). Locked 2026-05-15. Applies to all planning in this repo.
+**Read the spec, don't reconstruct it from here:**
+[`docs/implementation/planning-conventions.md`](./docs/implementation/planning-conventions.md)
+— task / stage / phase hierarchy, the three artefacts (`architecture.md`,
+`contracts.md`, `plan.md`) that precede any task list, and the naming scheme.
+Locked 2026-05-15; applies to all planning in this repo. Themis-in-kantheon is the
+reference implementation of it.
 
-### 6.1 Hierarchy — bottom-up
-
-| Unit      | Size                              | Done means                                                                                            |
-|-----------|-----------------------------------|-------------------------------------------------------------------------------------------------------|
-| **Task**  | atomic; ~½ – 1 day; single concern | the change is committed and tests for that change pass                                                |
-| **Stage** | ~6 tasks (5–8 acceptable)         | something **testable** ships — module compiles, endpoint responds, graph passes integration tests     |
-| **Phase** | a set of stages                   | something **deployable** ships — a service or capability that runs on local K3s and serves callers    |
-
-### 6.2 The three artefacts before any task list
-
-For each planning arc (the work big enough to take a phase or more), three documents exist **before** task lists are written:
-
-- **`architecture.md`** — shape of the solution (component diagram, module deps, deployment topology, tech stack, build/test/deploy flow, observability). Under `docs/architecture/<agent>/`.
-- **`contracts.md`** — all wire contracts (proto packages, MCP tool schemas, REST endpoints, manifest YAMLs, persistence shapes). Source of truth for cross-service boundaries. Under `docs/architecture/<agent>/`.
-- **`plan.md`** — phased plan: per-phase deliverable, per-stage goal + ~6 task titles + pre-flight + DONE criteria + dependencies. Under `docs/implementation/v<n>/<agent>/`.
-
-Per-stage task lists land at `docs/implementation/v<n>/<agent>/tasks-p<phase>-s<phase.stage>-<short>.md`. Every task gets a checkbox, TDD-shaped (tests first), explicit library references, examples cited from `EXAMPLES.md` where applicable.
-
-### 6.3 Naming
-
-- Phases: `Phase 1`, `Phase 2`, `Phase 3`, …
-- Stages: `Stage 1.1`, `Stage 1.2`, `Stage 2.1`, …
-- Tasks: `T1`, `T2`, … within a stage (or `1.1.T1` when context is ambiguous).
+Two conventions worth having in front of you, because they are repo etiquette
+rather than a document you would think to open:
 
 **Branches.** `feat/<phase-id>-<stage-id>-<short-name>` — e.g. `feat/p1-s1.2-capabilities-proto`.
 
 **Tags.** Per service, mirroring ai-platform's pattern: `<service-directory-name>/v<major>.<minor>.<patch>` — e.g. `themis/v0.1.0`, `capabilities-mcp/v0.1.0`. Bumps coordinated with `gradle/libs.versions.toml`.
-
-### 6.4 The first arc applied
-
-Themis-in-kantheon is the reference implementation of the convention:
-
-- [`docs/architecture/themis/architecture.md`](./docs/architecture/themis/architecture.md)
-- [`docs/architecture/themis/contracts.md`](./docs/architecture/themis/contracts.md)
-- [`docs/implementation/v1/themis/plan.md`](./docs/implementation/v1/themis/plan.md)
-- per-stage task lists at `docs/implementation/v1/themis/tasks-p<n>-s<n.m>-*.md`
-
-Future arcs (Iris BFF, Pythia, Golem rewrite, capabilities-mcp follow-ups) mirror the same structure.
 
 ---
 
@@ -276,13 +167,8 @@ Distinct from the ai-platform coupling above: kantheon consumes `org.tatrman:ttr
 
 **Inserted 2026-06-12:** the platform fork (Phases 1–4, [`docs/implementation/v1/fork/plan.md`](./docs/implementation/v1/fork/plan.md)) runs **before Iris task-list execution** — "first bring the new guys in, then start the development." Task-list *writing* for Iris/Golem/Pythia may proceed in parallel. The Themis arc takes one added switch-over stage (fork Phase 2 exit). The waypoint list below predates the fork; waypoints 6–8 now build against the in-repo forked services (theseus-mcp / ariadne-mcp, not query-mcp / metadata-mcp).
 
-The path from "today's `golem` repo running" to "Kantheon constellation live" is documented in [`docs/architecture/kantheon-architecture.md`](./docs/architecture/kantheon-architecture.md) §11. Eight waypoints, summarised:
+The path from "today's `golem` repo running" to "Kantheon constellation live" is documented in [`docs/architecture/kantheon-architecture.md`](./docs/architecture/kantheon-architecture.md) §11. Eight waypoints; 1–5 (Resolver Stage 04 → Kantheon bootstrap → capabilities-mcp → Resolver→Themis extraction → routing layer) are **closed** — read §11 if the history matters. The three still open:
 
-1. ai-platform Resolver Stage 04 closes — Koog graph ships, eval gate passes. **(closed; carry-over from ai-platform)**
-2. **Kantheon bootstrap** — repo + build + CI + proto codegen + Maven-from-ai-platform consumption. *(Phase 1 Stage 1.1 of the Themis arc.)*
-3. **`tools/capabilities-mcp` lands** — registry running with seed `AgentManifest`/`ShemManifest` fixtures; ai-platform `query-mcp` heartbeats as PoC. *(Phase 1 Stages 1.2–1.4.)*
-4. **Resolver → Themis extraction** — `git filter-repo` moves `ai-platform/agents/resolver` into `kantheon/agents/themis`; proto package renames `cz.dfpartner.resolver.v1` → `org.tatrman.kantheon.themis.v1`. *(Phase 2.)*
-5. **Routing layer added** — `classifyIntentKind`, `routeToAgent`, four-layer cascade, profiles, `MultiQuestionDetected`, `RefusalWithGaps`, Iris chip flow. *(Phase 3.)*
 6. **Iris BFF + FE extraction from golem** — Vue FE and Kotlin/Ktor BFF land in `kantheon/frontends/iris` and `kantheon/agents/iris-bff`. *(Separate arc, design pending.)*
 7. **Golem Python → Kotlin + Koog rewrite** — residual Python BE in today's `golem` rewrites to Kotlin. First Shem (`Golem-ERP`) lands. *(Separate arc, design at `docs/design/golem/golem-template-design.md`.)*
 8. **Cutover.** Today's `golem` repo retires after Iris + Themis + Golem-ERP are live.
