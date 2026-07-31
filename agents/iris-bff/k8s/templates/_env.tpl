@@ -43,6 +43,18 @@
   value: {{ .Values.telemetry.serviceName | quote }}
 - name: OTEL_ENABLED_IRIS_BFF
   value: {{ .Values.telemetry.enabled | quote }}
+{{- if and .Values.telemetry.enabled .Values.telemetry.otlpHost }}
+# The otel-config lib resolves its collector from HOST + GRPC_PORT (OtelConfig.kt:
+# `System.getenv(hostEnvVar) ?: defaultHost`, defaultHost = "localhost"). Without these
+# two, enabling telemetry does NOT fail loudly — the SDK builds against
+# http://localhost:4317, finds no collector, and retries in the background. Traces never
+# reach Tempo, logs never carry a trace id, and the pod looks healthy the whole time.
+# Matches the block in tools/capabilities-mcp, which is the wiring proven on-cluster.
+- name: OTEL_EXPORTER_OTLP_HOST
+  value: {{ .Values.telemetry.otlpHost | quote }}
+- name: OTEL_EXPORTER_OTLP_GRPC_PORT
+  value: {{ .Values.telemetry.otlpGrpcPort | quote }}
+{{- end }}
 {{- with .Values.extraEnv }}
 {{- toYaml . | nindent 0 }}
 {{- end }}

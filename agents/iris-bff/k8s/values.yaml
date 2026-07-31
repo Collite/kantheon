@@ -51,10 +51,16 @@ auth:
 audit:
   signingKeyRef: ""
 
-# OpenTelemetry export. Off by default (matches golem: kantheon#27 otel-config emission gap).
+# OpenTelemetry export. Off by default; a deploying overlay turns it on and MUST also set
+# `otlpHost` — the otel-config lib falls back to localhost, so an enabled-but-hostless
+# deployment exports into the void without erroring (see templates/_env.tpl).
+# (The old note here cited kantheon#27 for the "emission gap"; the OTel issue is
+# kantheon#34, and the missing-propagator half is handled in `iris/otel/ServerTelemetry.kt`.)
 telemetry:
   enabled: false
   serviceName: iris-bff
+  otlpHost: ""
+  otlpGrpcPort: 4317
 
 readinessProbe:
   path: /ready
