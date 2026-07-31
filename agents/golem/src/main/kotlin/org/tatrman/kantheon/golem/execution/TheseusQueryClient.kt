@@ -1,6 +1,8 @@
 package org.tatrman.kantheon.golem.execution
 
 import io.ktor.client.HttpClient
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.sse.SSE
@@ -8,12 +10,8 @@ import io.ktor.client.request.header
 import io.modelcontextprotocol.kotlin.sdk.client.Client
 import io.modelcontextprotocol.kotlin.sdk.client.StreamableHttpClientTransport
 import io.modelcontextprotocol.kotlin.sdk.types.CallToolResult
-import io.ktor.client.request.HttpRequestBuilder
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.TextContent
-import io.opentelemetry.api.GlobalOpenTelemetry
-import io.opentelemetry.context.Context
-import io.opentelemetry.context.propagation.TextMapSetter
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -44,6 +42,7 @@ class QueryQueryClient(
     private val url: String,
     private val clientName: String = "golem",
     private val clientVersion: String = "v0.1.0",
+    private val otel: OpenTelemetry? = null,
 ) : QueryClient {
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -127,34 +126,25 @@ class QueryQueryClient(
         }
     }
 
-    private fun buildHttpClient(bearer: String): HttpClient =
+    internal fun buildHttpClient(bearer: String): HttpClient =
         HttpClient(CIO) {
             install(SSE)
+            // PT P0·S0.1 T5: the tool hop joins the turn's trace.
+            //
+            // This REPLACES a hand-rolled `traceparent` injection that was a silent
+            // no-op: it propagated through `GlobalOpenTelemetry`, and nothing in this
+            // estate ever registers an SDK globally, so the propagator it fetched was
+            // always `NoopTextMapPropagator` and no header was ever written. The plugin
+            // takes its propagators from the SDK it is handed instead.
+            otel?.let { sdk -> install(KtorClientTelemetry) { setOpenTelemetry(sdk) } }
             install(
                 createClientPlugin("GolemObo") {
                     onRequest { request, _ ->
                         request.header("Authorization", "Bearer $bearer")
-                        // Propagate the W3C `traceparent`/`tracestate` so query joins this turn's
-                        // trace (the inbound otel-config join only covers the server edge).
-                        GlobalOpenTelemetry
-                            .getPropagators()
-                            .textMapPropagator
-                            .inject(Context.current(), request, RequestHeaderSetter)
                     }
                 },
             )
         }
-
-    /** Injects W3C trace headers onto an outgoing [HttpRequestBuilder]. */
-    private object RequestHeaderSetter : TextMapSetter<HttpRequestBuilder> {
-        override fun set(
-            carrier: HttpRequestBuilder?,
-            key: String,
-            value: String,
-        ) {
-            carrier?.header(key, value)
-        }
-    }
 
     private fun firstText(result: CallToolResult): String? =
         result.content

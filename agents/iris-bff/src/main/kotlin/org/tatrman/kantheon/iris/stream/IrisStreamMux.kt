@@ -12,6 +12,7 @@ import org.tatrman.kantheon.iris.v1.DoneEvent
 import org.tatrman.kantheon.iris.v1.ErrorEvent
 import org.tatrman.kantheon.iris.v1.IrisStreamEvent
 import org.tatrman.kantheon.iris.v1.StepEvent
+import org.tatrman.kantheon.protocol.v1.ProtocolHints
 
 /** What the mux captured about a turn once its v2 stream closed. */
 data class TurnOutcome(
@@ -20,6 +21,14 @@ data class TurnOutcome(
     val pendingResumeToken: String?,
     val errorCode: String?,
     val doneOutcome: String,
+    /**
+     * PT-25/S-5: the agent's own `protocol_hints` block, carried up so
+     * `ProtocolRecorder` can store it verbatim in `RecordPointers.hints`.
+     * Null on any path where no agent answered (routing-only turns, refusals)
+     * and on the legacy /v2 wire, which has no hints field. Additive with a
+     * default so no existing construction site changes.
+     */
+    val protocolHints: ProtocolHints? = null,
 )
 
 /**

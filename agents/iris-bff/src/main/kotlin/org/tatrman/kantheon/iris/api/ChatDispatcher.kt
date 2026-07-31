@@ -16,6 +16,8 @@ import org.tatrman.kantheon.iris.dispatch.AgentTurn
 import org.tatrman.kantheon.iris.domain.NewTurn
 import org.tatrman.kantheon.iris.domain.SessionStore
 import org.tatrman.kantheon.iris.domain.TurnStatus
+import org.tatrman.kantheon.iris.protocol.record.ProtocolRecorder
+import org.tatrman.kantheon.iris.protocol.record.TurnRecordContext
 import org.tatrman.kantheon.iris.routing.HandoffAssembler
 import org.tatrman.kantheon.iris.routing.RoutingEnvelopes
 import org.tatrman.kantheon.iris.routing.ThemisAuthException
@@ -67,6 +69,11 @@ class ChatDispatcher(
     private val routerAgentId: String = "themis",
     private val defaultAgentId: String = "golem-v2",
     private val metrics: RoutingMetrics = RoutingMetrics.NOOP,
+    /**
+     * PT: writes the per-turn protocol record. Null disables capture entirely
+     * (default, so every existing construction site and test is unaffected).
+     */
+    private val protocolRecorder: ProtocolRecorder? = null,
 ) {
     private val printer = JsonFormat.printer().omittingInsignificantWhitespace()
 
@@ -152,6 +159,9 @@ class ChatDispatcher(
         emit: suspend (IrisStreamEvent) -> Unit,
     ): TurnOutcome {
         val startNanos = System.nanoTime()
+        // Wall-clock twin of startNanos: nanoTime has no epoch, and the protocol
+        // record's log window must be comparable to Loki/Tempo timestamps.
+        val turnStartedAt = Instant.now()
         // The turn's language: what the UI asked for, else the deployment default.
         val turnLocale = locale?.takeIf { it.isNotBlank() } ?: defaultLocale
         val turnId = UUID.randomUUID()
@@ -229,6 +239,23 @@ class ChatDispatcher(
                     emitError(turnId, seq, caller, sessionId, question, "NO_OUTCOME", "Themis returned no outcome.")
             }
         metrics.recordTurn(result.doneOutcome, System.nanoTime() - startNanos)
+
+        // PT write path (architecture §1/§7). Placed here, after the `when`, because
+        // every branch above has already called `persist` — so the `iris_turns` row
+        // the record's FK points at is committed, on all three outcomes. The two
+        // early returns above (Themis auth/unavailable) deliberately do not reach
+        // this: no ResolveResponse exists, so there is no execution path to narrate.
+        // Non-fatal by construction — `record` never throws.
+        protocolRecorder?.record(
+            TurnRecordContext(
+                turnId = turnId,
+                startedAt = turnStartedAt,
+                completedAt = Instant.now(),
+                resolveResponse = response,
+                hints = result.protocolHints,
+                correlationId = correlationId,
+            ),
+        )
         return result
     }
 

@@ -1,0 +1,1044 @@
+{
+  "protocolId": "00000000-0000-4000-8000-0000000000ff",
+  "sessionId": "11111111-1111-4111-8111-111111111111",
+  "scope": {
+    "wholeSession": true
+  },
+  "header": {
+    "title": "Protocol — How did gross margin move in Q3? — whole session",
+    "userId": "maya",
+    "tenantId": "hartland",
+    "agentIds": ["golem-finance"],
+    "sessionCreatedAt": "2026-07-30T09:00:00+02:00",
+    "turnCountInScope": 13,
+    "turnCountTotal": 13
+  },
+  "turns": [{
+    "turnId": "3f2b1a00-0000-4000-8000-000000000001",
+    "seq": 1,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "How did gross margin move in Q3?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1010"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000002",
+    "seq": 2,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "And by channel?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1020"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000003",
+    "seq": 3,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Show me the top 5 products",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1030"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000004",
+    "seq": 4,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "What about returns?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1040"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000005",
+    "seq": 5,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Compare to last year",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1050"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000006",
+    "seq": 6,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Which region lagged?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1060"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000007",
+    "seq": 7,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Break out by month",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1070"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000008",
+    "seq": 8,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Why did August dip?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1080"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000009",
+    "seq": 9,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Show the cost side",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1090"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000010",
+    "seq": 10,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Any one-offs?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1100"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000011",
+    "seq": 11,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Normalise for FX",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1110"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000012",
+    "seq": 12,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "Summarise the quarter",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1120"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }, {
+    "turnId": "3f2b1a00-0000-4000-8000-000000000013",
+    "seq": 13,
+    "sections": [{
+      "key": "protocol.section.header",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "header": {
+        "question": "And the outlook?",
+        "agentId": "golem-finance",
+        "routingOutcome": "routed",
+        "status": "done",
+        "origin": "user",
+        "startedAt": "2026-07-30T09:00:01+02:00",
+        "durationMs": "1130"
+      }
+    }, {
+      "key": "protocol.section.resolution",
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "resolution": {
+        "functionId": "margin_by_period",
+        "bindings": [{
+          "mention": "Q3",
+          "boundRef": "2026-Q3",
+          "confidence": 1.0
+        }, {
+          "mention": "gross margin",
+          "boundRef": "metric.gross_margin",
+          "confidence": 1.0
+        }],
+        "confidence": 0.94,
+        "layerHit": 2
+      }
+    }, {
+      "key": "protocol.section.llm-calls",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.query",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "query": {
+        "entityQuery": "margin_by_period {\"period\":\"2026-Q3\",\"compareTo\":\"2026-Q2\"}",
+        "queryKind": "PROCEDURAL"
+      }
+    }, {
+      "key": "protocol.section.plan",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.sql",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "sql": {
+        "sql": "SELECT period, gross_margin FROM p_and_l WHERE period IN (\u00272026-Q2\u0027,\u00272026-Q3\u0027)"
+      }
+    }, {
+      "key": "protocol.section.security",
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "security": {
+        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      }
+    }, {
+      "key": "protocol.section.execution",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "execution": {
+        "dispatchTarget": "pg-hartland",
+        "worker": "ttr-worker-postgres",
+        "rowCount": "8",
+        "durationMs": "180"
+      }
+    }, {
+      "key": "protocol.section.service-logs",
+      "status": "SECTION_OFF"
+    }, {
+      "key": "protocol.section.errors",
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "errors": {
+      }
+    }]
+  }],
+  "receipts": {
+    "profileName": "default",
+    "sources": [{
+      "source": "records",
+      "status": "ok",
+      "detail": "13 record row(s)"
+    }, {
+      "source": "llm-gateway",
+      "status": "ok",
+      "detail": "1 call row(s)"
+    }, {
+      "source": "loki",
+      "status": "ok",
+      "detail": "3 line(s)"
+    }, {
+      "source": "tempo",
+      "status": "ok",
+      "detail": "2 span(s)"
+    }, {
+      "source": "translate-explain",
+      "status": "ok",
+      "detail": "plan carried"
+    }, {
+      "source": "capture:security_applied",
+      "status": "degraded",
+      "detail": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+    }],
+    "generatedBy": "iris-bff/1.0 hartland"
+  },
+  "schemaVersion": "protocol/v1.0",
+  "generatedAt": "2026-07-30T09:05:00+02:00",
+  "participants": {
+    "key": "protocol.section.participants",
+    "appliedVerbosity": "VERBOSITY_FULL",
+    "participants": {
+      "userIds": ["maya"],
+      "agentIds": ["golem-finance"]
+    }
+  }
+}

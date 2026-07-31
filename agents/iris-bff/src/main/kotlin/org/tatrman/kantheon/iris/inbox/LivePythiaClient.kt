@@ -1,6 +1,8 @@
 package org.tatrman.kantheon.iris.inbox
 
 import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
@@ -13,12 +15,31 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import org.slf4j.LoggerFactory
+
+/**
+ * The outbound Pythia client configuration, in one place so the wiring under test
+ * is the wiring that ships (PT P0·S0.1 T1). [otel] is null exactly when
+ * `telemetry.enabled=false`.
+ */
+internal fun <T : HttpClientEngineConfig> pythiaHttpClient(
+    engineFactory: HttpClientEngineFactory<T>,
+    timeoutMs: Long,
+    otel: OpenTelemetry?,
+    engineConfig: T.() -> Unit = {},
+): HttpClient =
+    HttpClient(engineFactory) {
+        engine(engineConfig)
+        install(HttpTimeout) { requestTimeoutMillis = timeoutMs }
+        otel?.let { sdk -> install(KtorClientTelemetry) { setOpenTelemetry(sdk) } }
+    }
 
 /**
  * Ktor-client [PythiaClient] over Pythia's REST control surface (contracts §2):
@@ -31,10 +52,8 @@ import org.slf4j.LoggerFactory
 class LivePythiaClient(
     private val baseUrl: String,
     timeoutMs: Long = 15_000,
-    private val httpClient: HttpClient =
-        HttpClient(CIO) {
-            install(HttpTimeout) { requestTimeoutMillis = timeoutMs }
-        },
+    otel: OpenTelemetry? = null,
+    private val httpClient: HttpClient = pythiaHttpClient(CIO, timeoutMs, otel),
 ) : PythiaClient,
     AutoCloseable {
     private val json = Json { ignoreUnknownKeys = true }

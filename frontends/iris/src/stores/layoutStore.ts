@@ -223,6 +223,7 @@ export const useLayoutStore = defineStore('layout', () => {
       sourceMessageId?: string
       displayState?: DisplayState
       title?: string
+      downloadName?: string
     } = {},
   ): string | null => {
     const api = dockviewApi.value
@@ -236,6 +237,7 @@ export const useLayoutStore = defineStore('layout', () => {
       sourceMessageId: options.sourceMessageId,
       format: envelope,
       displayState: options.displayState,
+      downloadName: options.downloadName,
     })
 
     // Position: prefer the live Tabs group (so the tab joins the existing

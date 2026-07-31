@@ -8,7 +8,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Button from 'primevue/button'
+import { useToast } from 'primevue/usetoast'
 import { useTabsStore } from '@/stores/tabsStore'
+import { downloadMarkdown, slugify } from './downloadMarkdown'
 
 interface DockviewTabParams {
   params?: { panelId?: string }
@@ -26,6 +28,33 @@ const panelId = computed(() => props.params?.params?.panelId)
 const panel = computed(() => (panelId.value ? tabsStore.panels[panelId.value] : undefined))
 const title = computed(() => panel.value?.title ?? 'Untitled')
 
+const toast = useToast()
+
+/**
+ * A markdown panel can be saved. Gated on the format rather than on "is this a
+ * protocol", because any markdown panel is equally savable and a type check
+ * here would be a lie about why the button exists.
+ */
+const markdown = computed(() => {
+  const env = panel.value?.format as { text?: string; format?: { kind?: unknown } } | undefined
+  const kind = env?.format?.kind
+  const isMarkdown = kind === 'MARKDOWN' || kind === 3
+  return isMarkdown && env?.text ? env.text : undefined
+})
+
+const onSave = (event: MouseEvent) => {
+  event.stopPropagation()
+  const text = markdown.value
+  if (!text) return
+  // Byte-for-byte what the server rendered — never re-serialised through the
+  // markdown viewer, which would silently normalise the document.
+  // The panel names itself when it knows the contracted name (`/protocol`
+  // does); otherwise fall back to a slug of the title.
+  const name = panel.value?.downloadName ?? `${slugify(title.value)}.md`
+  downloadMarkdown(text, name)
+  toast.add({ severity: 'success', summary: t('slash.protocolDownloaded'), life: 1500 })
+}
+
 const onClose = (event: MouseEvent) => {
   event.stopPropagation()
   props.params?.api?.close()
@@ -35,6 +64,17 @@ const onClose = (event: MouseEvent) => {
 <template>
   <div class="tab-header">
     <span class="tab-title" :title="title">{{ title }}</span>
+    <Button
+      v-if="markdown"
+      text
+      rounded
+      size="small"
+      icon="pi pi-download"
+      class="tab-close"
+      :aria-label="t('tabs.saveTabAria', { title })"
+      @click.stop="onSave"
+      @mousedown.stop
+    />
     <Button
       text
       rounded

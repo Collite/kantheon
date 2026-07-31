@@ -1,0 +1,6 @@
+{
+  "status": "OK",
+  "detail": "plan reconstructed (S-1)",
+  "relPlanText": "LogicalProject(period=[$0], gross_margin=[$1])\n  LogicalTableScan(table=[[dbo, p_and_l]])",
+  "reconstructed": true
+}

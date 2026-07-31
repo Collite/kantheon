@@ -55,6 +55,8 @@ dependencies {
 
     // OpenTelemetry API (SDK pulled by ai-platform.otel-config)
     implementation(libs.opentelemetry.api)
+    // KtorClientTelemetry on the outbound hops (PT P0·S0.1 T5).
+    implementation(libs.ktor.opentelemetry)
 
     // Cache
     implementation(libs.caffeine)
@@ -69,6 +71,9 @@ dependencies {
     implementation(libs.jackson.dataformat.yaml)
 
     // Logging
+    // OTel Logback appender — declared by logback.xml so records reach the OTLP
+    // exporter (PT P0·S0.1 T3; without it Themis never appears in Loki).
+    api(libs.otel.logback.appender)
     implementation(libs.logback.classic)
     implementation(libs.kotlin.logging)
 
@@ -79,6 +84,8 @@ dependencies {
     implementation(libs.koog.agents)
 
     testImplementation(libs.bundles.kotest)
+    testImplementation(libs.opentelemetry.sdk.testing)
+    testImplementation(libs.ktor.client.mock)
     testImplementation(libs.mockk)
     testImplementation(libs.wiremock)
     testImplementation(libs.ktor.server.test.host)

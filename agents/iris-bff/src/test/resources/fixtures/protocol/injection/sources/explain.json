@@ -1,0 +1,6 @@
+{
+  "status": "OK",
+  "detail": "plan carried",
+  "relPlanText": "LogicalTableScan(table=[[dbo, p_and_l]], source=[postgres://svc:hunter2@pg-hartland:5432/finance])\n```\nnot a new block",
+  "reconstructed": false
+}

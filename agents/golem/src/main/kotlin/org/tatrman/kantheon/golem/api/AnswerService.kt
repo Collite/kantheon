@@ -277,6 +277,7 @@ class AnswerService(
             .setFinalisedAt(finalisedAt)
             .addEnvelopes(envelope)
             .also { b -> state.plan?.let { b.plan = it } }
+            .setProtocolHints(ProtocolHintsBuilder.from(state))
             .setStatus(Status.STATUS_CLARIFICATION)
             .build()
     }
@@ -313,6 +314,10 @@ class AnswerService(
                 TurnOutcome.FAILED -> Status.STATUS_FAILED
                 else -> state.execution?.status ?: Status.STATUS_FAILED
             }
+        // PT-25/S-5: golem's own pointers into this turn's execution. Set on every
+        // outcome including failures — a turn that died mid-plan is precisely the
+        // one whose node ids and timings a protocol reader needs.
+        b.protocolHints = ProtocolHintsBuilder.from(state)
         return b.build()
     }
 

@@ -190,8 +190,16 @@ class GolemV1Mux {
     ): TurnOutcome {
         val clarification = envelopes.firstOrNull { it.hasPendingClarification() }
         val representative = clarification ?: envelopes.lastOrNull()
+
+        // PT-25/S-5: carry the agent's hints on EVERY outcome, including failures —
+        // a turn that failed mid-pipeline is exactly the one whose plan ids and
+        // timings a protocol reader wants. `hasProtocolHints()` distinguishes
+        // "agent sent an empty block" from "agent sent none", which the recorder
+        // must not conflate.
+        val hints = response?.takeIf { it.hasProtocolHints() }?.protocolHints
+
         if (errorCode != null) {
-            return TurnOutcome(representative, TurnStatus.FAILED, null, errorCode, "failed")
+            return TurnOutcome(representative, TurnStatus.FAILED, null, errorCode, "failed", hints)
         }
         val resumeToken =
             clarification
@@ -203,13 +211,13 @@ class GolemV1Mux {
                 // A clarification with no resume token cannot be answered — the FE would
                 // render a dead-end prompt. Report it as a failure, not a pending question.
                 if (resumeToken != null) {
-                    TurnOutcome(representative, TurnStatus.CLARIFICATION, resumeToken, null, "clarification")
+                    TurnOutcome(representative, TurnStatus.CLARIFICATION, resumeToken, null, "clarification", hints)
                 } else {
-                    TurnOutcome(representative, TurnStatus.FAILED, null, "GOLEM_NO_RESUME_TOKEN", "failed")
+                    TurnOutcome(representative, TurnStatus.FAILED, null, "GOLEM_NO_RESUME_TOKEN", "failed", hints)
                 }
             Status.STATUS_FAILED ->
-                TurnOutcome(representative, TurnStatus.FAILED, null, failureCode(response, envelopes), "failed")
-            else -> TurnOutcome(representative, TurnStatus.DONE, null, null, "done")
+                TurnOutcome(representative, TurnStatus.FAILED, null, failureCode(response, envelopes), "failed", hints)
+            else -> TurnOutcome(representative, TurnStatus.DONE, null, null, "done", hints)
         }
     }
 

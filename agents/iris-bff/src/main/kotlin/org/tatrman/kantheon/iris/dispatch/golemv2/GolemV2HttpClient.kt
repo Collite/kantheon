@@ -2,6 +2,8 @@ package org.tatrman.kantheon.iris.dispatch.golemv2
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -15,10 +17,30 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.readUTF8Line
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+
+/**
+ * The outbound golem-/v2 client configuration, in one place so the wiring under
+ * test is the wiring that ships (PT P0·S0.1 T1). [otel] is null exactly when
+ * `telemetry.enabled=false`.
+ */
+internal fun <T : HttpClientEngineConfig> golemV2HttpClient(
+    engineFactory: HttpClientEngineFactory<T>,
+    socketIdleMs: Long,
+    otel: OpenTelemetry?,
+    engineConfig: T.() -> Unit = {},
+): HttpClient =
+    HttpClient(engineFactory) {
+        engine(engineConfig)
+        install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+        install(HttpTimeout) { socketTimeoutMillis = socketIdleMs }
+        otel?.let { sdk -> install(KtorClientTelemetry) { setOpenTelemetry(sdk) } }
+    }
 
 /**
  * Ktor-client [GolemV2Client] over new-golem /v2 (contracts §5). SSE bodies are
@@ -36,11 +58,8 @@ class GolemV2HttpClient(
     // whole stream); a socket/idle timeout bounds a stalled upstream (no bytes)
     // so a hung golem can't pin the BFF coroutine + the FE's SSE connection.
     socketIdleMs: Long = 60_000,
-    private val httpClient: HttpClient =
-        HttpClient(CIO) {
-            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-            install(HttpTimeout) { socketTimeoutMillis = socketIdleMs }
-        },
+    otel: OpenTelemetry? = null,
+    private val httpClient: HttpClient = golemV2HttpClient(CIO, socketIdleMs, otel),
 ) : GolemV2Client,
     AutoCloseable {
     private val json = Json { ignoreUnknownKeys = true }
