@@ -390,7 +390,7 @@ class ProtocolAssemblerSpec :
                                 json(
                                     """
                                     {"batches":[{"resource":{"attributes":[
-                                      {"key":"service.name","value":{"stringValue":"ttr-dispatch"}}]},
+                                      {"key":"service.name","value":{"stringValue":"dispatch"}}]},
                                       "scopeSpans":[{"spans":[{"spanId":"a1","name":"run",
                                         "startTimeUnixNano":"0","endTimeUnixNano":"180000000",
                                         "attributes":[{"key":"dispatch.target","value":{"stringValue":"pg-hartland"}}]}]}]}]}
