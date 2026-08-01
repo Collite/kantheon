@@ -24,6 +24,7 @@ object SqlSectionBuilder {
 
     fun build(input: SectionInput): Section =
         SectionShape.guarded(KEY, input) { verbosity ->
+            SectionShape.notReached(KEY, input, verbosity)?.let { return@guarded it }
             val p = input.record.pointers
             if (p.sqlInline.isBlank()) {
                 val degraded = SectionShape.start(KEY, verbosity, SectionStatus.SECTION_DEGRADED)

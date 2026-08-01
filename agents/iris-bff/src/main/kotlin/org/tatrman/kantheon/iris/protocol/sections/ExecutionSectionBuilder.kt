@@ -22,6 +22,7 @@ object ExecutionSectionBuilder {
 
     fun build(input: SectionInput): Section =
         SectionShape.guarded(KEY, input) { verbosity ->
+            SectionShape.notReached(KEY, input, verbosity)?.let { return@guarded it }
             SectionShape.notConsulted(KEY, input, verbosity)?.let { return@guarded it }
             val tempo = input.sources.tempo
             if (tempo.status != SourceStatus.OK) {

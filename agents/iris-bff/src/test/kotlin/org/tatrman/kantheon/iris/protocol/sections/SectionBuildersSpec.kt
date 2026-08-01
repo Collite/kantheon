@@ -3,6 +3,7 @@ package org.tatrman.kantheon.iris.protocol.sections
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import org.tatrman.kantheon.iris.protocol.FixtureLoader
 import org.tatrman.kantheon.iris.protocol.config.ProtocolProfile
@@ -303,5 +304,52 @@ class SectionBuildersSpec :
             s.security.getRules(1).description shouldContain "region IN"
             s.security.getRules(1).predicate shouldBe ""
             s.security.getRules(1).predicateMasked shouldBe true
+        }
+
+        // ---- the turn that never got there (live hartland, 2026-08-01) ----
+
+        "a turn that ended awaiting an agent pick: plan/sql/execution are NOT_REACHED, not degraded" {
+            // Seen live: Themis resolved at confidence 0.68, declined to route, and asked
+            // the user to pick. `status` read `done` (dispatch succeeded — it dispatched a
+            // question, not an answer) and four sections said "unavailable — see
+            // receipts", sending the reader to look for a failure that had not happened.
+            // Nothing ran, so there is no plan, no SQL and no execution to be unavailable.
+            val pick = input().copy(turn = input().turn.copy(routingOutcome = TurnFacts.NEEDS_USER_PICK))
+
+            listOf(
+                PlanSectionBuilder.KEY to PlanSectionBuilder::build,
+                SqlSectionBuilder.KEY to SqlSectionBuilder::build,
+                ExecutionSectionBuilder.KEY to ExecutionSectionBuilder::build,
+            ).forEach { (key, build) ->
+                withClue(key) { build(pick).status shouldBe SectionStatus.SECTION_NOT_REACHED }
+            }
+
+            // ...and the same builders on a routed turn are unaffected.
+            listOf(
+                PlanSectionBuilder.KEY to PlanSectionBuilder::build,
+                SqlSectionBuilder.KEY to SqlSectionBuilder::build,
+                ExecutionSectionBuilder.KEY to ExecutionSectionBuilder::build,
+            ).forEach { (key, build) ->
+                withClue(key) { build(input()).status shouldNotBe SectionStatus.SECTION_NOT_REACHED }
+            }
+        }
+
+        "llm-calls and security are deliberately NOT 'not reached'" {
+            val pick = input().copy(turn = input().turn.copy(routingOutcome = TurnFacts.NEEDS_USER_PICK))
+            // Themis's own resolve calls the gateway, so an empty llm-calls section really
+            // is a source question — and A-1's capture marker stays true about the
+            // security capture whatever the turn did. Narrowing the rule to the three
+            // post-dispatch stages is what keeps it honest rather than merely tidy.
+            LlmCallsSectionBuilder.build(pick).status shouldNotBe SectionStatus.SECTION_NOT_REACHED
+            SecuritySectionBuilder.build(pick).status shouldNotBe SectionStatus.SECTION_NOT_REACHED
+        }
+
+        "the overview states the outcome of a turn that produced no answer" {
+            val pick = input().copy(turn = input().turn.copy(routingOutcome = TurnFacts.NEEDS_USER_PICK))
+            HeaderSectionBuilder.build(pick).header.outcome shouldContain "did not choose an agent"
+
+            // A turn that answered says nothing extra — the outcome line exists to explain
+            // an absence, and printing it always would make it furniture.
+            HeaderSectionBuilder.build(input()).header.outcome shouldBe ""
         }
     })

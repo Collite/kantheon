@@ -113,6 +113,14 @@ class MarkdownRenderer(
             sb.blank()
             sb.line("### ${section.title()}")
             sb.blank()
+            // "Unavailable" asserts we tried and could not. "Not reached" says the turn
+            // ended before the stage existed — a different fact, and the one that is true
+            // when a turn stops at routing. Sending a reader to the receipts to find a
+            // failure that never happened is the same dishonesty as any other.
+            if (section.status == SectionStatus.SECTION_NOT_REACHED) {
+                sb.line("_not reached — the turn ended before this stage_")
+                return@forEach
+            }
             if (section.status == SectionStatus.SECTION_DEGRADED) {
                 sb.line("_unavailable — see receipts_")
                 // A degraded section with no payload has already said everything it
@@ -174,6 +182,13 @@ class MarkdownRenderer(
         when (section.payloadCase) {
             Section.PayloadCase.HEADER -> {
                 val h = section.header
+                // FIRST, when there is one. A reader opening a protocol after an empty
+                // bubble is asking one question, and it should not be assembled from
+                // `routing_outcome` here plus `needs_user_pick_shown` two sections down.
+                if (h.outcome.isNotBlank()) {
+                    sb.line("> **${text(h.outcome)}**")
+                    sb.blank()
+                }
                 sb.line("- **Question:** ${text(h.question)}")
                 sb.line("- **Agent:** ${text(h.agentId)}")
                 if (h.routingOutcome.isNotBlank()) sb.line("- **Routing:** ${text(h.routingOutcome)}")

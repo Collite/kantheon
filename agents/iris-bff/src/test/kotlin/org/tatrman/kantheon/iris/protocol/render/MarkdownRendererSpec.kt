@@ -325,6 +325,38 @@ class MarkdownRendererSpec :
             md shouldNotContain "```sql\n\n```"
         }
 
+        "a not-reached stage says so, and is not confused with an unavailable one" {
+            // Live hartland 2026-08-01: a turn stopped at routing and the document read
+            // `Status: done` with Plan/SQL/Execution all "_unavailable — see receipts_".
+            // Both halves were misleading — nothing failed, and nothing was fetched
+            // because nothing existed to fetch.
+            val req = FixtureLoader.request("H1-full")
+            val pick =
+                req.copy(
+                    turns =
+                        req.turns.map { t ->
+                            t.copy(facts = t.facts.copy(routingOutcome = "needs_user_pick"))
+                        },
+                )
+            val md = MarkdownRenderer().render(DocumentBuilder.build(pick))
+
+            // The outcome is stated first, in words, before the field list.
+            md shouldContain "> **No answer — the router did not choose an agent"
+            md.substringAfter("### Overview").substringBefore("- **Question:**") shouldContain "No answer"
+
+            // ...and the three post-dispatch stages say what is actually true of them.
+            listOf("### Plan", "### SQL", "### Execution").forEach { heading ->
+                md.substringAfter(heading).substringBefore("###") shouldContain
+                    "_not reached — the turn ended before this stage_"
+            }
+            md.substringAfter("### Plan").substringBefore("###") shouldNotContain "see receipts"
+
+            // A normal turn is untouched: no outcome banner, no not-reached markers.
+            val normal = MarkdownRenderer().render(DocumentBuilder.build(req))
+            normal shouldNotContain "_not reached"
+            normal shouldNotContain "> **No answer"
+        }
+
         "a degraded section says so once, not twice" {
             // Regression guard: the first generated pass emitted "_unavailable — see
             // receipts_" followed by a redundant "_no content_" under every degraded

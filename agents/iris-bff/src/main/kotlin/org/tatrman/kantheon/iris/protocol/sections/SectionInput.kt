@@ -39,7 +39,23 @@ data class TurnFacts(
     val routingOutcome: String = "",
     val userId: String = "",
     val tenantId: String = "",
-)
+) {
+    /**
+     * The turn stopped at routing — Themis declined to pick an agent and asked the
+     * user to. Nothing was dispatched, so no plan, SQL or execution exists for it.
+     */
+    val endedAwaitingPick: Boolean get() = routingOutcome == NEEDS_USER_PICK
+
+    companion object {
+        /**
+         * `iris_turns`-derived routing outcomes. Constants because the value is written
+         * in `ProtocolRoutes` and read in three builders — a magic string in four places
+         * is a rename waiting to go quiet.
+         */
+        const val ROUTED: String = "routed"
+        const val NEEDS_USER_PICK: String = "needs_user_pick"
+    }
+}
 
 /**
  * Shared shape rules for every builder (architecture §3.1).
@@ -94,6 +110,33 @@ internal object SectionShape {
         text: String,
         max: Int,
     ): Pair<String, Boolean> = if (text.length <= max) text to false else text.take(max) to true
+
+    /**
+     * A stage the turn never got to.
+     *
+     * For the three post-dispatch sections only — plan, SQL, execution. When a turn
+     * ends at routing there is no query, so those three do not exist; reporting them
+     * as `SECTION_DEGRADED` claimed we had tried to fetch them and failed, and sent
+     * the reader to receipts that described a failure which had not happened.
+     *
+     * Checked BEFORE [notConsulted] on purpose. "This turn never got here" is true
+     * regardless of which turn the sources were fetched for — it is the stronger
+     * statement, so it wins.
+     *
+     * Deliberately NOT applied to `llm-calls` (Themis's own resolve does call the
+     * gateway, so that section's emptiness really is a source question) or to
+     * `security` (its A-1 capture-gap marker is a separate and still-true fact).
+     */
+    fun notReached(
+        key: String,
+        input: SectionInput,
+        verbosity: Verbosity,
+    ): Section? =
+        if (input.turn.endedAwaitingPick) {
+            start(key, verbosity, SectionStatus.SECTION_NOT_REACHED).build()
+        } else {
+            null
+        }
 
     /**
      * A section whose federated source describes a different turn (contracts A-9).
