@@ -73,7 +73,9 @@ class ProtocolAssembler(
         val startNanos = System.nanoTime()
         val scopeLabel = req.scope.label()
 
-        val inScope = selectTurns(req)
+        val scoped = selectTurns(req)
+        val inScope = scoped.takeLast(config.caps.maxTurns)
+        val turnsDropped = scoped.size - inScope.size
         val recordsByTurn = readRecords(req, inScope)
 
         val sources = fetchSources(inScope, recordsByTurn, req.bearer)
@@ -99,6 +101,7 @@ class ProtocolAssembler(
                     sessionCreatedAt = req.sessionCreatedAt,
                     estate = estate,
                     assemblerVersion = assemblerVersion,
+                    turnsDroppedByCap = turnsDropped,
                 ),
             )
 
@@ -144,23 +147,44 @@ class ProtocolAssembler(
         return rows.filter { it.turnId in wanted }.associateBy { it.turnId }
     }
 
-    /** contracts §3.1 scope semantics; `lastN` takes the most recent N, oldest→newest. */
-    private fun selectTurns(req: Request): List<TurnFacts> =
-        when (req.scope.kindCase) {
-            Scope.KindCase.LAST_TURN -> req.turns.takeLast(1)
-            Scope.KindCase.LAST_N ->
-                req.turns.takeLast(
-                    req.scope.lastN
-                        .toInt()
-                        .coerceAtLeast(0),
-                )
-            else -> req.turns
-        }
+    /**
+     * contracts §3.1 scope semantics; `lastN` takes the most recent N, oldest→newest.
+     *
+     * Then `caps.max-turns` bites (PT-10, review-080 R12). Every other cap in this
+     * feature bounds a section's *content*; nothing bounded the number of turns, so
+     * `scope=session` on a long-lived session built the whole thing in memory and
+     * rendered it into one string. The newest turns are kept — a protocol is read
+     * backwards from "what just happened" — and the shortfall is a receipt, never a
+     * silent elision.
+     */
+    private fun selectTurns(req: Request): List<TurnFacts> {
+        val scoped =
+            when (req.scope.kindCase) {
+                Scope.KindCase.LAST_TURN -> req.turns.takeLast(1)
+                Scope.KindCase.LAST_N ->
+                    req.turns.takeLast(
+                        req.scope.lastN
+                            .toInt()
+                            .coerceAtLeast(0),
+                    )
+                else -> req.turns
+            }
+        return scoped
+    }
 
     /**
      * All four sources concurrently, each in its own `async` with its own failure
      * isolation. Sequential fetching would make a protocol cost the SUM of four
      * network round trips on a debug surface a user is waiting on.
+     *
+     * **They are fetched ONCE, for one turn — the anchor (contracts A-9).** A
+     * session-scope document spans many traces, and v1 does not fan out per turn.
+     * The consequence is load-bearing and used to be silent: the returned
+     * [ProtocolSources] describes the anchor turn and **nothing else**, so it is
+     * stamped with [ProtocolSources.anchorTurnId] and every source-backed section on
+     * every other turn degrades rather than rendering the anchor's facts as its own
+     * (review-080 R1). Before that stamp existed, a 13-turn document printed turn 1's
+     * dispatch target, worker, row count and duration under all 13 headings.
      */
     private suspend fun fetchSources(
         turns: List<TurnFacts>,
@@ -168,34 +192,38 @@ class ProtocolAssembler(
         bearer: String,
     ): ProtocolSources =
         coroutineScope {
-            // Correlate on the FIRST in-scope turn that has pointers. A session-scope
-            // document spans many traces; v1 fetches the primary turn's context rather
-            // than fanning out per turn, and the receipts say how much was consulted.
-            val anchor = turns.firstNotNullOfOrNull { recordsByTurn[it.turnId] } ?: ProtocolRecord.getDefaultInstance()
+            // The anchor is the first in-scope turn that HAS a record — not simply the
+            // first turn, which may never have been captured.
+            val anchorTurn = turns.firstOrNull { recordsByTurn.containsKey(it.turnId) }
+            val anchor = anchorTurn?.let { recordsByTurn[it.turnId] } ?: ProtocolRecord.getDefaultInstance()
             val p = anchor.pointers
 
             val gatewayJob =
                 async {
-                    gateway?.fetch(p.gatewayTurnRef, p.traceId, config.caps.serviceLogsLines, bearer)
-                        ?: SourceOutcome.SkippedByConfig
+                    gateway?.fetch(p.gatewayTurnRef, p.traceId, config.caps.llmCallRows, bearer)
+                        ?: SourceOutcome.SkippedByConfig()
                 }
             val lokiJob =
                 async {
                     loki?.fetch(p.traceId, p.logWindowFrom, p.logWindowTo, config.caps.serviceLogsLines, bearer)
-                        ?: SourceOutcome.SkippedByConfig
+                        ?: SourceOutcome.SkippedByConfig()
                 }
-            val tempoJob = async { tempo?.fetch(p.traceId, bearer) ?: SourceOutcome.SkippedByConfig }
+            val tempoJob = async { tempo?.fetch(p.traceId, bearer) ?: SourceOutcome.SkippedByConfig() }
             val explainJob =
                 async {
                     // Only reconstruct when the turn carried no plan of its own (S-1).
+                    // The reason travels with the skip: this is NOT a config decision, and
+                    // reporting it as one told the reader their deployment was misconfigured
+                    // when it was working correctly (review-080 R8).
                     if (p.planIdsCount > 0) {
-                        SourceOutcome.SkippedByConfig
+                        SourceOutcome.SkippedByConfig("turn carried its own plan (S-1: not reconstructed)")
                     } else {
-                        explain?.explainSql(p.sqlInline) ?: SourceOutcome.SkippedByConfig
+                        explain?.explainSql(p.sqlInline) ?: SourceOutcome.SkippedByConfig()
                     }
                 }
 
             ProtocolSources(
+                anchorTurnId = anchorTurn?.turnId.orEmpty(),
                 gateway = gatewayJob.await().fold({ it }, { GatewaySource(status = it.first, detail = it.second) }),
                 loki = lokiJob.await().fold({ it }, { LokiSource(status = it.first, detail = it.second) }),
                 tempo = tempoJob.await().fold({ it }, { TempoSource(status = it.first, detail = it.second) }),
@@ -243,8 +271,8 @@ class ProtocolAssembler(
             when (this) {
                 is SourceOutcome.Ok -> onOk(payload)
                 is SourceOutcome.Degraded -> onOther(SourceStatus.DEGRADED to reason)
-                SourceOutcome.SkippedByConfig ->
-                    onOther(SourceStatus.SKIPPED_BY_CONFIG to "source not configured")
+                is SourceOutcome.SkippedByConfig ->
+                    onOther(SourceStatus.SKIPPED_BY_CONFIG to reason)
             }
     }
 }

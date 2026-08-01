@@ -26,12 +26,18 @@ object ReceiptsSectionBuilder {
     /** The `records` source is the BFF's own table — always consulted, never remote. */
     private const val RECORDS = "records"
 
+    /** Not a source: facts about what the document itself covers (A-9, max-turns cap). */
+    private const val SCOPE = "scope"
+
     fun build(
         records: List<ProtocolRecord>,
         sources: ProtocolSources,
         profile: ProtocolProfile,
         estate: String,
         assemblerVersion: String,
+        /** Turn seq → id, in document order; used for the A-9 scope receipt. */
+        turnIds: List<String> = emptyList(),
+        turnsDroppedByCap: Int = 0,
     ): ReceiptsSection {
         val b =
             ReceiptsSection
@@ -55,6 +61,42 @@ object ReceiptsSectionBuilder {
                     },
                 ),
         )
+
+        // **Which turn the federated sources describe (A-9).** v1 fetches them once, for
+        // the anchor turn; every other turn's source-backed sections degrade. Before this
+        // line existed the assembler's own KDoc claimed "the receipts say how much was
+        // consulted" and nothing did — the reader had no way to learn that twelve of
+        // thirteen turns were never queried. Only emitted for multi-turn documents,
+        // where the distinction exists.
+        if (turnIds.size > 1) {
+            val at = turnIds.indexOf(sources.anchorTurnId)
+            b.addSources(
+                SourceReceipt
+                    .newBuilder()
+                    .setSource(SCOPE)
+                    .setStatus(SourceStatus.PARTIAL.wire)
+                    .setDetail(
+                        if (at >= 0) {
+                            "federated sources consulted for turn ${at + 1} of ${turnIds.size} " +
+                                "(v1 fetches per document, not per turn)"
+                        } else {
+                            "no turn in scope carried a record; no federated source was consulted"
+                        },
+                    ),
+            )
+        }
+
+        // A capped scope is a shortfall like any other, and belongs where the reader
+        // already looks for shortfalls rather than in a log line nobody reads.
+        if (turnsDroppedByCap > 0) {
+            b.addSources(
+                SourceReceipt
+                    .newBuilder()
+                    .setSource(SCOPE)
+                    .setStatus(SourceStatus.PARTIAL.wire)
+                    .setDetail("$turnsDroppedByCap older turn(s) dropped by the max-turns cap"),
+            )
+        }
 
         sources.statuses().forEach { (name, status) ->
             b.addSources(
@@ -96,13 +138,14 @@ object ReceiptsSectionBuilder {
             // client unwired the source is `skipped-by-config` with no detail, and the
             // old fallback answered "plan carried" — a claim about the plan on a line
             // that means "we never looked" (review-079 R13).
+            //
+            // The `reconstructed` and "plan carried" arms that used to sit here were
+            // UNREACHABLE: every path that sets those also sets a detail, so `ifBlank`
+            // never fired. Dead reasoning in a receipts builder is worse than none —
+            // it reads as a case somebody covered (review-080 R8).
             "translate-explain" ->
                 s.explain.detail.ifBlank {
-                    when {
-                        s.explain.status == SourceStatus.SKIPPED_BY_CONFIG -> "not wired in this deployment"
-                        s.explain.reconstructed -> "plan reconstructed (S-1)"
-                        else -> "plan carried"
-                    }
+                    if (s.explain.status == SourceStatus.SKIPPED_BY_CONFIG) "not wired in this deployment" else ""
                 }
             else -> ""
         }

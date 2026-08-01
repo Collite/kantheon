@@ -94,4 +94,28 @@ internal object SectionShape {
         text: String,
         max: Int,
     ): Pair<String, Boolean> = if (text.length <= max) text to false else text.take(max) to true
+
+    /**
+     * A section whose federated source describes a different turn (contracts A-9).
+     *
+     * v1 fetches Loki/Tempo/gateway/Explain once, for the anchor turn. Sections that
+     * read those sources and have no per-turn key of their own must therefore say
+     * **"not consulted for this turn"** rather than render the anchor's facts — which
+     * is what they did, thirteen times in a thirteen-turn document (review-080 R1).
+     *
+     * It is deliberately checked BEFORE the source-status checks. "We did not look
+     * here" and "the source was down" are different facts, and the nearer one is the
+     * true one: reporting a Loki outage on a turn whose logs were never requested
+     * would send a reader to fix the wrong thing.
+     */
+    fun notConsulted(
+        key: String,
+        input: SectionInput,
+        verbosity: Verbosity,
+    ): Section? =
+        if (input.sources.describes(input.turn.turnId)) {
+            null
+        } else {
+            start(key, verbosity, SectionStatus.SECTION_DEGRADED).build()
+        }
 }

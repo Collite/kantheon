@@ -16,8 +16,19 @@ sealed interface SourceOutcome<out T> {
         val reason: String,
     ) : SourceOutcome<Nothing>
 
-    /** The operator switched this source off — distinct from "we tried and failed". */
-    data object SkippedByConfig : SourceOutcome<Nothing>
+    /**
+     * We deliberately did not consult this source — distinct from "we tried and failed".
+     *
+     * [reason] defaults to the operator-switched-off case, which is the common one, but
+     * it is a parameter because *not every skip is a config decision*. The assembler
+     * skips `translate-explain` when the turn carried its own plan (S-1: never
+     * reconstruct what already exists), and reporting that as "disabled by config" told
+     * the reader something false about their own deployment (review-080 R8). A skip
+     * carries its own reason or it will be attributed to the last one somebody wrote.
+     */
+    data class SkippedByConfig(
+        val reason: String = "source not configured",
+    ) : SourceOutcome<Nothing>
 }
 
 /** Run [block], mapping any throw into [SourceOutcome.Degraded] tagged with [source]. */

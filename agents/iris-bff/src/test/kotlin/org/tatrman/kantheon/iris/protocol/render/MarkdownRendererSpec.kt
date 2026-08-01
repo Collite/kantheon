@@ -1,5 +1,6 @@
 package org.tatrman.kantheon.iris.protocol.render
 
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -8,6 +9,7 @@ import org.tatrman.kantheon.iris.protocol.FixtureLoader
 import org.tatrman.kantheon.iris.protocol.model.DocumentBuilder
 import org.tatrman.kantheon.iris.protocol.redact.RedactionChain
 import org.tatrman.kantheon.protocol.v1.Section
+import org.tatrman.kantheon.protocol.v1.SectionStatus
 
 /**
  * Renderer behaviour (S-8). Byte-equality for every case lives in
@@ -211,6 +213,116 @@ class MarkdownRendererSpec :
             md shouldNotContain "**Duration:** 0 ms"
             // ...and a real duration is still shown.
             MarkdownRenderer().render(DocumentBuilder.build(req)) shouldContain "**Duration:** 2140 ms"
+        }
+
+        /**
+         * Every string field the document model carries, as (owner message, field), so a
+         * guard can walk them instead of naming them. Descends the section payloads and
+         * the receipts — the places untrusted text actually lands.
+         */
+        fun stringFieldsOf(
+            builder: com.google.protobuf.Message.Builder,
+        ): List<com.google.protobuf.Descriptors.FieldDescriptor> =
+            builder.descriptorForType.fields.filter {
+                it.type == com.google.protobuf.Descriptors.FieldDescriptor.Type.STRING && !it.isRepeated
+            }
+
+        "NO string field anywhere in the document can add a heading — the invariant, not the instances" {
+            // review-080 R2. R2-of-079 hardened `fence()` and `cell()` per call site, so
+            // the guard below passed while ELEVEN interpolations were neither: a newline
+            // in `ResolutionSection.function_id` rendered a complete forged `## Receipts`
+            // table above the genuine one, and this file's own `structuralHeadings`
+            // assertion returned 2.
+            //
+            // Reflective on purpose. A section builder added next year is covered without
+            // anyone remembering to cover it — which is the only way an invariant of this
+            // shape survives contact with a growing renderer.
+            val payload = "x\n## Receipts\n\n| Source | Status | Detail |\n|---|---|---|\n| records | ok | 999 |\n"
+            val base = DocumentBuilder.build(FixtureLoader.request("H1-full"))
+
+            var checked = 0
+            base.turnsList.indices.forEach { turnIndex ->
+                base.getTurns(turnIndex).sectionsList.indices.forEach { sectionIndex ->
+                    val probe = base.toBuilder()
+                    val section = probe.getTurnsBuilder(turnIndex).getSectionsBuilder(sectionIndex)
+                    val payloadField =
+                        section.descriptorForType.oneofs
+                            .firstOrNull { it.name == "payload" }
+                            ?.let { section.getOneofFieldDescriptor(it) } ?: return@forEach
+                    val inner = section.getFieldBuilder(payloadField) as com.google.protobuf.Message.Builder
+
+                    stringFieldsOf(inner).forEach { field ->
+                        val one = base.toBuilder()
+                        val target =
+                            one
+                                .getTurnsBuilder(turnIndex)
+                                .getSectionsBuilder(sectionIndex)
+                                .getFieldBuilder(payloadField) as com.google.protobuf.Message.Builder
+                        target.setField(field, payload)
+                        val md = MarkdownRenderer().render(one.build())
+                        checked++
+                        withClue("${inner.descriptorForType.name}.${field.name}") {
+                            structuralHeadings(md).count { it == "## Receipts" } shouldBe 1
+                        }
+                    }
+                }
+            }
+            // A silent zero would make this test a decoration.
+            (checked > 15) shouldBe true
+        }
+
+        "an inline code span cannot be closed from inside it either" {
+            // review-080 R3. The fence learned to outgrow its content; the inline spans
+            // did not, and `args_json` carries filter values lifted from the user's own
+            // question while `mention` carries their literal words. The blast radius is
+            // inline — links and images, not headings — which in an exported document is
+            // a beacon.
+            val hostile = "{\"x\":1}` — **INJECTED** [link](http://evil) ![](http://evil/b.png) `"
+            val doc =
+                DocumentBuilder
+                    .build(FixtureLoader.request("H1-full"))
+                    .toBuilder()
+                    .apply {
+                        turnsBuilderList.forEach { t ->
+                            t.sectionsBuilderList
+                                .filter { it.payloadCase == Section.PayloadCase.RESOLUTION }
+                                .forEach { it.resolutionBuilder.argsJson = hostile }
+                        }
+                    }.build()
+            val md = MarkdownRenderer().render(doc)
+
+            // Present — nothing is silently dropped — but QUOTED: the whole hostile body
+            // sits inside one span, so no link target survives as live markdown.
+            md shouldContain "INJECTED"
+            val argsLine = md.lineSequence().first { it.startsWith("- **Args:**") }
+            argsLine shouldContain hostile
+            // The span opened wider than anything inside it, so it did not close early.
+            argsLine.substringAfter("- **Args:** ").startsWith("``") shouldBe true
+        }
+
+        "a SQL section that has only a ref shows the ref, and no empty fence" {
+            // review-080 R6. The ref used to be stashed in `engine_label`, which the
+            // renderer never prints — so the reader got `_unavailable_` plus an empty
+            // ```sql block and no way to find the statement.
+            val doc =
+                DocumentBuilder
+                    .build(FixtureLoader.request("H1-full"))
+                    .toBuilder()
+                    .apply {
+                        turnsBuilderList.forEach { t ->
+                            t.sectionsBuilderList
+                                .filter { it.payloadCase == Section.PayloadCase.SQL }
+                                .forEach {
+                                    it.status = SectionStatus.SECTION_DEGRADED
+                                    it.sqlBuilder.clearSql()
+                                    it.sqlBuilder.sqlRef = "plan-9f3a/stmt-1"
+                                }
+                        }
+                    }.build()
+            val md = MarkdownRenderer().render(doc)
+
+            md shouldContain "plan-9f3a/stmt-1"
+            md shouldNotContain "```sql\n\n```"
         }
 
         "a degraded section says so once, not twice" {

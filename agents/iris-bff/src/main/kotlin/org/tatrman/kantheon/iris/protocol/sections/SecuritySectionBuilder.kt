@@ -24,6 +24,21 @@ object SecuritySectionBuilder {
     const val KEY: String = "protocol.section.security"
     const val CAPTURE: String = "security_applied"
 
+    /**
+     * The capture is a **set**, length-delimited (contracts §1 `RecordCaptures`).
+     *
+     * `SecurityRuleApplied.parseFrom(bytes)` — what this used to do — reads a
+     * concatenation of N rules as ONE rule without erroring, because proto merge
+     * semantics fold repeated scalars last-wins. A turn with three RLS rules reported
+     * the third, and looked correct doing it (review-080 R5). Framing the stream is
+     * what makes the count recoverable; parsing it in a loop is what makes the
+     * section answer the question it claims to answer: *which* rules applied.
+     */
+    internal fun appliedRules(bytes: com.google.protobuf.ByteString): List<SecurityRuleApplied> =
+        bytes.newInput().use { stream ->
+            generateSequence { SecurityRuleApplied.parseDelimitedFrom(stream) }.toList()
+        }
+
     fun build(input: SectionInput): Section =
         SectionShape.guarded(KEY, input) { verbosity ->
             val gap =
@@ -41,24 +56,20 @@ object SecuritySectionBuilder {
                     .build()
             }
 
-            val applied = SecurityRuleApplied.parseFrom(bytes)
-            SectionShape
-                .start(KEY, verbosity)
-                .setSecurity(
-                    SecuritySection
+            val security = SecuritySection.newBuilder().setPolicySource("ttr-validate")
+            appliedRules(bytes).forEach { applied ->
+                security.addRules(
+                    SecurityRuleView
                         .newBuilder()
-                        .setPolicySource("ttr-validate")
-                        .addRules(
-                            SecurityRuleView
-                                .newBuilder()
-                                .setRuleId(applied.ruleId)
-                                .setDescription(applied.predicateSummary)
-                                // A-1: the upstream deliberately omits the predicate body
-                                // ("leak-safe"), so it is masked at the SOURCE — not by our
-                                // redactor. Reporting it as masked is the honest rendering.
-                                .setPredicate("")
-                                .setPredicateMasked(true),
-                        ),
-                ).build()
+                        .setRuleId(applied.ruleId)
+                        .setDescription(applied.predicateSummary)
+                        // A-1: the upstream deliberately omits the predicate body
+                        // ("leak-safe"), so it is masked at the SOURCE — not by our
+                        // redactor. Reporting it as masked is the honest rendering.
+                        .setPredicate("")
+                        .setPredicateMasked(true),
+                )
+            }
+            SectionShape.start(KEY, verbosity).setSecurity(security).build()
         }
 }

@@ -34,22 +34,38 @@ object ErrorsSectionBuilder {
                 )
             }
 
-            if (input.sources.loki.status == SourceStatus.OK) {
-                input.sources.loki.groups.forEach { group ->
-                    group.lines
-                        .filter { it.level.uppercase() in ERROR_LEVELS }
-                        .forEach { line ->
-                            b.addItems(
-                                ErrorItem
-                                    .newBuilder()
-                                    .setSource(group.serviceName)
-                                    .setCode(line.level.uppercase())
-                                    .setMessage(line.body),
-                            )
-                        }
+            // Log-derived errors are read from the RAW source, not from the service-logs
+            // section's profile-filtered view: `service-logs = summary` must never hide an
+            // error, only shorten the log listing.
+            //
+            // Capped for the same reason every other section is (PT-10, review-080 R12):
+            // a turn that failed 900 times would otherwise put 900 items in a document
+            // that already renders those same lines under service-logs. The cap is
+            // `errors-items`, deliberately NOT the log cap — borrowing that one would
+            // let `service-logs = summary` bound the errors it must never hide.
+            var truncated = false
+            if (input.sources.loki.status == SourceStatus.OK && input.sources.describes(input.turn.turnId)) {
+                val lines =
+                    input.sources.loki.groups.flatMap { group ->
+                        group.lines.filter { it.level.uppercase() in ERROR_LEVELS }.map { group.serviceName to it }
+                    }
+                val kept = lines.take(input.caps.errorItems)
+                truncated = kept.size < lines.size
+                kept.forEach { (service, line) ->
+                    b.addItems(
+                        ErrorItem
+                            .newBuilder()
+                            .setSource(service)
+                            .setCode(line.level.uppercase())
+                            .setMessage(line.body),
+                    )
                 }
             }
 
-            SectionShape.start(KEY, verbosity).setErrors(b).build()
+            SectionShape
+                .start(KEY, verbosity)
+                .setTruncated(truncated)
+                .setErrors(b)
+                .build()
         }
 }

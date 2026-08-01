@@ -78,9 +78,23 @@ object FixtureLoader {
     fun config(case: String): ProtocolConfig =
         ProtocolConfig.from(ConfigFactory.parseFile(File(dir(case), "config.conf")))
 
-    fun sources(case: String): ProtocolSources {
+    /**
+     * The case's canned sources, stamped with the anchor turn (contracts A-9).
+     *
+     * The stamp is **derived here the way the assembler derives it** — first in-scope
+     * turn that has a record — rather than declared in a fixture file, because the
+     * four files under `sources/` describe one turn's context between them and there
+     * is nowhere sensible to write it. Without the stamp a multi-turn case renders the
+     * anchor's execution, logs and plan under every turn heading, which is exactly what
+     * `session-split`'s golden used to assert (review-080 R1).
+     */
+    fun sources(
+        case: String,
+        anchorTurnId: String = "",
+    ): ProtocolSources {
         val d = File(dir(case), "sources")
         return ProtocolSources(
+            anchorTurnId = anchorTurnId,
             gateway = json.decodeFromString<GatewaySource>(File(d, "gateway.json").readText()),
             loki = json.decodeFromString<LokiSource>(File(d, "loki.json").readText()),
             tempo = json.decodeFromString<TempoSource>(File(d, "tempo.json").readText()),
@@ -132,7 +146,11 @@ object FixtureLoader {
                         record = records[f.turnId] ?: ProtocolRecord.getDefaultInstance(),
                     )
                 },
-            sources = sources(case),
+            sources =
+                sources(
+                    case,
+                    anchorTurnId = turns.firstOrNull { records.containsKey(it.turnId) }?.turnId.orEmpty(),
+                ),
             config = cfg,
             sessionCreatedAt = "2026-07-30T09:00:00+02:00",
             estate = "hartland",

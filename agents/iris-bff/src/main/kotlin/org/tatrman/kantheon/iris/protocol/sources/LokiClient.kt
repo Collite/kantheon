@@ -51,7 +51,7 @@ class LokiClient(
         limit: Int,
         bearer: String,
     ): SourceOutcome<LokiSource> {
-        if (baseUrl.isBlank()) return SourceOutcome.SkippedByConfig
+        if (baseUrl.isBlank()) return SourceOutcome.SkippedByConfig()
         if (traceId.isBlank()) {
             // Without a trace id there is nothing to correlate on, and a bare time
             // window would return every service's lines for every user in that second.
@@ -104,7 +104,14 @@ class LokiClient(
                 ?.jsonObject
                 ?.get("result")
                 ?.jsonArray
-                ?: return LokiSource(status = SourceStatus.OK, detail = "0 line(s)", groups = emptyList())
+                ?: return LokiSource(status = SourceStatus.OK, detail = "0 line(s)")
+
+        // Loki applies `limit` ACROSS all streams, server-side. Reaching it means the
+        // result set was cut before it ever got here — the one truncation
+        // `dropped_by_cap` structurally cannot see, because that counts only what this
+        // client dropped (review-080 R4). Equality is the signal Loki gives us; there
+        // is no "there was more" flag in the response.
+        val returned = streams.sumOf { it.jsonObject["values"]?.jsonArray?.size ?: 0 }
 
         val groups =
             streams.map { stream ->
@@ -136,10 +143,14 @@ class LokiClient(
                     droppedByCap = (values.size - kept.size).coerceAtLeast(0),
                 )
             }
+        val serverTruncated = returned >= limit
         return LokiSource(
             status = SourceStatus.OK,
-            detail = "${groups.sumOf { it.lines.size }} line(s)",
+            detail =
+                "${groups.sumOf { it.lines.size }} line(s)" +
+                    if (serverTruncated) " (loki page limit $limit reached — there may be more)" else "",
             groups = groups,
+            serverTruncated = serverTruncated,
         )
     }
 

@@ -22,6 +22,7 @@ object ServiceLogsSectionBuilder {
 
     fun build(input: SectionInput): Section =
         SectionShape.guarded(KEY, input) { verbosity ->
+            SectionShape.notConsulted(KEY, input, verbosity)?.let { return@guarded it }
             val loki = input.sources.loki
             if (loki.status != SourceStatus.OK) {
                 return@guarded SectionShape.start(KEY, verbosity, SectionStatus.SECTION_DEGRADED).build()
@@ -36,7 +37,9 @@ object ServiceLogsSectionBuilder {
                     { true }
                 }
 
-            var truncated = false
+            // Loki's own page limit counts as truncation even though no group reports a
+            // drop — the lines were cut server-side, before this process saw them.
+            var truncated = loki.serverTruncated
             val b = ServiceLogsSection.newBuilder()
             loki.groups.forEach { group ->
                 val eligible = group.lines.filter { keepLine(it.level) }

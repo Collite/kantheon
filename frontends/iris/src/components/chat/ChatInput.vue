@@ -338,15 +338,16 @@ const handleProtocol = async (scope: ProtocolScope) => {
       downloadName: protocolFilename(session.sessionId.value, protocolScopeSlug(scope)),
     })
   } catch (err) {
+    // No 403 branch: contracts A-6 collapsed "no such session" and "not yours" into a
+    // byte-identical 404, so the endpoint cannot answer 403 and a branch for it would
+    // be a promise the BFF does not keep.
     const status = err instanceof ProtocolRequestError ? err.status : 0
     const summary =
       status === 400
         ? t('slash.protocolBadScope')
-        : status === 403
-          ? t('slash.protocolForbidden')
-          : status === 404
-            ? t('slash.protocolNoSession')
-            : t('slash.protocolFailed')
+        : status === 404
+          ? t('slash.protocolNoSession')
+          : t('slash.protocolFailed')
     console.warn('[protocol] request failed', err)
     toast.add({ severity: 'error', summary, detail: (err as Error).message, life: 3000 })
   } finally {
