@@ -31,7 +31,7 @@ class ExplainClient(
         sql: String,
         dialect: SqlDialect = SqlDialect.SQL_DIALECT_UNSPECIFIED,
     ): SourceOutcome<ReconstructedPlan> {
-        if (!enabled) return SourceOutcome.SkippedByConfig
+        if (!enabled) return SourceOutcome.SkippedByConfig()
         if (sql.isBlank()) return SourceOutcome.Degraded("translate-explain: turn carried no SQL to explain")
         return guardSource("translate-explain") {
             val req =
@@ -78,7 +78,7 @@ class ExplainClient(
             is SourceOutcome.Degraded ->
                 ExplainSource(status = SourceStatus.DEGRADED, detail = outcome.reason)
 
-            SourceOutcome.SkippedByConfig ->
+            is SourceOutcome.SkippedByConfig ->
                 ExplainSource(status = SourceStatus.SKIPPED_BY_CONFIG, detail = "translate-explain disabled by config")
         }
 }

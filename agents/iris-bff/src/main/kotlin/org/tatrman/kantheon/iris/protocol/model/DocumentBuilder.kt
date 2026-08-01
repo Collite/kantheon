@@ -50,6 +50,8 @@ object DocumentBuilder {
         val sessionCreatedAt: String = "",
         val estate: String = "kantheon",
         val assemblerVersion: String = "1.0",
+        /** Turns the `max-turns` cap removed from the scope; reported in the receipts. */
+        val turnsDroppedByCap: Int = 0,
     )
 
     /** One turn's inputs: the row's own facts plus its record (absent if never captured). */
@@ -133,6 +135,8 @@ object DocumentBuilder {
                     profile = profile,
                     estate = req.estate,
                     assemblerVersion = req.assemblerVersion,
+                    turnIds = req.turns.map { it.facts.turnId },
+                    turnsDroppedByCap = req.turnsDroppedByCap,
                 ),
             ).setSchemaVersion(SchemaVersion.CURRENT)
             .setGeneratedAt(req.generatedAt)

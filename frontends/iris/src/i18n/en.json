@@ -182,7 +182,6 @@
     "protocol": "Render this session's execution path as a protocol document",
     "protocolUsage": "Usage: /protocol [session|N] — bare = last turn",
     "protocolBadScope": "That scope is not valid",
-    "protocolForbidden": "You are not a member of this session",
     "protocolNoSession": "Session not found",
     "protocolFailed": "Could not build the protocol",
     "protocolInFlight": "A protocol is already being built…",

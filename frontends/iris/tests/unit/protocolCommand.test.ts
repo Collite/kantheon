@@ -30,7 +30,8 @@ describe('/protocol — registry entry', () => {
       'protocol',
       'protocolUsage',
       'protocolBadScope',
-      'protocolForbidden',
+      // No `protocolForbidden`: contracts A-6 made the endpoint answer 404 for both
+      // "no such session" and "not yours", so there is no 403 to describe.
       'protocolNoSession',
       'protocolFailed',
       'protocolInFlight',

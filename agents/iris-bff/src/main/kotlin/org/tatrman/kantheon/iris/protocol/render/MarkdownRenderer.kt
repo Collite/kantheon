@@ -71,13 +71,13 @@ class MarkdownRenderer(
         val h = doc.header
         sb.line("| | |")
         sb.line("|---|---|")
-        sb.line("| Session | `${doc.sessionId}` |")
+        sb.line("| Session | ${cell(code(doc.sessionId))} |")
         if (h.userId.isNotBlank()) sb.line("| User | ${cell(h.userId)} |")
         if (h.tenantId.isNotBlank()) sb.line("| Tenant | ${cell(h.tenantId)} |")
         if (h.agentIdsCount > 0) sb.line("| Agents | ${cell(h.agentIdsList.joinToString(", "))} |")
         sb.line("| Turns | ${h.turnCountInScope} of ${h.turnCountTotal} |")
-        sb.line("| Generated | ${doc.generatedAt} |")
-        sb.line("| Schema | `${doc.schemaVersion}` |")
+        sb.line("| Generated | ${cell(doc.generatedAt)} |")
+        sb.line("| Schema | ${cell(code(doc.schemaVersion))} |")
     }
 
     private fun renderIndex(
@@ -89,7 +89,9 @@ class MarkdownRenderer(
         sb.blank()
         doc.turnsList.forEach { turn ->
             val question = turn.headerQuestion().ifBlank { "(no question)" }
-            sb.line("${turn.seq}. [${question.oneLine()}](#${turn.anchor()})")
+            // The link TEXT is untrusted (it is the question); `]` would close it early
+            // and turn the rest into a live link target. The anchor is ours.
+            sb.line("${turn.seq}. [${text(question).replace("[", "\\[").replace("]", "\\]")}](#${turn.anchor()})")
         }
     }
 
@@ -99,7 +101,7 @@ class MarkdownRenderer(
         split: Boolean,
     ) {
         val title = turn.headerQuestion().ifBlank { turn.turnId }
-        sb.line("## Turn ${turn.seq} — ${title.oneLine()}")
+        sb.line("## Turn ${turn.seq} — ${text(title)}")
         if (split) {
             // The anchor GitHub-flavoured markdown would derive from the heading is
             // not stable across renderers, so it is emitted explicitly.
@@ -145,8 +147,18 @@ class MarkdownRenderer(
         return when (section.payloadCase) {
             Section.PayloadCase.SERVICE_LOGS -> {
                 val dropped = section.serviceLogs.groupsList.sumOf { it.droppedByCap }
-                "_…truncated — $dropped more lines; source: $ref" + "_"
+                // Zero dropped with the section still truncated means LOKI cut the result
+                // set, server-side, before this process saw a line — so there is no honest
+                // N and A-4's count-free variant applies. "0 more lines" would state
+                // something false about the one thing this marker exists to be true about.
+                if (dropped > 0) {
+                    "_…truncated — $dropped more lines; source: $ref" + "_"
+                } else {
+                    "_…truncated by the loki page limit; source: $ref" + "_"
+                }
             }
+
+            Section.PayloadCase.ERRORS -> "_…truncated by the errors-items cap; source: $ref" + "_"
 
             Section.PayloadCase.SQL -> "_…truncated by the sql-chars cap; source: $ref" + "_"
             Section.PayloadCase.LLM_CALLS -> "_…truncated by the llm-message-chars cap; source: $ref" + "_"
@@ -162,12 +174,12 @@ class MarkdownRenderer(
         when (section.payloadCase) {
             Section.PayloadCase.HEADER -> {
                 val h = section.header
-                sb.line("- **Question:** ${h.question.oneLine()}")
-                sb.line("- **Agent:** ${h.agentId}")
-                if (h.routingOutcome.isNotBlank()) sb.line("- **Routing:** ${h.routingOutcome}")
-                sb.line("- **Status:** ${h.status}")
-                sb.line("- **Origin:** ${h.origin}")
-                if (h.startedAt.isNotBlank()) sb.line("- **Started:** ${h.startedAt}")
+                sb.line("- **Question:** ${text(h.question)}")
+                sb.line("- **Agent:** ${text(h.agentId)}")
+                if (h.routingOutcome.isNotBlank()) sb.line("- **Routing:** ${text(h.routingOutcome)}")
+                sb.line("- **Status:** ${text(h.status)}")
+                sb.line("- **Origin:** ${text(h.origin)}")
+                if (h.startedAt.isNotBlank()) sb.line("- **Started:** ${text(h.startedAt)}")
                 // Omitted rather than printed as zero. `iris_turns` stores no per-turn
                 // duration, so this is 0 on every live document — and next to the
                 // execution section's real number it read as a broken field rather than
@@ -177,23 +189,26 @@ class MarkdownRenderer(
 
             Section.PayloadCase.RESOLUTION -> {
                 val r = section.resolution
-                if (r.functionId.isNotBlank()) sb.line("- **Function:** `${r.functionId}`")
-                if (r.argsJson.isNotBlank()) sb.line("- **Args:** `${r.argsJson.oneLine()}`")
+                if (r.functionId.isNotBlank()) sb.line("- **Function:** ${code(r.functionId)}")
+                if (r.argsJson.isNotBlank()) sb.line("- **Args:** ${code(r.argsJson)}")
                 sb.line("- **Confidence:** ${r.confidence}")
                 sb.line("- **Layer hit:** ${r.layerHit}")
                 if (r.needsUserPickShown) sb.line("- **Needed a user pick:** yes")
                 if (r.alternatesOfferedCount >
                     0
                 ) {
-                    sb.line("- **Alternates:** ${r.alternatesOfferedList.joinToString(", ")}")
+                    sb.line("- **Alternates:** ${text(r.alternatesOfferedList.joinToString(", "))}")
                 }
-                if (r.rationale.isNotBlank()) sb.line("- **Rationale:** ${r.rationale.oneLine()}")
+                if (r.rationale.isNotBlank()) sb.line("- **Rationale:** ${text(r.rationale)}")
                 if (r.bindingsCount > 0) {
                     sb.blank()
                     sb.line("| Mention | Bound to | Confidence |")
                     sb.line("|---|---|---|")
                     r.bindingsList.forEach {
-                        sb.line("| ${cell(it.mention)} | `${cell(it.boundRef)}` | ${it.confidence} |")
+                        // `code()` first, then escape pipes: the span delimiter is chosen
+                        // from the raw body, and a backslash inserted before it would be
+                        // counted as content and widen nothing.
+                        sb.line("| ${cell(it.mention)} | ${cell(code(it.boundRef))} | ${it.confidence} |")
                     }
                 }
             }
@@ -214,10 +229,10 @@ class MarkdownRenderer(
                     }
                     l.callsList.filter { it.messagesCount > 0 }.forEach { call ->
                         sb.blank()
-                        sb.line("**Call `${call.callRef}`**")
+                        sb.line("**Call ${code(call.callRef)}**")
                         call.messagesList.forEach { m ->
                             sb.blank()
-                            sb.line("_${m.role}${if (m.contentRedacted) " (redacted)" else ""}:_")
+                            sb.line("_${text(m.role)}${if (m.contentRedacted) " (redacted)" else ""}:_")
                             sb.blank()
                             sb.fence("", m.content)
                         }
@@ -234,7 +249,7 @@ class MarkdownRenderer(
                 if (q.entityQuery.isBlank()) sb.line("_no query was formed_") else sb.fence("", q.entityQuery)
                 if (q.queryKind.isNotBlank()) {
                     sb.blank()
-                    sb.line("- **Kind:** ${q.queryKind}")
+                    sb.line("- **Kind:** ${text(q.queryKind)}")
                 }
             }
 
@@ -249,10 +264,21 @@ class MarkdownRenderer(
             }
 
             Section.PayloadCase.SQL -> {
-                sb.fence("sql", section.sql.sql)
-                if (section.sql.literalsMasked) {
-                    sb.blank()
-                    sb.line("_Literals masked by profile._")
+                val s = section.sql
+                if (s.sql.isBlank()) {
+                    // No empty fences. A ref-only turn used to render `_unavailable_`
+                    // followed by an empty ```sql block, with the ref itself nowhere in
+                    // the document — it had been stashed in `engine_label`, which nothing
+                    // prints (review-080 R6). An empty block says the statement was empty;
+                    // the truth is that it was not inlined, and the ref is how a reader
+                    // goes and gets it.
+                    if (s.sqlRef.isNotBlank()) sb.line("_statement not inlined; ref: ${code(s.sqlRef)}_")
+                } else {
+                    sb.fence("sql", s.sql)
+                    if (s.literalsMasked) {
+                        sb.blank()
+                        sb.line("_Literals masked by profile._")
+                    }
                 }
             }
 
@@ -261,7 +287,7 @@ class MarkdownRenderer(
                 if (s.rulesCount == 0) {
                     sb.line(
                         if (section.status == SectionStatus.SECTION_DEGRADED) {
-                            "_Not captured: ${s.policySource.ifBlank { "unavailable" }}_"
+                            "_Not captured: ${text(s.policySource.ifBlank { "unavailable" })}_"
                         } else {
                             "_No row-level rules were applied to this turn._"
                         },
@@ -270,20 +296,20 @@ class MarkdownRenderer(
                     sb.line("| Rule | Description | Predicate |")
                     sb.line("|---|---|---|")
                     s.rulesList.forEach {
-                        val predicate = if (it.predicateMasked) "_masked_" else "`${cell(it.predicate)}`"
-                        sb.line("| `${cell(it.ruleId)}` | ${cell(it.description)} | $predicate |")
+                        val predicate = if (it.predicateMasked) "_masked_" else cell(code(it.predicate))
+                        sb.line("| ${cell(code(it.ruleId))} | ${cell(it.description)} | $predicate |")
                     }
                     if (s.policySource.isNotBlank()) {
                         sb.blank()
-                        sb.line("- **Policy source:** ${s.policySource}")
+                        sb.line("- **Policy source:** ${text(s.policySource)}")
                     }
                 }
             }
 
             Section.PayloadCase.EXECUTION -> {
                 val e = section.execution
-                sb.line("- **Target:** ${e.dispatchTarget.ifBlank { "—" }}")
-                sb.line("- **Worker:** ${e.worker.ifBlank { "—" }}")
+                sb.line("- **Target:** ${text(e.dispatchTarget).ifBlank { "—" }}")
+                sb.line("- **Worker:** ${text(e.worker).ifBlank { "—" }}")
                 sb.line("- **Rows:** ${if (e.rowCount < 0) "unknown" else e.rowCount.toString()}")
                 sb.line("- **Duration:** ${e.durationMs} ms")
             }
@@ -300,7 +326,7 @@ class MarkdownRenderer(
                 } else {
                     groups.forEachIndexed { index, g ->
                         if (index > 0) sb.blank()
-                        sb.line("**${g.serviceName}**")
+                        sb.line("**${text(g.serviceName)}**")
                         if (g.linesCount > 0) {
                             sb.blank()
                             sb.fence("", g.linesList.joinToString("\n") { "${it.ts} ${it.level} ${it.body}" })
@@ -319,15 +345,15 @@ class MarkdownRenderer(
                 } else {
                     section.errors.itemsList.forEach {
                         sb.line(
-                            "- **${it.source}** `${it.code}` — ${it.message.oneLine()}",
+                            "- **${text(it.source)}** ${code(it.code)} — ${text(it.message)}",
                         )
                     }
                 }
 
             Section.PayloadCase.PARTICIPANTS -> {
                 val p = section.participants
-                sb.line("- **Users:** ${p.userIdsList.joinToString(", ").ifBlank { "—" }}")
-                sb.line("- **Agents:** ${p.agentIdsList.joinToString(", ").ifBlank { "—" }}")
+                sb.line("- **Users:** ${text(p.userIdsList.joinToString(", ")).ifBlank { "—" }}")
+                sb.line("- **Agents:** ${text(p.agentIdsList.joinToString(", ")).ifBlank { "—" }}")
             }
 
             else -> sb.line("_no content_")
@@ -345,8 +371,8 @@ class MarkdownRenderer(
         sb.line("|---|---|---|")
         r.sourcesList.forEach { sb.line("| ${cell(it.source)} | ${cell(it.status)} | ${cell(it.detail)} |") }
         sb.blank()
-        sb.line("- **Profile:** ${r.profileName}")
-        sb.line("- **Generated by:** ${r.generatedBy}")
+        sb.line("- **Profile:** ${text(r.profileName)}")
+        sb.line("- **Generated by:** ${text(r.generatedBy)}")
     }
 
     // ---- small helpers; the renderer's whole vocabulary ----
@@ -382,6 +408,29 @@ class MarkdownRenderer(
         line(fence)
     }
 
+    /**
+     * An inline code span wider than anything inside it — [fence]'s inline twin.
+     *
+     * The fence learned this in review-079 R2; the inline spans did not, and stayed
+     * breakable for exactly the same reason: a fixed `` ` `` closes on the first
+     * backtick in the body, and everything after it becomes live markdown. That is
+     * reachable from the user's own keyboard — `ResolutionSection.args_json` carries
+     * the filter values lifted from their question and `EntityBindingView.mention`
+     * carries their literal words — so a mention could render a working hyperlink, or
+     * an image, inside what reads as a quoted value (review-080 R3).
+     *
+     * CommonMark closes a span on the first backtick run of equal length, so one
+     * longer is unbreakable; content that starts or ends with a backtick needs one
+     * space of padding, which the reader never sees.
+     */
+    private fun code(s: String): String {
+        val body = s.oneLine()
+        if (body.isEmpty()) return "``"
+        val ticks = "`".repeat(longestBacktickRun(body) + 1)
+        val pad = if (body.startsWith("`") || body.endsWith("`")) " " else ""
+        return "$ticks$pad$body$pad$ticks"
+    }
+
     private fun longestBacktickRun(s: String): Int {
         var best = 0
         var run = 0
@@ -404,6 +453,23 @@ class MarkdownRenderer(
      * unlucky string from reshaping the table it lands in. (review-079 R3.)
      */
     private fun cell(s: String): String = s.replace("|", "\\|").oneLine()
+
+    /**
+     * Any string the document did not author, on its way into prose.
+     *
+     * The rule this enforces is one line long and was previously enforced per call
+     * site: **nothing untrusted may start a new markdown line.** review-079 R2 fixed
+     * the fenced fields and the table cells; eleven bare `${…}` interpolations were
+     * neither, and a newline in any of them opened a line at column 0 — enough to
+     * render a complete forged `## Receipts` table above the genuine one, in the one
+     * document whose entire value is being trustworthy about what happened
+     * (review-080 R2).
+     *
+     * It exists as a named helper rather than a habit so the next section builder
+     * inherits it, and so `MarkdownRendererSpec`'s reflective guard has something to
+     * point at.
+     */
+    private fun text(s: String): String = s.oneLine()
 
     private fun String.oneLine(): String = replace('\n', ' ').replace('\r', ' ').trim()
 

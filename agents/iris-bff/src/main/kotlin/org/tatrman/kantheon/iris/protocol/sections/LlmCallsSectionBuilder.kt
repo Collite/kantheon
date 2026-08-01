@@ -27,6 +27,12 @@ object LlmCallsSectionBuilder {
 
     fun build(input: SectionInput): Section =
         SectionShape.guarded(KEY, input) { verbosity ->
+            // Without this, turns off the anchor rendered `_no attributable calls_` with
+            // SECTION_OK — a claim that no model calls happened, when none were looked
+            // for. The filter below is exact, so the emptiness looked like an answer
+            // (review-080 R1; the same defect kantheon#40 describes for log lines).
+            SectionShape.notConsulted(KEY, input, verbosity)?.let { return@guarded it }
+
             val gw = input.sources.gateway
             if (gw.status != SourceStatus.OK) {
                 return@guarded SectionShape.start(KEY, verbosity, SectionStatus.SECTION_DEGRADED).build()
@@ -38,11 +44,18 @@ object LlmCallsSectionBuilder {
                 input.record.pointers.llmCallRefsList
                     .toSet()
 
+            // **turn_ref beats trace_id** (A-7), on this side of the wire too. The
+            // gateway repo implements the precedence; this partition used to OR the
+            // keys, so the rule held in one repo and its inverse in the other. A trace
+            // covering more than one turn is exactly when that matters.
             val (mine, theirs) =
                 gw.items.partition { call ->
-                    (turnRef.isNotBlank() && call.turnRef == turnRef) ||
-                        (traceId.isNotBlank() && call.traceId == traceId) ||
-                        call.id in declaredRefs
+                    when {
+                        call.id in declaredRefs -> true
+                        turnRef.isNotBlank() -> call.turnRef == turnRef
+                        traceId.isNotBlank() -> call.traceId == traceId
+                        else -> false
+                    }
                 }
 
             val b = LlmCallsSection.newBuilder().setUnattributableCount(theirs.size)

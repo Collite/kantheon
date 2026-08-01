@@ -257,4 +257,51 @@ class SectionBuildersSpec :
             // capture, this fails rather than the section silently going OK.
             ProtocolRecorder.SECURITY_APPLIED_GAP.capture shouldBe SecuritySectionBuilder.CAPTURE
         }
+
+        "security: the capture is a SET — every rule that applied is reported, not the last one" {
+            // review-080 R5. This used to be `SecurityRuleApplied.parseFrom(bytes)`, a
+            // SINGLE-message parse. Fed a concatenation of N rules it does not fail:
+            // proto merge semantics fold repeated scalars last-wins, so three RLS rules
+            // came back as one and the section looked like working code.
+            //
+            // A unit test rather than a golden case: nothing writes this capture today
+            // (A-1 — the set is structurally unreachable from kantheon), so an
+            // end-to-end fixture could only assert the degraded path. What has to be
+            // pinned is the FRAMING, so that the day the upstream wire lands the reader
+            // is already correct.
+            val bytes =
+                java.io.ByteArrayOutputStream().use { out ->
+                    listOf("rls.tenant" to "tenant_id = :caller_tenant", "rls.region" to "region IN (:caller_regions)")
+                        .forEach { (id, summary) ->
+                            org.tatrman.validate.v1.SecurityRuleApplied
+                                .newBuilder()
+                                .setRuleId(id)
+                                .setPredicateSummary(summary)
+                                .build()
+                                .writeDelimitedTo(out)
+                        }
+                    com.google.protobuf.ByteString
+                        .copyFrom(out.toByteArray())
+                }
+
+            val record =
+                FixtureLoader
+                    .records(case)
+                    .first()
+                    .toBuilder()
+                    .apply { capturesBuilder.securityApplied = bytes }
+                    .build()
+
+            val s = SecuritySectionBuilder.build(input().copy(record = record))
+
+            s.status shouldBe SectionStatus.SECTION_OK
+            s.security.rulesCount shouldBe 2
+            s.security.getRules(0).ruleId shouldBe "rls.tenant"
+            s.security.getRules(1).ruleId shouldBe "rls.region"
+            // A-1: the predicate BODY is omitted upstream ("leak-safe"), so it is masked
+            // at the source and the summary is all there is.
+            s.security.getRules(1).description shouldContain "region IN"
+            s.security.getRules(1).predicate shouldBe ""
+            s.security.getRules(1).predicateMasked shouldBe true
+        }
     })

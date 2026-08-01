@@ -182,7 +182,6 @@
     "protocol": "Vykreslí průběh této relace jako protokol",
     "protocolUsage": "Použití: /protocol [session|N] — bez argumentu = poslední dotaz",
     "protocolBadScope": "Neplatný rozsah",
-    "protocolForbidden": "Nejste členem této relace",
     "protocolNoSession": "Relace nenalezena",
     "protocolFailed": "Protokol se nepodařilo sestavit",
     "protocolInFlight": "Protokol se už sestavuje…",

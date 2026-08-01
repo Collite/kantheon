@@ -50,6 +50,14 @@
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+| Purpose | Model | Provider | Prompt | Completion | Duration | Cost |
+|---|---|---|---|---|---|---|
+| golem.compose_plan | claude-opus-5 | azure | 1204 | 88 | 910 ms | 0.0123 |
+
+_1 call(s) could not be attributed to this turn._
+
 ### Query
 
 ```
@@ -57,6 +65,14 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+```
+LogicalProject(period=[$0], gross_margin=[$1])
+  LogicalFilter(condition=[OR(=($0, '2026-Q2'), =($0, '2026-Q3'))])
+    LogicalTableScan(table=[[dbo, p_and_l]])
+```
 
 ### SQL
 
@@ -76,6 +92,14 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 - **Worker:** ttr-worker-postgres
 - **Rows:** 8
 - **Duration:** 180 ms
+
+### Service logs
+
+**golem-finance**
+
+```
+2026-07-30T09:00:03+02:00 WARN pattern param 'period' defaulted
+```
 
 ### Errors
 
@@ -105,6 +129,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -112,6 +140,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -127,10 +159,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -160,6 +193,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -167,6 +204,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -182,10 +223,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -215,6 +257,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -222,6 +268,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -237,10 +287,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -270,6 +321,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -277,6 +332,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -292,10 +351,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -325,6 +385,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -332,6 +396,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -347,10 +415,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -380,6 +449,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -387,6 +460,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -402,10 +479,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -435,6 +513,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -442,6 +524,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -457,10 +543,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -490,6 +577,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -497,6 +588,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -512,10 +607,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -545,6 +641,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -552,6 +652,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -567,10 +671,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -600,6 +705,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -607,6 +716,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -622,10 +735,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -655,6 +769,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -662,6 +780,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -677,10 +799,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -710,6 +833,10 @@ _none_
 | Q3 | `2026-Q3` | 1.0 |
 | gross margin | `metric.gross_margin` | 1.0 |
 
+### LLM calls
+
+_unavailable — see receipts_
+
 ### Query
 
 ```
@@ -717,6 +844,10 @@ margin_by_period {"period":"2026-Q3","compareTo":"2026-Q2"}
 ```
 
 - **Kind:** PROCEDURAL
+
+### Plan
+
+_unavailable — see receipts_
 
 ### SQL
 
@@ -732,10 +863,11 @@ _Not captured: ttr-query does not propagate validate.v1 security_applied to call
 
 ### Execution
 
-- **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
-- **Rows:** 8
-- **Duration:** 180 ms
+_unavailable — see receipts_
+
+### Service logs
+
+_unavailable — see receipts_
 
 ### Errors
 
@@ -751,6 +883,7 @@ _none_
 | Source | Status | Detail |
 |---|---|---|
 | records | ok | 13 record row(s) |
+| scope | partial | federated sources consulted for turn 1 of 13 (v1 fetches per document, not per turn) |
 | llm-gateway | ok | 1 call row(s) |
 | loki | ok | 3 line(s) |
 | tempo | ok | 2 span(s) |

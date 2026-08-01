@@ -240,6 +240,11 @@ fun buildComponents(
             tempo = httpOrNull(cfg.sources.tempoBaseUrl)?.let { TempoClient(cfg.sources.tempoBaseUrl, it) },
             // ttr-translate's gRPC stub is not wired into iris-bff yet; the S-1
             // fallback stays off until it is, and says so in the receipts.
+            //
+            // `cfg.sources.translateExplainEnabled` is therefore RESERVED, not ignored by
+            // accident (review-080 R9). When the stub lands this becomes
+            // `ExplainClient(cfg.sources.translateExplainEnabled, stub::explain)` and the
+            // key starts doing what `application.conf` already documents.
             explain = null,
             registry = meterRegistry,
             estate = cfg.estate,

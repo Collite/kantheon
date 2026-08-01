@@ -89,7 +89,7 @@ class SourceClientsSpec :
         "gateway: no base url -> SkippedByConfig; no correlation key -> Degraded" {
             runTest {
                 val http = client { respond("{}", HttpStatusCode.OK, jsonHeaders) }
-                GatewayLogsClient("", http).fetch("t", "x", 1, "j") shouldBe SourceOutcome.SkippedByConfig
+                GatewayLogsClient("", http).fetch("t", "x", 1, "j") shouldBe SourceOutcome.SkippedByConfig()
 
                 val out = GatewayLogsClient("http://gw", http).fetch("", "", 50, "jwt")
                 (out as SourceOutcome.Degraded).reason shouldContain "no turn_ref or trace_id"
@@ -243,6 +243,36 @@ class SourceClientsSpec :
                 // the stream labels: trace_id is structured metadata and is not returned
                 // as a label, so that lookup silently produced "" against a real Loki.
                 g.lines.map { it.traceId }.distinct() shouldBe listOf("t1")
+            }
+        }
+
+        "loki: reaching the page limit is a SERVER-side truncation, and it is reported" {
+            runTest {
+                // review-080 R4. `limit` goes to Loki as the query_range limit, applied
+                // ACROSS streams — so when Loki cuts the result set, no group has anything
+                // to put in `droppedByCap` and the section rendered with no truncation
+                // marker at all. Equality with the requested limit is the only signal the
+                // response gives.
+                fun bodyWith(n: Int): String {
+                    val values = (1..n).joinToString(",") { i -> "[\"17854020${i}000000000\",\"INFO line $i\"]" }
+                    return "{\"data\":{\"result\":[{\"stream\":{\"service_name\":\"golem-finance\"}," +
+                        "\"values\":[$values]}]}}"
+                }
+
+                suspend fun fetchWith(
+                    n: Int,
+                    limit: Int,
+                ) = LokiClient("http://loki", client { respond(bodyWith(n), HttpStatusCode.OK, jsonHeaders) })
+                    .fetch("t1", "2026-07-30T09:00:00Z", "2026-07-30T09:00:05Z", limit, "jwt")
+
+                val cut = fetchWith(n = 3, limit = 3) as SourceOutcome.Ok
+                cut.payload.serverTruncated shouldBe true
+                // ...and the receipt says so, since that is where an operator looks.
+                cut.payload.detail shouldContain "loki page limit 3 reached"
+
+                val whole = fetchWith(n = 2, limit = 3) as SourceOutcome.Ok
+                whole.payload.serverTruncated shouldBe false
+                whole.payload.detail shouldContain "2 line(s)"
             }
         }
 

@@ -30,7 +30,7 @@ class TempoClient(
         traceId: String,
         bearer: String,
     ): SourceOutcome<TempoSource> {
-        if (baseUrl.isBlank()) return SourceOutcome.SkippedByConfig
+        if (baseUrl.isBlank()) return SourceOutcome.SkippedByConfig()
         if (traceId.isBlank()) return SourceOutcome.Degraded("tempo: turn carries no trace_id")
         return guardSource("tempo") {
             val res: HttpResponse =

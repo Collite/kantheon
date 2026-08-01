@@ -16,11 +16,36 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ProtocolSources(
+    /**
+     * **The turn these sources describe** (contracts A-9, review-080 R1).
+     *
+     * v1 fetches the federated sources once, for one turn — the first in scope that
+     * carries a record — and does not fan out. That makes this object a statement
+     * about *that turn*, and about no other: the trace it was correlated on, the log
+     * window it was queried over, and the spans it returned all belong to one turn.
+     *
+     * Carried explicitly because the alternative was silence. Section builders that
+     * read the sources but have no per-turn key of their own — execution,
+     * service-logs, plan — rendered the anchor's facts under every turn's heading,
+     * and a 13-turn document reported one turn's dispatch target, worker, row count
+     * and duration thirteen times as thirteen different turns' facts. Blank means
+     * "not stamped" and the guard stays out of the way.
+     */
+    val anchorTurnId: String = "",
     val gateway: GatewaySource = GatewaySource(),
     val loki: LokiSource = LokiSource(),
     val tempo: TempoSource = TempoSource(),
     val explain: ExplainSource = ExplainSource(),
 ) {
+    /**
+     * Whether [turnId]'s sections may read these sources at all.
+     *
+     * True when nothing was stamped (single-turn documents, fixtures that predate the
+     * stamp) or when this IS the anchor turn. The rule lives here rather than in four
+     * builders so a fifth source-backed section cannot be added without meeting it.
+     */
+    fun describes(turnId: String): Boolean = anchorTurnId.isBlank() || anchorTurnId == turnId
+
     /** Per-source outcomes, in the order receipts should list them. */
     fun statuses(): List<Pair<String, SourceStatus>> =
         listOf(
@@ -42,6 +67,14 @@ enum class SourceStatus {
     OK,
     DEGRADED,
     SKIPPED_BY_CONFIG,
+
+    /**
+     * We looked, and got a real but INCOMPLETE answer — distinct from both `ok` and
+     * `degraded`. Used for the anchor-turn receipt (A-9): the sources were fetched
+     * successfully, for one turn out of many. "ok" would overstate it and "degraded"
+     * would say something failed, which nothing did.
+     */
+    PARTIAL,
     ;
 
     /** contracts §1 `SourceReceipt.status` wire values. */
@@ -51,6 +84,7 @@ enum class SourceStatus {
                 OK -> "ok"
                 DEGRADED -> "degraded"
                 SKIPPED_BY_CONFIG -> "skipped-by-config"
+                PARTIAL -> "partial"
             }
 }
 
@@ -95,6 +129,17 @@ data class LokiSource(
     val status: SourceStatus = SourceStatus.SKIPPED_BY_CONFIG,
     val detail: String = "",
     val groups: List<LogGroup> = emptyList(),
+    /**
+     * Loki hit its own page limit — the truncation happened server-side, before any
+     * line reached this process (review-080 R4).
+     *
+     * [LogGroup.droppedByCap] cannot see it. That counts what the *client* dropped,
+     * and since `limit` is sent to Loki as the `query_range` limit — applied across
+     * all streams — the client is essentially never the one doing the dropping. So a
+     * turn whose logs were cut at 200 lines rendered with no truncation marker at
+     * all, which is the exact failure the service-logs section is written to avoid.
+     */
+    val serverTruncated: Boolean = false,
 )
 
 @Serializable

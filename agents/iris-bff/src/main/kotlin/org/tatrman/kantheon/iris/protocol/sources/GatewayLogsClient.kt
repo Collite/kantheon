@@ -37,7 +37,7 @@ class GatewayLogsClient(
         limit: Int,
         bearer: String,
     ): SourceOutcome<GatewaySource> {
-        if (baseUrl.isBlank()) return SourceOutcome.SkippedByConfig
+        if (baseUrl.isBlank()) return SourceOutcome.SkippedByConfig()
         if (turnRef.isBlank() && traceId.isBlank()) {
             return SourceOutcome.Degraded("llm-gateway: turn has no turn_ref or trace_id to correlate on")
         }

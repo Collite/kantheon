@@ -47,7 +47,24 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "llmCalls": {
+        "calls": [{
+          "callRef": "gw-100",
+          "purpose": "golem.compose_plan",
+          "requestedModel": "claude-opus-5",
+          "servedModel": "claude-opus-5",
+          "servedProvider": "azure",
+          "tokensPrompt": 1204,
+          "tokensCompletion": 88,
+          "durationMs": "910",
+          "ttfbMs": "310",
+          "costUsd": 0.0123,
+          "status": "SUCCESS",
+          "turnRef": "3f2b1a00-0000-4000-8000-000000000001"
+        }],
+        "unattributableCount": 1
+      }
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -57,7 +74,10 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "appliedVerbosity": "VERBOSITY_FULL",
+      "plan": {
+        "relPlanText": "LogicalProject(period\u003d[$0], gross_margin\u003d[$1])\n  LogicalFilter(condition\u003d[OR(\u003d($0, \u00272026-Q2\u0027), \u003d($0, \u00272026-Q3\u0027))])\n    LogicalTableScan(table\u003d[[dbo, p_and_l]])"
+      }
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -82,7 +102,20 @@
       }
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "appliedVerbosity": "VERBOSITY_SUMMARY",
+      "serviceLogs": {
+        "groups": [{
+          "serviceName": "iris-bff"
+        }, {
+          "serviceName": "golem-finance",
+          "lines": [{
+            "ts": "2026-07-30T09:00:03+02:00",
+            "level": "WARN",
+            "body": "pattern param \u0027period\u0027 defaulted",
+            "traceId": "0af7651916cd43dd8448eb211c80319c"
+          }]
+        }]
+      }
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -123,7 +156,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -133,7 +167,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -149,16 +184,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -199,7 +230,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -209,7 +241,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -225,16 +258,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -275,7 +304,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -285,7 +315,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -301,16 +332,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -351,7 +378,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -361,7 +389,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -377,16 +406,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -427,7 +452,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -437,7 +463,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -453,16 +480,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -503,7 +526,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -513,7 +537,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -529,16 +554,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -579,7 +600,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -589,7 +611,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -605,16 +628,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -655,7 +674,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -665,7 +685,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -681,16 +702,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -731,7 +748,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -741,7 +759,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -757,16 +776,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -807,7 +822,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -817,7 +833,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -833,16 +850,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -883,7 +896,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -893,7 +907,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -909,16 +924,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -959,7 +970,8 @@
       }
     }, {
       "key": "protocol.section.llm-calls",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.query",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -969,7 +981,8 @@
       }
     }, {
       "key": "protocol.section.plan",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.sql",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -985,16 +998,12 @@
       }
     }, {
       "key": "protocol.section.execution",
-      "appliedVerbosity": "VERBOSITY_FULL",
-      "execution": {
-        "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
-        "rowCount": "8",
-        "durationMs": "180"
-      }
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_FULL"
     }, {
       "key": "protocol.section.service-logs",
-      "status": "SECTION_OFF"
+      "status": "SECTION_DEGRADED",
+      "appliedVerbosity": "VERBOSITY_SUMMARY"
     }, {
       "key": "protocol.section.errors",
       "appliedVerbosity": "VERBOSITY_FULL",
@@ -1008,6 +1017,10 @@
       "source": "records",
       "status": "ok",
       "detail": "13 record row(s)"
+    }, {
+      "source": "scope",
+      "status": "partial",
+      "detail": "federated sources consulted for turn 1 of 13 (v1 fetches per document, not per turn)"
     }, {
       "source": "llm-gateway",
       "status": "ok",

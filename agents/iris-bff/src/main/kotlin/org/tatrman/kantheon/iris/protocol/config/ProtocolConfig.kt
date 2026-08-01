@@ -196,9 +196,38 @@ data class ProtocolProfile(
 
 /** Hard caps applied during assembly (PT-10); a hit sets `Section.truncated`. */
 data class ProtocolCaps(
+    /** Log lines kept **per service group** (contracts §7). Also Loki's own page limit. */
     val serviceLogsLines: Int = 200,
     val llmMessageChars: Int = 4_000,
     val sqlChars: Int = 20_000,
+    /**
+     * Gateway `prompt_logs` rows fetched per document.
+     *
+     * Separate from [serviceLogsLines], which it used to borrow. They are different
+     * quantities on different sources, and sharing the key meant an operator who
+     * tightened logging to 20 lines silently capped every protocol at 20 model calls —
+     * with no receipt saying so, because "20 call row(s)" looks like an answer
+     * (review-080 R7). Default matches the gateway's own `PROMPT_LOGS_DEFAULT_LIMIT`.
+     */
+    val llmCallRows: Int = 50,
+    /**
+     * Turns rendered in one document.
+     *
+     * Every other cap here bounds a section's content; nothing bounded the number of
+     * turns, so `scope=session` on a long-lived session built the lot in memory and
+     * rendered it into one string (review-080 R12). The newest are kept and the
+     * shortfall is a receipt.
+     */
+    val maxTurns: Int = 200,
+    /**
+     * Items in the errors section.
+     *
+     * Its own key, not a borrowed one. Errors are gathered from the RAW log source
+     * precisely so a `service-logs = summary` profile cannot hide one — letting the
+     * log cap bound them would reintroduce that coupling through the back door, and it
+     * is the same cross-wiring R7 was about.
+     */
+    val errorItems: Int = 200,
 ) {
     companion object {
         fun from(c: Config): ProtocolCaps {
@@ -208,6 +237,9 @@ data class ProtocolCaps(
                     serviceLogsLines = c.intOr("service-logs-lines", d.serviceLogsLines),
                     llmMessageChars = c.intOr("llm-message-chars", d.llmMessageChars),
                     sqlChars = c.intOr("sql-chars", d.sqlChars),
+                    llmCallRows = c.intOr("llm-call-rows", d.llmCallRows),
+                    maxTurns = c.intOr("max-turns", d.maxTurns),
+                    errorItems = c.intOr("errors-items", d.errorItems),
                 )
             }
         }
