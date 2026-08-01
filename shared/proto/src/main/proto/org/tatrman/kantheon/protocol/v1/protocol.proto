@@ -88,12 +88,28 @@ message Section {
   }
 }
 
-enum SectionStatus { SECTION_OK = 0; SECTION_DEGRADED = 1; SECTION_OFF = 2; }
+// SECTION_NOT_REACHED (3, additive) — the turn ended before this stage existed.
+//
+// Distinct from DEGRADED, which asserts we tried and could not. A turn that stops at
+// routing (Themis asking the user to pick an agent) never dispatches, so there is no
+// plan, no SQL and no execution to be unavailable — and saying "unavailable — see
+// receipts" sent a reader to the receipts to find a failure that had not happened
+// (review-080 R14 follow-on, live 2026-08-01). A reader built against v1.0 sees an
+// unknown enum value and renders it as it would any other non-OK status.
+enum SectionStatus { SECTION_OK = 0; SECTION_DEGRADED = 1; SECTION_OFF = 2; SECTION_NOT_REACHED = 3; }
 enum Verbosity     { VERBOSITY_OFF = 0; VERBOSITY_SUMMARY = 1; VERBOSITY_FULL = 2; }
 
 message HeaderSection {
   string question = 1; string agent_id = 2; string routing_outcome = 3;
   string status = 4; string origin = 5; string started_at = 6; uint64 duration_ms = 7;
+  // What the turn PRODUCED, in a sentence — blank when it answered normally (8, additive).
+  //
+  // `status` is the dispatch status and says `done` for a turn that produced no answer
+  // at all, because dispatching correctly is what it measures. The facts that explain
+  // such a turn were present but scattered: `routing_outcome = needs_user_pick` here,
+  // `needs_user_pick_shown` two sections down. A reader had to know the vocabulary and
+  // then join them. This states it once, first, in words.
+  string outcome = 8;
 }
 message ResolutionSection {                 // F2 capture rendered
   string function_id = 1; string args_json = 2;

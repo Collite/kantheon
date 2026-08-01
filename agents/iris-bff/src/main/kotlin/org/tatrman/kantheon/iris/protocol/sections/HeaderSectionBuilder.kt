@@ -25,7 +25,27 @@ object HeaderSectionBuilder {
                         .setStatus(t.status)
                         .setOrigin(t.origin)
                         .setStartedAt(t.startedAt)
-                        .setDurationMs(t.durationMs),
+                        .setDurationMs(t.durationMs)
+                        .setOutcome(outcomeOf(t)),
                 ).build()
+        }
+
+    /**
+     * What the turn produced, in a sentence — blank when it answered normally.
+     *
+     * `status` measures dispatch and reads `done` for a turn that produced no answer,
+     * which is correct and useless to a reader asking why their bubble was empty. Seen
+     * live on hartland 2026-08-01: a turn ended awaiting an agent pick and the document
+     * said `Status: done` with four sections reporting "unavailable"; the two facts that
+     * explained it were an attribute here and another two sections down.
+     */
+    private fun outcomeOf(t: TurnFacts): String =
+        when {
+            t.endedAwaitingPick ->
+                "No answer — the router did not choose an agent and asked the user to pick. " +
+                    "Nothing was dispatched, so the query, plan, SQL and execution stages never ran."
+
+            t.status.equals("failed", ignoreCase = true) -> "The turn failed — see Errors."
+            else -> ""
         }
 }

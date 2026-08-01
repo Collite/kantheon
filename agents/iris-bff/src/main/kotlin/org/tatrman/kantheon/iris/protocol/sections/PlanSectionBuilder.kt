@@ -27,6 +27,7 @@ object PlanSectionBuilder {
 
     fun build(input: SectionInput): Section =
         SectionShape.guarded(KEY, input) { verbosity ->
+            SectionShape.notReached(KEY, input, verbosity)?.let { return@guarded it }
             SectionShape.notConsulted(KEY, input, verbosity)?.let { return@guarded it }
             val e = input.sources.explain
             when {
