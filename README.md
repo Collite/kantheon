@@ -40,9 +40,9 @@ deliberately keeps a plain functional name — no forced persona.
 > Prometheus** (and the workers **Brontes, Steropes, Arges**) — was moved out of
 > kantheon into the open-source [`tatrman-server`](https://github.com/Collite/tatrman-server)
 > repo and renamed to functional names: Ariadne→**Veles** (survivor name kept),
-> Theseus→**ttr-query**, Echo→**ttr-fuzzy**, Kadmos→**ttr-nlp**, Proteus→**ttr-translate**,
-> Kyklop→**ttr-dispatch**, Argos→**ttr-validate**, Prometheus→**ttr-llm-gateway**,
-> Brontes/Steropes/Arges→**ttr-worker-{mssql,polars,postgres}**. The mythology is kept
+> Theseus→**query**, Echo→**lex-matcher**, Kadmos→**nlp**, Proteus→**translate**,
+> Kyklop→**dispatch**, Argos→**validate**, Prometheus→**llm-gateway**,
+> Brontes/Steropes/Arges→**worker-{mssql,polars,postgres}**. The mythology is kept
 > below as kantheon's naming history; the services themselves now live in tatrman-server.
 > **Charon, Metis, Kallimachos, Pinakes stay in kantheon.**
 
@@ -65,7 +65,7 @@ deliberately keeps a plain functional name — no forced persona.
 
 Each engine worker is one of the three Hesiodic Cyclopes; the dispatcher (**Kyklop**, above)
 carries the genus. *(All three workers extracted to `tatrman-server` as
-`ttr-worker-{mssql,polars,postgres}` — see the read-spine note above; kept here as naming history.)*
+`worker-{mssql,polars,postgres}` — see the read-spine note above; kept here as naming history.)*
 
 | Persona | Myth | Role |
 |---|---|---|
@@ -82,7 +82,7 @@ does not).
 
 | Module | Role |
 |---|---|
-| `whois` | User / role directory + OPA bundle server. **→ extracted to `tatrman-server` as `ttr-identity`.** |
+| `whois` | User / role directory + OPA bundle server. **→ extracted to `tatrman-server` as `identity`.** |
 | `health` | Cluster health aggregator. **→ extracted to `tatrman-server`.** |
 | `landing` | Multilingual landing page / service dispatcher. |
 | `backstage` | Developer portal. **→ extracted to `tatrman-server`.** |
