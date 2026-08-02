@@ -1,5 +1,7 @@
 # Themis — Wire Contracts (kantheon arc, Phases 1–3)
 
+> ⚠ **SUPERSEDED (2026-07-30) by RV — Golem absorbs Themis** (`project/kantheon/features/resolving/design/design.md` v3, RV-25..29). The routing layer survives as **golem-delegation**. Intent-kind internals remain valid and are reused. `agents/themis` is retired at **RV-P5** — the sweep checklist is `project/kantheon/features/resolving/implementation/rename-ledger.md`.
+>
 > **Scope.** All cross-service contracts produced or extended by Phases 1, 2, and 3: protobuf packages, MCP tool surfaces, REST endpoints, manifest YAML schemas, heartbeat protocol, persistence shapes (where applicable).
 >
 > **Authority.** This document is the source of truth. Task lists implementing the work below must match these contracts byte-for-byte. Any deviation is a planning bug.

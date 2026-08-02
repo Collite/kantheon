@@ -1,5 +1,7 @@
 # Themis — Solution Architecture (kantheon arc, Phases 1–3)
 
+> ⚠ **SUPERSEDED (2026-07-30) by RV — Golem absorbs Themis** (`project/kantheon/features/resolving/design/design.md` v3, RV-25..29). The routing layer survives as **golem-delegation**. Intent-kind internals remain valid and are reused. `agents/themis` is retired at **RV-P5** — the sweep checklist is `project/kantheon/features/resolving/implementation/rename-ledger.md`.
+>
 > **Scope.** This document describes the kantheon-side architecture for the work covered by Phases 1, 2, and 3 of the Themis-in-kantheon arc — repo bootstrap, `tools/capabilities-mcp`, Resolver-to-Themis extraction with Koog adoption, and the agent routing layer.
 >
 > **Reads with.** [`themis-design.md`](../../design/themis/themis-design.md) (the outward design of Themis as a service; still Resolver-era prose pending the routing-layer fold-in), [`themis-brainstorming.md`](../../design/themis/themis-brainstorming.md), [`../kantheon-architecture.md`](../kantheon-architecture.md) (overall constellation), [`./contracts.md`](./contracts.md) (wire contracts), [`../../implementation/v1/themis/plan.md`](../../implementation/v1/themis/plan.md) (phased implementation plan).

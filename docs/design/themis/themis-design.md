@@ -1,5 +1,7 @@
 # Intent and Entity Resolver — v1 Design
 
+> ⚠ **SUPERSEDED (2026-07-30) by RV — Golem absorbs Themis** (`project/kantheon/features/resolving/design/design.md` v3, RV-25..29). The routing layer survives as **golem-delegation**. Intent-kind internals remain valid and are reused. `agents/themis` is retired at **RV-P5** — the sweep checklist is `project/kantheon/features/resolving/implementation/rename-ledger.md`.
+
 Companion to [`themis-brief.md`](./themis-brief.md) (the brief — formerly `resolver.md` in ai-platform). This document captures the
 load-bearing design decisions made during the brainstorming round, locks the
 wire formats, and frames the implementation phasing.
