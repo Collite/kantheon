@@ -16,7 +16,7 @@ private data class GatewayPage(
 )
 
 /**
- * Reads `prompt_logs` rows from ttr-llm-gateway's inspect surface
+ * Reads `prompt_logs` rows from llm-gateway's inspect surface
  * (contracts §5, endpoint added in this arc's tatrman-server branch).
  *
  * **Correlation-keyed, never time-windowed.** Two users' turns overlap

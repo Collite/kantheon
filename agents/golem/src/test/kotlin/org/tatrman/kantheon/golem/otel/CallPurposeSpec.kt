@@ -20,7 +20,7 @@ import kotlinx.coroutines.runBlocking
  *
  * Scope note: only the **span attribute** half is testable — and implementable — here.
  * The `X-Call-Purpose` request header cannot be set from Golem: the gateway call goes
- * through `org.tatrman:ttr-llm-client`, whose `complete(...)` takes only
+ * through `org.tatrman:llm-client`, whose `complete(...)` takes only
  * (prompt, model, systemPrompt, temperature, maxTokens) and exposes no header or
  * metadata hook. That half needs a tatrman-server change (PT-24).
  */

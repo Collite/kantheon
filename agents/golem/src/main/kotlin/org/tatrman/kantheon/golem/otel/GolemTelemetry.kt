@@ -76,10 +76,10 @@ const val CALL_PURPOSE_HEADER: String = "X-Call-Purpose"
  * (contracts §1), read back off the turn's trace.
  *
  * Wraps [block] in a CLIENT span carrying `call.purpose`, so the label survives even
- * though the gateway call itself goes through `org.tatrman:ttr-llm-client`, whose
+ * though the gateway call itself goes through `org.tatrman:llm-client`, whose
  * `complete(...)` exposes no per-call header or metadata hook. The matching
  * `X-Call-Purpose` request header therefore cannot be set from this side — it needs a
- * `ttr-llm-client` change (tatrman-server, PT-24). Recorded in the arc's T6 notes.
+ * `llm-client` change (tatrman-server, PT-24). Recorded in the arc's T6 notes.
  *
  * [purpose] must never be empty: a call with no step context uses a stable literal
  * (e.g. `"golem.summarize"`), because an unattributable call is worse than a

@@ -87,14 +87,14 @@
       "status": "SECTION_DEGRADED",
       "appliedVerbosity": "VERBOSITY_FULL",
       "security": {
-        "policySource": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+        "policySource": "the query service does not propagate validate.v1 security_applied to callers (A-1)"
       }
     }, {
       "key": "protocol.section.execution",
       "appliedVerbosity": "VERBOSITY_FULL",
       "execution": {
         "dispatchTarget": "pg-hartland",
-        "worker": "ttr-worker-postgres",
+        "worker": "worker-postgres",
         "rowCount": "8",
         "durationMs": "180"
       }
@@ -146,7 +146,7 @@
     }, {
       "source": "capture:security_applied",
       "status": "degraded",
-      "detail": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+      "detail": "the query service does not propagate validate.v1 security_applied to callers (A-1)"
     }],
     "generatedBy": "iris-bff/1.0 hartland"
   },

@@ -46,7 +46,7 @@ dependencies {
     implementation(libs.tatrman.logging.config)
     implementation(libs.tatrman.ktor.configurator)
     // Shared LLM-gateway client + Koog executor (extracted from themis, Golem Stage 2.3 T1).
-    implementation(libs.tatrman.ttr.llm.client)
+    implementation(libs.tatrman.llm.client)
     // Capabilities read-client — Themis routeToAgent reads the agent registry (Stage 3.3).
     implementation(project(":shared:libs:kotlin:capabilities-client"))
 

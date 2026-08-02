@@ -129,7 +129,7 @@ class ProtocolRecorderSpec :
             row.pointers.captureGapsList
                 .single()
                 .reason shouldBe
-                "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+                "the query service does not propagate validate.v1 security_applied to callers (A-1)"
             row.pointers.captureGapsList.single() shouldBe ProtocolRecorder.SECURITY_APPLIED_GAP
         }
 

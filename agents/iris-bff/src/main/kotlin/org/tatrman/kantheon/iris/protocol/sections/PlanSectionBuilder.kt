@@ -19,7 +19,7 @@ import org.tatrman.kantheon.protocol.v1.SectionStatus
  * assembler correctly skips reconstruction for it (S-1: never reconstruct what the
  * turn already had) — and then nothing resolves those ids into plan text, so the
  * section degrades on exactly the turns that had the best plan to show. Closing it
- * needs a plan-by-id read surface on ttr-translate; until then the ids are captured
+ * needs a plan-by-id read surface on translate; until then the ids are captured
  * and unused, which is at least recoverable after the fact.
  */
 object PlanSectionBuilder {

@@ -97,9 +97,9 @@ dependencies {
     implementation(libs.jackson.dataformat.yaml)
 
     // Veles model graph client (GetModel) — PackageContext (prompts come from the mounted Shem).
-    implementation(libs.tatrman.ttr.meta.client)
+    implementation(libs.tatrman.meta.client)
     // Shared LLM-gateway client + Koog executor — PlanComposer (Stage 2.3). Brings Koog (api).
-    implementation(libs.tatrman.ttr.llm.client)
+    implementation(libs.tatrman.llm.client)
     // query-mcp query edge — MCP streamable-HTTP client (Stage 2.4 T3).
     implementation(libs.kotlin.mcp.sdk)
     implementation(libs.ktor.client.core)

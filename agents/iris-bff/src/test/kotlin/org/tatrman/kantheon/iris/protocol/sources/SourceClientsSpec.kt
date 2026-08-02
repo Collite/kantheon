@@ -305,7 +305,7 @@ class SourceClientsSpec :
                               {
                                 "key": "service.name",
                                 "value": {
-                                  "stringValue": "ttr-query"
+                                  "stringValue": "query"
                                 }
                               }
                             ]
@@ -353,7 +353,7 @@ class SourceClientsSpec :
                 if (out is SourceOutcome.Degraded) error("expected Ok, got Degraded: ${out.reason}")
                 out as SourceOutcome.Ok
                 val span = out.payload.spans.single()
-                span.serviceName shouldBe "ttr-query"
+                span.serviceName shouldBe "query"
                 span.durationMs shouldBe 180
                 span.attributes["dispatch.target"] shouldBe "pg-hartland"
                 // OTLP AnyValue: an intValue is a STRING on the JSON wire.

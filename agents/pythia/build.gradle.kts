@@ -89,7 +89,7 @@ dependencies {
 
     // Phase 2 — resolution + planner + query edge.
     // LLM gateway client + Koog PromptExecutor (planner/synth). Brings Koog (api).
-    implementation(libs.tatrman.ttr.llm.client)
+    implementation(libs.tatrman.llm.client)
     // capabilities-mcp read client — PlanValidator capability-existence checks.
     implementation(project(":shared:libs:kotlin:capabilities-client"))
     // HTTP (ThemisClient REST) + MCP streamable-HTTP (query-mcp query edge, Stage 2.3).

@@ -8,7 +8,7 @@ import org.tatrman.translate.v1.TranslateRequest
 
 /**
  * The plan fallback (S-1). When a turn carried no plan, the SQL it *did* carry is
- * handed to ttr-translate's `Explain`, whose per-stage artefacts are rendered as
+ * handed to translate's `Explain`, whose per-stage artefacts are rendered as
  * the RelPlan text.
  *
  * **Everything from this path is `reconstructed = true`, without exception.**

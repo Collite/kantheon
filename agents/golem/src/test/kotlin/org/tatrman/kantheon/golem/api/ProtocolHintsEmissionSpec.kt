@@ -82,7 +82,7 @@ class ProtocolHintsEmissionSpec :
         }
 
         "llm_call_refs include gateway row ids when the gateway returned them, else empty (never null)" {
-            // ttr-llm-client's complete() returns no per-call metadata (PT-24, the
+            // llm-client's complete() returns no per-call metadata (PT-24, the
             // same gap as the X-Call-Purpose header), so golem has no gateway row id
             // to forward. The contract's "else empty" branch is the live one today.
             val hints = ProtocolHintsBuilder.from(state(plan = plan("q1"), execution = execution()))

@@ -42,11 +42,11 @@ This is the day-to-day reference for working in the kantheon repo. If you're try
 | Tool                | Choice                                                            | Notes                                                                       |
 |---------------------|-------------------------------------------------------------------|-----------------------------------------------------------------------------|
 | Build               | **Gradle (Kotlin DSL)** + **`gradle/libs.versions.toml`**         | Versions never hardcoded in module `build.gradle.kts`                       |
-| Framework           | **Ktor** for every JVM service in kantheon  | The one Spring Boot module — Prometheus (the LLM gateway, forked from ai-platform `infra/llm-gateway`, Stage 2.5) — was **extracted to `tatrman-server` as `ttr-llm-gateway`** (2026-07, SV-P0/P1); every JVM service now resident in kantheon is Ktor |
+| Framework           | **Ktor** for every JVM service in kantheon  | The one Spring Boot module — Prometheus (the LLM gateway, forked from ai-platform `infra/llm-gateway`, Stage 2.5) — was **extracted to `tatrman-server` as `llm-gateway`** (2026-07, SV-P0/P1); every JVM service now resident in kantheon is Ktor |
 | Container           | **Jib** for Kotlin services                                       | No Dockerfiles for Kotlin services                                          |
 | Orchestration       | **K3s** (local), Kustomize `base/` + `overlays/local/`            | `imagePullPolicy: Never` in local overlay                                   |
 | Task runner         | **`just`**                                                        | Recipes mirror ai-platform; see §3                                          |
-| Observability       | **OpenTelemetry** via `:shared:libs:kotlin:otel-config` (in-repo) | Backends: Alloy → Tempo / Prometheus-TSDB / Loki (the metrics store, *not* the LLM gateway — that was `services/prometheus`, since extracted to tatrman-server as `ttr-llm-gateway` — name clash); per-module wiring map in `docs/architecture/fork/observability.md` |
+| Observability       | **OpenTelemetry** via `:shared:libs:kotlin:otel-config` (in-repo) | Backends: Alloy → Tempo / Prometheus-TSDB / Loki (the metrics store, *not* the LLM gateway — that was `services/prometheus`, since extracted to tatrman-server as `llm-gateway` — name clash); per-module wiring map in `docs/architecture/fork/observability.md` |
 | CI                  | **GitHub Actions** (`.github/workflows/ci.yml`)                   | `init → lint-check → test-all`. Jib vs Docker auto-detected per module      |
 
 ### 1.4 Test stack
@@ -194,7 +194,7 @@ Every Kotlin service follows the same skeleton. Reference: [`EXAMPLES.md`](./EXA
 
 ### 4.1 Python modules
 
-> Added with fork Phase 1 Stage 1.1 (T4), 2026-06-12. Settled the Python lane conventions — originally for Kadmos, Steropes, and Metis. Kadmos and Steropes were **since extracted to tatrman-server** (as `ttr-nlp` / `ttr-worker-polars`), leaving **Metis** as the sole in-kantheon Python module (see `metis/architecture.md` §"only Python module" amendment in [`docs/architecture/fork/contracts.md`](./docs/architecture/fork/contracts.md) §6).
+> Added with fork Phase 1 Stage 1.1 (T4), 2026-06-12. Settled the Python lane conventions — originally for Kadmos, Steropes, and Metis. Kadmos and Steropes were **since extracted to tatrman-server** (as `nlp` / `worker-polars`), leaving **Metis** as the sole in-kantheon Python module (see `metis/architecture.md` §"only Python module" amendment in [`docs/architecture/fork/contracts.md`](./docs/architecture/fork/contracts.md) §6).
 
 **Library moat first.** A module is Python only when the ecosystem forces it — statsmodels / Prophet for **Metis** (the surviving in-kantheon Python module). The same rule made Kadmos (spaCy / Stanza / MorphoDiTa) and Steropes (Polars) Python before they were extracted to tatrman-server. Otherwise, Kotlin.
 
@@ -299,7 +299,7 @@ dependencies {
     implementation(project(":shared:proto"))
     implementation(libs.ktor.server.core)
     // TTR-toolchain consumers (Ariadne / Proteus) — since extracted to
-    // tatrman-server as Veles / ttr-translate; the published dep itself remains
+    // tatrman-server as Veles / translate; the published dep itself remains
     // implementation(libs.tatrman.ttr.parser)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.mockk)
@@ -377,7 +377,7 @@ All MCP tools return `structuredContent` per the MCP spec — not a hand-rolled 
 
 ## 7. Observability
 
-OTel is wired at the bottom of every Kotlin service via `createOpenTelemetrySdk()` from the in-repo `:shared:libs:kotlin:otel-config` (see [`EXAMPLES.md`](./EXAMPLES.md) §8); the surviving Python service (**Metis**) uses the Python `otel-config`. (The Spring Boot LLM gateway that wired `opentelemetry-spring-boot-starter` — Prometheus — was extracted to tatrman-server as `ttr-llm-gateway`, as were the read-spine Python services Kadmos/Steropes.) Local backends are Alloy → Tempo (traces) / Prometheus-TSDB (metrics) / Loki (logs). The per-module client-config map + the `run_query` trace tree + the fabric-infra panel/alert wishlist live in [`docs/architecture/fork/observability.md`](./docs/architecture/fork/observability.md).
+OTel is wired at the bottom of every Kotlin service via `createOpenTelemetrySdk()` from the in-repo `:shared:libs:kotlin:otel-config` (see [`EXAMPLES.md`](./EXAMPLES.md) §8); the surviving Python service (**Metis**) uses the Python `otel-config`. (The Spring Boot LLM gateway that wired `opentelemetry-spring-boot-starter` — Prometheus — was extracted to tatrman-server as `llm-gateway`, as were the read-spine Python services Kadmos/Steropes.) Local backends are Alloy → Tempo (traces) / Prometheus-TSDB (metrics) / Loki (logs). The per-module client-config map + the `run_query` trace tree + the fabric-infra panel/alert wishlist live in [`docs/architecture/fork/observability.md`](./docs/architecture/fork/observability.md).
 
 **Tracing conventions:**
 

@@ -12,11 +12,11 @@
     {
       "spanId": "aaaa000000000002",
       "name": "query.run",
-      "serviceName": "ttr-query",
+      "serviceName": "query",
       "durationMs": 180,
       "attributes": {
         "dispatch.target": "pg-hartland",
-        "dispatch.worker": "ttr-worker-postgres",
+        "dispatch.worker": "worker-postgres",
         "result.row_count": "8"
       }
     }

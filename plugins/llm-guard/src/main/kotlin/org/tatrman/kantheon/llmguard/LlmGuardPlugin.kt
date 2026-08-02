@@ -14,7 +14,7 @@ import org.tatrman.validator.spi.Verdict
  * GREENFIELD (PL-P4.S2.T5) against the SPI — deliberately NOT the ai-platform `LlmGuard` stage (coupled to
  * that validator's internals + off-limits). **QUERY-only:** a PROGRAM context passes untouched (a program
  * island carries no `plan.v1` PlanNode to judge). The judgment is delegated to a [SemanticJudge] (a fake in
- * tests); the live gateway wiring (`ttr-llm-client` → the ttr-llm-gateway) is the ⑥ adoption step.
+ * tests); the live gateway wiring (`llm-client` → the llm-gateway) is the ⑥ adoption step.
  */
 class LlmGuardPlugin(
     private val judge: SemanticJudge,
@@ -52,7 +52,7 @@ class LlmGuardPlugin(
 /** Failure posture when the judge can't render a decision (gateway down / unconfigured). */
 enum class FailurePosture { FAIL_CLOSED, FAIL_OPEN }
 
-/** The semantic-judgment port. The live impl calls the ttr-llm-gateway; tests supply a fake. */
+/** The semantic-judgment port. The live impl calls the llm-gateway; tests supply a fake. */
 fun interface SemanticJudge {
     fun review(
         plan: ByteArray,
@@ -78,7 +78,7 @@ sealed interface SemanticReview {
 /**
  * The gateway-backed judge. SKELETON at S2.T5 — with no gateway configured it returns
  * [SemanticReview.Unavailable] (so the plugin applies its [FailurePosture]). The live call
- * (`ttr-llm-client` → the ttr-llm-gateway: send the plan + principal, map approve/caveat/reject, treat a
+ * (`llm-client` → the llm-gateway: send the plan + principal, map approve/caveat/reject, treat a
  * network error as Unavailable) is the ⑥ adoption step.
  */
 class GatewaySemanticJudge private constructor(
@@ -89,7 +89,7 @@ class GatewaySemanticJudge private constructor(
         principal: PrincipalInfo,
     ): SemanticReview {
         if (gatewayUrl.isNullOrBlank()) return SemanticReview.Unavailable
-        // PL-P6: live proof at adoption — wire ttr-llm-client to the ttr-llm-gateway here.
+        // PL-P6: live proof at adoption — wire llm-client to the llm-gateway here.
         return SemanticReview.Unavailable
     }
 

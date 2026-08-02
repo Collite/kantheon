@@ -84,12 +84,12 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
 - **Target:** pg-hartland
-- **Worker:** ttr-worker-postgres
+- **Worker:** worker-postgres
 - **Rows:** 8
 - **Duration:** 180 ms
 
@@ -155,7 +155,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -219,7 +219,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -283,7 +283,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -347,7 +347,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -411,7 +411,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -475,7 +475,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -539,7 +539,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -603,7 +603,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -667,7 +667,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -731,7 +731,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -795,7 +795,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -859,7 +859,7 @@ SELECT period, gross_margin FROM p_and_l WHERE period IN ('2026-Q2','2026-Q3')
 
 _unavailable — see receipts_
 
-_Not captured: ttr-query does not propagate validate.v1 security_applied to callers (A-1)_
+_Not captured: the query service does not propagate validate.v1 security_applied to callers (A-1)_
 
 ### Execution
 
@@ -888,7 +888,7 @@ _none_
 | loki | ok | 3 line(s) |
 | tempo | ok | 2 span(s) |
 | translate-explain | ok | plan carried |
-| capture:security_applied | degraded | ttr-query does not propagate validate.v1 security_applied to callers (A-1) |
+| capture:security_applied | degraded | the query service does not propagate validate.v1 security_applied to callers (A-1) |
 
 - **Profile:** default
 - **Generated by:** iris-bff/1.0 hartland
