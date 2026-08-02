@@ -1,5 +1,7 @@
 # Themis — Design
 
+> ⚠ **SUPERSEDED (2026-07-30) by RV — Golem absorbs Themis** (`project/kantheon/features/resolving/design/design.md` v3, RV-25..29). The routing layer survives as **golem-delegation**. Intent-kind internals remain valid and are reused. `agents/themis` is retired at **RV-P5** — the sweep checklist is `project/kantheon/features/resolving/implementation/rename-ledger.md`.
+
 Themis is the routing + question-understanding agent. Stateless. Iris calls Themis at the start of every conversational turn; Themis returns parsed intent + resolved entities + a routing decision naming which agent should answer. When the answer is ambiguous, `needs_user_pick: true` tells Iris to render alternates as chips.
 
 Implementation reality: Themis is the post-extraction continuation of "Resolver" — currently in `ai-platform/agents/resolver/`. Stages 01–04 are essentially complete there; the move to `kantheon/agents/themis/` plus Koog adoption plus the routing layer is planned in [`../../implementation/v1/themis/plan.md`](../../implementation/v1/themis/plan.md).

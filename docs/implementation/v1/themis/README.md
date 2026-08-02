@@ -1,10 +1,16 @@
 # Themis — v1 Implementation
 
+> ⚠ **SUPERSEDED (2026-07-30) by RV — Golem absorbs Themis** (`project/kantheon/features/resolving/design/design.md` v3, RV-25..29). The routing layer survives as **golem-delegation**. Intent-kind internals remain valid and are reused. `agents/themis` is retired at **RV-P5** — the sweep checklist is `project/kantheon/features/resolving/implementation/rename-ledger.md`.
+
 Phased plan and per-stage task lists for the Themis-in-kantheon arc.
 
-## Active — the kantheon-side arc
+## The kantheon-side arc — no longer a queue
 
-3 phases · 14 stages · ~80 tasks. Per-stage task lists are written; ready to execute.
+3 phases · 14 stages · ~80 tasks. **Do not execute from this file.** Two things happened to it: the
+task lists and `plan.md` moved to `project/kantheon/implementation/v1/themis/` (2026-07-14
+restructure) — every `./tasks-*.md` link below is dead here and live there — and the arc itself is
+superseded by RV per the banner above. What remains valid is the shape of the work, since the
+intent-kind internals are reused by the merged Golem.
 
 - **[`plan.md`](./plan.md)** — the phased plan. Read first. Phase summary, per-stage goal + DONE criteria, cross-cutting work, out-of-scope, Bora-owned content gaps.
 

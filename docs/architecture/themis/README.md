@@ -1,5 +1,7 @@
 # Themis — Architecture
 
+> ⚠ **SUPERSEDED (2026-07-30) by RV — Golem absorbs Themis** (`project/kantheon/features/resolving/design/design.md` v3, RV-25..29). The routing layer survives as **golem-delegation**. Intent-kind internals remain valid and are reused. `agents/themis` is retired at **RV-P5** — the sweep checklist is `project/kantheon/features/resolving/implementation/rename-ledger.md`.
+
 Implementation architecture and wire contracts for the Themis-in-kantheon arc (Phases 1–3 of the v1 implementation plan).
 
 ## Files
