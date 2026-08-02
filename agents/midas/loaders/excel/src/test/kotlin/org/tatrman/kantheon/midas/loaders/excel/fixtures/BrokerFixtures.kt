@@ -48,9 +48,17 @@ object BrokerFixtures {
             listOf("03/04/2026", "Interest", null, 0, 0, 0, 3.50, "EUR", "B5004"),
         )
 
-    fun alphaBytes(): ByteArray = workbook { build(it, "Transactions", emptyList(), ALPHA_HEADERS, ALPHA_ROWS) }
+    // Built ONCE per JVM. An .xlsx is a ZIP and POI stamps wall-clock time into it twice — the
+    // ZIP entry timestamps (2s granularity) and `docProps/core.xml` `dcterms:created` (1s) — so
+    // regenerating the same content yields different BYTES, and therefore a different sha256.
+    // The loader keys idempotency off that hash, so a fixture that rebuilds per call makes
+    // "the same bytes" a wall-clock coin flip. Callers get a defensive copy.
+    private val ALPHA by lazy { workbook { build(it, "Transactions", emptyList(), ALPHA_HEADERS, ALPHA_ROWS) } }
+    private val BETA by lazy { workbook { build(it, "Activity", BETA_PREAMBLE, BETA_HEADERS, BETA_ROWS) } }
 
-    fun betaBytes(): ByteArray = workbook { build(it, "Activity", BETA_PREAMBLE, BETA_HEADERS, BETA_ROWS) }
+    fun alphaBytes(): ByteArray = ALPHA.copyOf()
+
+    fun betaBytes(): ByteArray = BETA.copyOf()
 
     /** Expected number of data rows per fixture (handy for asserts). */
     const val ALPHA_ROW_COUNT = 4

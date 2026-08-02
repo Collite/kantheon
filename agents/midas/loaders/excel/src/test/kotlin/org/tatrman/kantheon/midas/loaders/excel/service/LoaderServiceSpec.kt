@@ -89,8 +89,11 @@ class LoaderServiceSpec :
 
         "re-upload of the same bytes returns the same loader_run_id (idempotent)" {
             val svc = newService(FakeMidasCoreClient())
-            val first = svc.upload(BrokerFixtures.alphaBytes(), "alpha", portfolio, ctx)
-            val second = svc.upload(BrokerFixtures.alphaBytes(), "alpha", portfolio, ctx)
+            // One array, uploaded twice — the contract is about byte-identical re-uploads, not
+            // about POI producing identical bytes on two runs (it does not; see BrokerFixtures).
+            val bytes = BrokerFixtures.alphaBytes()
+            val first = svc.upload(bytes, "alpha", portfolio, ctx)
+            val second = svc.upload(bytes, "alpha", portfolio, ctx)
             second.loaderRunId shouldBe first.loaderRunId
         }
 
