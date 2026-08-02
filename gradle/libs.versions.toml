@@ -21,42 +21,39 @@ tatrman-ttr-metadata      = "0.11.0"
 # ttr-plan-proto + ttr-translator are published at 0.10.1 (Bora, 2026-07-29) — this ref drives
 # BOTH (see the library entries below). tatrman-server already pins 0.10.1 for the same two
 # artifacts, so this bump re-aligns kantheon with the server repo rather than leading it.
-# 0.10.1 is also exactly the ttr-plan-proto that ttr-server-proto:0.10.0 already resolves
-# transitively (see the CH-P3 note below) — so this REMOVES a split, it does not add one.
+# 0.10.1 is also exactly the ttr-plan-proto that server-proto (ex-`ttr-server-proto`) resolves
+# transitively — still true at 0.11.2 — so this REMOVES a split, it does not add one.
 tatrman-translator        = "0.10.1"  # translate.v1 public (was 0.8.5 / proteus.v1 pre-rename)
 # The spine libs + proto stubs moved to tatrman-server (SV-P0); consumed as
 # org.tatrman:* artifacts from Maven Central (public). The GitHub Packages +
 # 0.0.1-LOCAL/mavenLocal interims are retired.
 #
-# 0.9.4 -> 0.10.1 (ST-P2·S2, 2026-07-29): the long-outstanding re-cut happened
-# (tag server-libs/v0.10.1-RELEASE). This ref drives 9 modules — see the library entries below.
+# 0.10.1 -> 0.11.2 (RV-P(-1) consumer bump, 2026-08-02). ⚑ This bump is NOT optional and NOT
+# version-only: RV-P(-1) dropped the `ttr-` prefix across tatrman-server, so THREE of the eleven
+# coordinates below were RENAMED at the same cut —
 #
-# The bump exists for ktor-configurator: its Netty branch now sets `responseWriteTimeoutSeconds`
-# explicitly (default 180s) instead of inheriting Ktor's default of 10s, which is a hard cap on
-# time-to-first-byte for STREAMING responses and took the Hartland demo down on 2026-07-29
-# (iris-bff's SSE socket reaped at exactly 10.0s while Themis was still resolving). kantheon's
-# own fix — the `: ready` preamble — shipped first and is what actually carries the estate; this
-# bump is the library-side guard so a FOURTH Netty service cannot rediscover the cliff.
-# Full write-up: project/server/features/stream-timeouts/.
-tatrman-server            = "0.10.1"
-# RE-UNIFIED 2026-07-30. These two used to be held off the main line for reasons that have all
-# since expired, so they are now simply the server-libs line:
+#     org.tatrman:ttr-server-proto  ->  org.tatrman:server-proto
+#     org.tatrman:ttr-llm-client    ->  org.tatrman:llm-client
+#     org.tatrman:ttr-meta-client   ->  org.tatrman:meta-client
 #
-#   - ttr-llm-client 0.9.7 -> 0.10.1. It was pulled AHEAD to 0.9.7 for the golem gateway-2.0
-#     cutover (LlmGatewayEndpoint.apiKey + the generic-tier executor) while the rest of the spine
-#     was stuck at 0.9.4. The spine has caught up and passed it.
-#   - ttr-server-proto 0.10.0 -> 0.10.1. CH-P3 moved transfer.v1 + metis.v1 into this artifact and
-#     0.10.0 was its first Central-clean cut (0.9.7/0.9.8 were poisoned by the ttr-plan-proto
-#     0.9.6-rc01 transitive). kantheon consumes org.tatrman.transfer.v1.* (Pythia's CharonClient)
-#     and org.tatrman.metis.v1.* from here; metis.proto stays Python-only.
+# The old names are frozen forever at 0.10.1; the new names exist ONLY from 0.11.2 (verified on
+# Central: server-proto/llm-client/meta-client publish 0.11.2 and nothing earlier — 0.11.1 was
+# cut before the rename landed and carries the old names). So name and version move together or
+# the build does not resolve. The other eight coordinates never carried the prefix and simply
+# ride the same `server-libs/v0.11.2-RELEASE` cut.
 #
-# Both reasons the spine sat at 0.9.4 are gone: the 0.9.6-rc01 Central gap closed when
-# ttr-plan-proto published 0.10.1, and the outstanding server-libs re-cut happened
-# (server-libs/v0.10.1-RELEASE). Since `just publish bundle server-libs` cuts all 13 modules
-# together, holding these apart no longer buys anything — a divergence here is now a deliberate
-# choice rather than an inherited constraint.
-tatrman-ttr-llm-client    = "0.10.1"
-tatrman-ttr-server-proto  = "0.10.1"
+# NO transitive split: server-proto:0.11.2's POM still declares org.tatrman:ttr-plan-proto:0.10.1
+# — exactly what `tatrman-translator` pins below, so the CH-P3 alignment survives the rename.
+# (`ttr-plan-proto` / `ttr-translator` / `ttr-parser` / `ttr-metadata` / `ttr-validator-spi` are
+# the TATRMAN TOOLCHAIN line, a different repo and a different release train. They keep the
+# `ttr-` prefix by design — do not "finish the rename" on them.)
+#
+# RE-UNIFIED 2026-07-30, and the unification now pays off: llm-client and server-proto used to
+# carry their own version refs for reasons that had already expired (llm-client was pulled ahead
+# to 0.9.7 for the golem gateway-2.0 cutover; server-proto sat at 0.10.0 as its first
+# Central-clean cut after the ttr-plan-proto 0.9.6-rc01 transitive poisoned 0.9.7/0.9.8). Since
+# `just publish bundle server-libs` cuts every module together, one ref is the honest shape.
+tatrman-server            = "0.11.2"
 # The ⑤ validator SPI (org.tatrman:ttr-validator-spi) from Maven Central — the open C-5-i plugin contract
 # the llm-guard plugin implements (published via tatrman `just publish bundle validator`).
 #
@@ -348,9 +345,12 @@ tatrman-data-formatter              = { module = "org.tatrman:data-formatter",  
 tatrman-fuzzy-common                = { module = "org.tatrman:fuzzy-common",                             version.ref = "tatrman-server" }
 tatrman-whois-common                = { module = "org.tatrman:whois-common",                             version.ref = "tatrman-server" }
 tatrman-keycloak-auth               = { module = "org.tatrman:keycloak-auth",                            version.ref = "tatrman-server" }
-tatrman-ttr-meta-client             = { module = "org.tatrman:ttr-meta-client",                          version.ref = "tatrman-server" }
-tatrman-ttr-llm-client              = { module = "org.tatrman:ttr-llm-client",                           version.ref = "tatrman-ttr-llm-client" }
-tatrman-ttr-server-proto            = { module = "org.tatrman:ttr-server-proto",                         version.ref = "tatrman-ttr-server-proto" }
+# RV-P(-1) rename: `ttr-meta-client` / `ttr-llm-client` / `ttr-server-proto` lost the prefix at
+# 0.11.2. Aliases renamed with them, so `libs.tatrman.meta.client` etc. now read like the eight
+# entries above — see the ⚑ note on `tatrman-server` for why name and version are one move.
+tatrman-meta-client                 = { module = "org.tatrman:meta-client",                              version.ref = "tatrman-server" }
+tatrman-llm-client                  = { module = "org.tatrman:llm-client",                               version.ref = "tatrman-server" }
+tatrman-server-proto                = { module = "org.tatrman:server-proto",                             version.ref = "tatrman-server" }
 tatrman-ttr-validator-spi           = { module = "org.tatrman:ttr-validator-spi",                        version.ref = "tatrman-ttr-validator-spi" }
 exposed-core                        = { module = "org.jetbrains.exposed:exposed-core",                    version.ref = "exposed" }
 exposed-jdbc                        = { module = "org.jetbrains.exposed:exposed-jdbc",                    version.ref = "exposed" }

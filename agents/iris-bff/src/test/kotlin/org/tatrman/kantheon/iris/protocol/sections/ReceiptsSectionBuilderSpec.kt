@@ -55,7 +55,7 @@ class ReceiptsSectionBuilderSpec :
             val gap = r.sourcesList.single { it.source == "capture:security_applied" }
 
             gap.status shouldBe "degraded"
-            gap.detail shouldContain "ttr-query does not propagate"
+            gap.detail shouldContain "the query service does not propagate"
         }
 
         "zero record rows is degraded, not ok — 'no rows' means capture was not running" {

@@ -105,7 +105,7 @@ class ProtocolRecorder(
         /**
          * Amendment A-1: F7 is structurally unreachable from kantheon today. The
          * authoritative `validate.v1 security_applied` set is consumed inside
-         * ttr-query and carried on none of its response types, and the lossy
+         * query and carried on none of its response types, and the lossy
          * string proxy that does survive (`pipelineWarnings`) is dropped again by
          * golem's query client.
          *
@@ -122,7 +122,7 @@ class ProtocolRecorder(
             CaptureGap
                 .newBuilder()
                 .setCapture("security_applied")
-                .setReason("ttr-query does not propagate validate.v1 security_applied to callers (A-1)")
+                .setReason("the query service does not propagate validate.v1 security_applied to callers (A-1)")
                 .build()
     }
 }

@@ -38,11 +38,11 @@ dependencies {
     api(libs.tatrman.ttr.plan.proto)
     // SV-P0: the spine protos + gRPC stubs (meta/query/translate/validate/dispatch/
     // fuzzy/nlp/llm/worker/security/common/capabilities .v1) moved to tatrman-server
-    // and are consumed as the `ttr-server-proto` artifact. Same mechanism as
+    // and are consumed as the `server-proto` artifact. Same mechanism as
     // ttr-plan-proto above — the plugin extracts the bundled `.proto` files onto the
     // protoc include path so kantheon protos importing e.g. `org/tatrman/nlp/v1/nlp.proto`
     // resolve, and the generated classes come from the artifact (not regenerated here).
-    api(libs.tatrman.ttr.server.proto)
+    api(libs.tatrman.server.proto)
     // Agent protos remain in-repo (kantheon/*, metis, pinakes, kallimachos, transfer).
     // `org.tatrman.kantheon.common.v1` stays kantheon-owned (agent-only, contracts §5).
 
@@ -85,7 +85,7 @@ protobuf {
     }
 }
 
-// CH-P3 (T2a) — metis.v1 is Python-only in kantheon. Its ownership moved to org.tatrman:ttr-server-proto
+// CH-P3 (T2a) — metis.v1 is Python-only in kantheon. Its ownership moved to org.tatrman:server-proto
 // (which now supplies the Kotlin/Java/gRPC metis classes to metis-mcp + Pythia), but the kantheon-native
 // Metis service is Python and still generates its stubs from metis.proto here. So keep the proto, keep its
 // `python` codegen, and STRIP the JVM codegen (java/kotlin/grpc/grpckt) after generateProto — else two copies
@@ -213,7 +213,7 @@ val noTransferredProtoClasses by tasks.registering {
                 .archiveFile
                 .get()
                 .asFile
-        // CH-P3 — transfer/v1 + metis/v1 moved to org.tatrman:ttr-server-proto (0.10.0). transfer.proto is
+        // CH-P3 — transfer/v1 + metis/v1 moved to org.tatrman:server-proto (cut as `ttr-server-proto` 0.10.0; renamed at 0.11.2). transfer.proto is
         // deleted here; metis.proto is kept Python-only (its JVM codegen is stripped, see stripMetisJvmCodegen),
         // so neither may bundle into this jar or two copies land on every consumer's classpath.
         val forbidden =

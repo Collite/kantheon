@@ -5,7 +5,7 @@
 > Argos/Theseus + the MSSQL/Polars/Postgres workers, and the technical-wave
 > `whois`/`health`/`backstage` — **no longer live in kantheon**; they moved to the
 > [`tatrman-server`](https://github.com/Collite/tatrman-server) repo under functional
-> names (Ariadne→Veles, Theseus→ttr-query, …, whois→ttr-identity) and deploy from
+> names (Ariadne→Veles, Theseus→query, …, whois→identity) and deploy from
 > there. The `deploy-fork` / technical-wave sections below are retained as the
 > **fork-era bring-up record**; from kantheon, `local-infra-up` now stands up only the
 > shared infra + the surviving services/agents (Charon, Metis, Kallimachos, Pinakes,

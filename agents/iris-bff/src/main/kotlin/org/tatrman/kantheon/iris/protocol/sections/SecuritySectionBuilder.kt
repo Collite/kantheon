@@ -10,13 +10,13 @@ import org.tatrman.validate.v1.SecurityRuleApplied
  * `protocol.section.security` — the row-level rules the validator injected.
  *
  * **Today this section is always degraded, by Amendment A-1**: `security_applied`
- * is consumed inside ttr-query and carried on none of its response types, so the
+ * is consumed inside the query service and carried on none of its response types, so the
  * F7 capture is structurally unreachable and the recorder writes an explicit
  * `capture_gaps` marker instead. That marker is why this builder can distinguish
  * "no rules applied" — a real, reportable answer — from "we could not look",
  * which it must never present as the former.
  *
- * The parse path below is live code, not speculation: the day ttr-query carries
+ * The parse path below is live code, not speculation: the day the query service carries
  * the set, the recorder fills `captures.security_applied` and this section starts
  * answering without another change here.
  */
@@ -56,7 +56,7 @@ object SecuritySectionBuilder {
                     .build()
             }
 
-            val security = SecuritySection.newBuilder().setPolicySource("ttr-validate")
+            val security = SecuritySection.newBuilder().setPolicySource("validate")
             appliedRules(bytes).forEach { applied ->
                 security.addRules(
                     SecurityRuleView

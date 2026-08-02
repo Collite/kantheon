@@ -32,7 +32,7 @@
       "captureGaps": [
         {
           "capture": "security_applied",
-          "reason": "ttr-query does not propagate validate.v1 security_applied to callers (A-1)"
+          "reason": "the query service does not propagate validate.v1 security_applied to callers (A-1)"
         }
       ]
     },

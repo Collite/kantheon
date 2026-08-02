@@ -34,7 +34,7 @@ import org.tatrman.transfer.v1.StageRequest
 import org.tatrman.transfer.v1.WorkerKind
 import org.tatrman.transfer.v1.WorkerSessionDf
 import org.tatrman.kantheon.charon.mcp.client.CharonGrpcClient
-// CH-P3: charon (transfer.v1) now resolves from the published org.tatrman:ttr-server-proto, whose
+// CH-P3: charon (transfer.v1) now resolves from the published org.tatrman:server-proto, whose
 // Rule-6 trailer is org.tatrman.common.v1.ResponseMessage (not kantheon's stand-in). Structurally
 // identical (severity/code/humanMessage) — messagesFromProto reads only those.
 import org.tatrman.common.v1.ResponseMessage

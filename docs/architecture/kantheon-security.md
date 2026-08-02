@@ -10,10 +10,10 @@
 >
 > | This doc says | Today's owner | Where |
 > |---|---|---|
-> | `theseus-mcp` (IdentityResolver edge) | **`ttr-query-mcp`** (`mcp-identity/IdentityResolver.kt`) | tatrman-server |
-> | **Argos** (validator + in-process policy engine, RLS) | **`ttr-validate`** (`PolicyEngine`) | tatrman-server |
-> | `whois` (role directory / OPA bundles) | **`ttr-identity`** | tatrman-server |
-> | Theseus (query orchestrator) | **`ttr-query`** (`Run` + `Compile`) | tatrman-server |
+> | `theseus-mcp` (IdentityResolver edge) | **`query-mcp`** (`mcp-identity/IdentityResolver.kt`) | tatrman-server |
+> | **Argos** (validator + in-process policy engine, RLS) | **`validate`** (`PolicyEngine`) | tatrman-server |
+> | `whois` (role directory / OPA bundles) | **`identity`** | tatrman-server |
+> | Theseus (query orchestrator) | **`query`** (`Run` + `Compile`) | tatrman-server |
 >
 > **What did NOT change:** the §1 principle (kantheon builds no authorization engine), the §2 OBO rule (agents call
 > the query edge with the user's bearer, never a service identity), the enforcement points in §3, and the audit
@@ -29,13 +29,13 @@
 >
 > </details>
 >
-> **Scope:** domain-level authorization, identity propagation, audit trail. Out of scope: row-level security policy *content* (lives in the model — **Veles**, fork-era "Ariadne" — and `ttr-validate`'s in-process policy store), authentication mechanics (Keycloak, platform standard), per-session ACLs/sharing (PD-15, v2).
+> **Scope:** domain-level authorization, identity propagation, audit trail. Out of scope: row-level security policy *content* (lives in the model — **Veles**, fork-era "Ariadne" — and `validate`'s in-process policy store), authentication mechanics (Keycloak, platform standard), per-session ACLs/sharing (PD-15, v2).
 
 ---
 
 ## 1. Principle
 
-Kantheon does **not** build a *new* authorization engine — it relies on the open spine's enforcement code and runs no copy of it. Identity is resolved at the **`ttr-query-mcp`** edge (`IdentityResolver`, unchanged since the fork: Keycloak JWT `realm_access.roles` → `PipelineContext.user_id` / `auth_roles`) and **`ttr-validate`** (validator + in-process policy engine) applies row-level security predicates (role-gated admin bypass, DF-V02). Both live in `tatrman-server` and are consumed by published version — *(fork-era wording: "theseus-mcp" and "Argos", forked in-repo)*. On top of that enforcement, Kantheon adds the three things it owns:
+Kantheon does **not** build a *new* authorization engine — it relies on the open spine's enforcement code and runs no copy of it. Identity is resolved at the **`query-mcp`** edge (`IdentityResolver`, unchanged since the fork: Keycloak JWT `realm_access.roles` → `PipelineContext.user_id` / `auth_roles`) and **`validate`** (validator + in-process policy engine) applies row-level security predicates (role-gated admin bypass, DF-V02). Both live in `tatrman-server` and are consumed by published version — *(fork-era wording: "theseus-mcp" and "Argos", forked in-repo)*. On top of that enforcement, Kantheon adds the three things it owns:
 
 1. **Domain entitlements** — who may talk to which agent/domain.
 2. **Identity propagation discipline** — the user's identity reaches the data layer on every path.
@@ -50,15 +50,15 @@ flowchart LR
     FE --> BFF["iris-bff<br/>validates bearer"]
     BFF -->|"roles in request ctx"| T["Themis<br/>filters registry by roles"]
     BFF -->|"OBO bearer"| A["Agent (Golem-*/Pythia)<br/>re-checks visibility_roles"]
-    A -->|"user's OBO token —<br/>NEVER service identity"| Q["ttr-query-mcp<br/>IdentityResolver"]
-    Q --> TH["ttr-query<br/>orchestrator"]
-    TH --> V["ttr-validate<br/>row-level security<br/>(validator + policy engine)"]
+    A -->|"user's OBO token —<br/>NEVER service identity"| Q["query-mcp<br/>IdentityResolver"]
+    Q --> TH["query<br/>orchestrator"]
+    TH --> V["validate<br/>row-level security<br/>(validator + policy engine)"]
     BFF --> AU[("iris_audit<br/>hash-chained")]
 ```
 
 *(Everything right of the OBO arrow is `tatrman-server`, consumed over the network — kantheon hosts none of it.)*
 
-**The one load-bearing rule:** *agents call `ttr-query-mcp` (and every data tool) with the user's on-behalf-of token, never a service identity.* This makes `ttr-validate`'s row-level security work per-user end-to-end with zero new enforcement code. Scheduled turns inherit it automatically — Hebe dispatches with the bound user's OBO token (Hebe arc, locked 2026-06-12).
+**The one load-bearing rule:** *agents call `query-mcp` (and every data tool) with the user's on-behalf-of token, never a service identity.* This makes `validate`'s row-level security work per-user end-to-end with zero new enforcement code. Scheduled turns inherit it automatically — Hebe dispatches with the bound user's OBO token (Hebe arc, locked 2026-06-12).
 
 **Roles transport (locked 2026-06-12, cohesion review D3):** "roles in request ctx" means the BFF **forwards the user's bearer** on the Themis hop — no roles field on `ResolveRequest`. Themis validates the token and reads `realm_access.roles` itself. One identity mechanism on every hop; no trust-upstream role claims.
 
@@ -90,9 +90,9 @@ Themis filters its routing view by the caller's roles **before Layer 1 scores**:
 
 Every agent validates the inbound bearer and re-checks its own `visibility_roles`. Covers Themis-bypassed paths (direct API callers, future programmatic clients). One policy check at request admission; reject = 403 with a Rule-6 message.
 
-### 3.4 Enforcement point 3 — the data layer (open spine: `ttr-validate`)
+### 3.4 Enforcement point 3 — the data layer (open spine: `validate`)
 
-Row-level scoping within a domain is **`ttr-validate`'s** job (validator + in-process policy engine, in `tatrman-server`), driven by the identity in `PipelineContext` (§2 rule). A `ShemManifest` may *reference* the applicable policy for documentation; Kantheon never *re-implements* RLS — it consumes the spine's RLS code, it does not host or fork it. The policy content lives in the validator's policy store (default `tenant_isolation`) rather than in kantheon. *(Fork-era wording: "Argos", run in-repo, keys `argos.policies` / `ARGOS_POLICIES_FILE` — see `tatrman-server` for today's key names.)*
+Row-level scoping within a domain is **`validate`'s** job (validator + in-process policy engine, in `tatrman-server`), driven by the identity in `PipelineContext` (§2 rule). A `ShemManifest` may *reference* the applicable policy for documentation; Kantheon never *re-implements* RLS — it consumes the spine's RLS code, it does not host or fork it. The policy content lives in the validator's policy store (default `tenant_isolation`) rather than in kantheon. *(Fork-era wording: "Argos", run in-repo, keys `argos.policies` / `ARGOS_POLICIES_FILE` — see `tatrman-server` for today's key names.)*
 
 ### 3.5 Pythia cross-domain rule (locked: constrain and disclose)
 
@@ -100,8 +100,8 @@ Pythia plans against the registry *as filtered by the user's roles*: Shems and t
 
 ### 3.6 Validator role source — `bearer` default, identity-directory opt-in
 
-> **⚑ Not a kantheon knob any more (PL-P6 R2, 2026-07-26).** This is a **`ttr-validate` deployment setting in
-> `tatrman-server`**, and the directory it optionally reads is **`ttr-identity`** (fork-era: `whois`). Kantheon
+> **⚑ Not a kantheon knob any more (PL-P6 R2, 2026-07-26).** This is a **`validate` deployment setting in
+> `tatrman-server`**, and the directory it optionally reads is **`identity`** (fork-era: `whois`). Kantheon
 > neither hosts nor configures it — it is documented here only because it decides which roles §3.4's RLS applies to
 > a kantheon-originated query. For the current key names and defaults, read `tatrman-server`; treat the fork-era
 > spellings below (`argos.roleSource`, `services/argos/.../roles/`, `GET /whois?userId=…`) as historical.
@@ -111,7 +111,7 @@ Where §3.4's RLS gets the user's **roles** is configurable per deployment (defa
 - **`bearer` (default):** the validator derives `auth_roles` from the forwarded bearer's `realm_access.roles` — the behavior of §2/§3.4, no directory dependency, no per-query hop.
 - **directory (opt-in):** for deployments whose RLS depends on **ERP-sourced roles or a role hierarchy that Keycloak does not stamp into the token**, the validator resolves base roles from the bearer and then **enriches** them via the identity directory, keyed by the bearer-trusted `user_id`. Results are cached (TTL) so the hot path takes the directory hop at most once per user per TTL.
 
-**The invariant that keeps this from reopening D3:** identity is resolved **exclusively** at the `ttr-query-mcp` edge from the user's OBO bearer. The directory is a *role-enrichment* source, never an identity authority — a response keyed to any `user_id` other than the bearer's is rejected, and the directory being unreachable in opt-in mode **fails closed** (Rule-6 message, §2.1 semantics), never widening the role set. So enabling it adds roles a deployment has deliberately chosen to honor; it never changes *whose* roles are used. Default-off means the §2 flow and the Phase-3 security posture are unchanged unless a deployment explicitly opts in.
+**The invariant that keeps this from reopening D3:** identity is resolved **exclusively** at the `query-mcp` edge from the user's OBO bearer. The directory is a *role-enrichment* source, never an identity authority — a response keyed to any `user_id` other than the bearer's is rejected, and the directory being unreachable in opt-in mode **fails closed** (Rule-6 message, §2.1 semantics), never widening the role set. So enabling it adds roles a deployment has deliberately chosen to honor; it never changes *whose* roles are used. Default-off means the §2 flow and the Phase-3 security posture are unchanged unless a deployment explicitly opts in.
 
 <details><summary>Fork-era text (Phase 5, 2026-06-13 / Stage 5.3, 2026-06-24) — kept for record</summary>
 
@@ -167,7 +167,7 @@ Config key `iris.audit.retention_months` (default: unlimited — Hebe's never-de
 | `iris/contracts.md` §3 | `iris_audit` DDL + audit event list + retention config key |
 | `golem/contracts.md` / `pythia/contracts.md` | request-admission re-check note — **landed 2026-06-12 (cohesion review)**: golem §2, pythia §2; rule stays normative here |
 | Shem onboarding (PD-12 toolchain, later) | create `kantheon-area-<area>` realm role as an onboarding step |
-| ~~`services/argos` `application.conf`~~ → **`ttr-validate` config in `tatrman-server`** | the §3.6 role-source knob (`bearer` default | identity-directory opt-in) — landed fork Stage 5.3 (2026-06-24) as `argos.roleSource`; **no longer a kantheon insertion point** since the 2026-07 spine extraction |
+| ~~`services/argos` `application.conf`~~ → **`validate` config in `tatrman-server`** | the §3.6 role-source knob (`bearer` default | identity-directory opt-in) — landed fork Stage 5.3 (2026-06-24) as `argos.roleSource`; **no longer a kantheon insertion point** since the 2026-07 spine extraction |
 
 ---
 

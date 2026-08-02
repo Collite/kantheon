@@ -183,7 +183,7 @@ class ProtocolProtoRoundTripSpec :
                                         ExecutionSection
                                             .newBuilder()
                                             .setDispatchTarget("pg-hartland")
-                                            .setWorker("ttr-worker-postgres")
+                                            .setWorker("worker-postgres")
                                             .setRowCount(72)
                                             .setDurationMs(180),
                                     ),

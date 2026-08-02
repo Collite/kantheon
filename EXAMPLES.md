@@ -467,7 +467,9 @@ fun envelopeOf(vararg blocks: Block): FormatEnvelope =
 
 ## 7. Kotlin MCP client — calling an in-repo MCP tool
 
-Post-fork, kantheon agents call the read-spine MCPs — `ttr-nlp-mcp` (NLP), `ttr-fuzzy-mcp` (fuzzy), `ttr-query-mcp` (`run_query`, capability id `query.run:v1`), `ttr-meta-mcp` (model graph) — never ai-platform's old `nlp-mcp`/`fuzzy-mcp`/`query-mcp`/`metadata-mcp`. These services were extracted from kantheon to the open-source **tatrman-server** repo (SV-P0/P1, 2026-07), so the call is now cross-repo; the consumer (Themis) stays in kantheon. Protos are the extracted packages (`org.tatrman.nlp.v1`, `org.tatrman.fuzzy.v1`, `org.tatrman.query.v1`, `org.tatrman.meta.v1`). Use the SDK client through a thin wrapper that enforces traceparent propagation and adds OTel spans.
+Post-fork, kantheon agents call the read-spine MCPs — `nlp-mcp` (NLP), `fuzzy-mcp` (fuzzy; module `lex-matcher-mcp`), `query-mcp` (`run_query`, capability id `query.run:v1`), `meta-mcp` (model graph; deployed as `veles-mcp`). These services were extracted from kantheon to the open-source **tatrman-server** repo (SV-P0/P1, 2026-07), so the call is now cross-repo; the consumer (Themis) stays in kantheon.
+
+> ⚑ **These names collide with ai-platform's, and that is new.** Until RV-P(-1) (2026-08-02) the spine doors were spelled `ttr-nlp-mcp` / `ttr-fuzzy-mcp` / `ttr-query-mcp` / `ttr-meta-mcp`, so the prefix alone told you which platform you were pointing at. It doesn't any more: `nlp-mcp`, `fuzzy-mcp` and `query-mcp` are now *also* what ai-platform's legacy doors are called (its model-graph door is `metadata-mcp`, the one name that still differs). **Disambiguate by endpoint, never by name** — the spine doors are the ones in the `ttr-server` namespace / the `tatrman-server` estate. Wiring a kantheon agent at an ai-platform host is no longer a name-level typo, it is a config-level one. Protos are the extracted packages (`org.tatrman.nlp.v1`, `org.tatrman.fuzzy.v1`, `org.tatrman.query.v1`, `org.tatrman.meta.v1`). Use the SDK client through a thin wrapper that enforces traceparent propagation and adds OTel spans.
 
 ```kotlin
 // agents/themis/src/main/kotlin/org/tatrman/kantheon/themis/infra/NlpMcpClient.kt
@@ -482,7 +484,7 @@ class NlpMcpClient(private val mcp: McpClient, otel: OpenTelemetry) {
     private val tracer = otel.getTracer("themis.nlp")
 
     suspend fun analyze(req: AnalyzeRequest): AnalyzeResponse {
-        val span = tracer.spanBuilder("ttr-nlp-mcp.analyze").startSpan()
+        val span = tracer.spanBuilder("nlp-mcp.analyze").startSpan()
         return try {
             val result = mcp.callTool(
                 name = "nlp.analyze",
@@ -513,8 +515,8 @@ import shared.otel.createOpenTelemetrySdk
 
 val otel = createOpenTelemetrySdk(
     OtelEndpointConfig(
-        serviceName = "ttr-query",                // bare service name — NOT "kantheon-ttr-query"
-        protocol = System.getenv("TTR_QUERY_OTEL_PROTOCOL") ?: "grpc",
+        serviceName = "query",                    // bare service name — NOT "kantheon-query"
+        protocol = System.getenv("QUERY_OTEL_PROTOCOL") ?: "grpc",
     ),
     // enabled = config.getBoolean("telemetry.enabled")   // optional gate
 )
@@ -532,11 +534,11 @@ This wires:
 import shared.otel.withSpan
 import shared.otel.tracedFlow
 
-suspend fun translate(req: R): T = tracer.withSpan("ttr-query.translate", SpanKind.CLIENT) { client.translate(req) }
-fun run(req: R): Flow<E> = inner.tracedFlow(tracer, "ttr-query.run")     // NOT withContext around emit
+suspend fun translate(req: R): T = tracer.withSpan("query.translate", SpanKind.CLIENT) { client.translate(req) }
+fun run(req: R): Flow<E> = inner.tracedFlow(tracer, "query.run")     // NOT withContext around emit
 ```
 
-Leaf gRPC services rely on auto-instrumentation; add manual spans only at orchestration seams (ttr-query-mcp tool boundary + ttr-query). Don't roll your own SDK init. See [`docs/architecture/fork/observability.md`](./docs/architecture/fork/observability.md).
+Leaf gRPC services rely on auto-instrumentation; add manual spans only at orchestration seams (query-mcp tool boundary + query). Don't roll your own SDK init. See [`docs/architecture/fork/observability.md`](./docs/architecture/fork/observability.md).
 
 ---
 

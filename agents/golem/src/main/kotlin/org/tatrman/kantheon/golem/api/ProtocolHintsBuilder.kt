@@ -28,12 +28,12 @@ object ProtocolHintsBuilder {
         val b = ProtocolHints.newBuilder()
 
         // Golem's plan identity is its node ids — MiniPlan itself carries no id
-        // (golem.proto MiniPlan), and ttr-query returns plans inline rather than
+        // (golem.proto MiniPlan), and query returns plans inline rather than
         // by handle, so there is no translator plan id to forward.
         state.plan?.nodesList?.forEach { b.addPlanIds(it.nodeId) }
 
         // llm_call_refs stays EMPTY, deliberately. Gateway row ids would have to
-        // come back from `org.tatrman:ttr-llm-client.complete()`, which returns no
+        // come back from `org.tatrman:llm-client.complete()`, which returns no
         // per-call metadata (the same gap as the X-Call-Purpose header, PT-24).
         // Empty is contract-sanctioned here; the assembler sources LLM calls from
         // the gateway by trace/turn ref instead and reports any it cannot attribute

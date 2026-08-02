@@ -4,7 +4,8 @@
 >
 > **⚑ Authority MOVED at the CH-P3 cutover (2026-07-27).** The wire contract (`org.tatrman.transfer.v1`, née
 > `org.tatrman.charon.v1`) is now owned by the open [`tatrman-server`](https://github.com/Collite/tatrman-server)
-> repo — `services/charon` + `shared/proto`, published as `org.tatrman:ttr-server-proto`. **Do not edit the proto
+> repo — `services/charon` + `shared/proto`, published as `org.tatrman:server-proto` (spelled `ttr-server-proto`
+> until the RV-P(-1) rename; kantheon pins 0.11.2, the first cut under the new name). **Do not edit the proto
 > here, and do not treat this file as authoritative for it.** kantheon consumes the contract by version and keeps
 > only `tools/charon-mcp`; its in-repo `services/charon` and the `transfer/v1` proto duplicate were removed
 > ([kantheon#17](https://github.com/Collite/kantheon/issues/17)). What stays accurate below: the `charon-mcp` tool

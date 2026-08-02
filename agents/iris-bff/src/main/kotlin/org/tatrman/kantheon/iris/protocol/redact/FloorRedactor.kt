@@ -130,7 +130,7 @@ object FloorRedactor : ProtocolRedactor {
                 section.queryBuilder.entityQuery = scrub(section.queryBuilder.entityQuery)
 
             // The single most likely place in the document for a connection string:
-            // under S-1 this is ttr-translate's per-stage canonical form, and a plan
+            // under S-1 this is translate's per-stage canonical form, and a plan
             // stage names the data source it reads from.
             Section.PayloadCase.PLAN ->
                 section.planBuilder.relPlanText = scrub(section.planBuilder.relPlanText)
