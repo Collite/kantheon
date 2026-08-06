@@ -4,6 +4,8 @@ import com.google.protobuf.util.JsonFormat
 import org.tatrman.nlp.v1.AnalyzeResponse
 import org.tatrman.resolver.v1.Capabilities
 import org.tatrman.resolver.v1.ResolutionState
+import org.tatrman.resolver.v1.GateRequest
+import org.tatrman.resolver.v1.GateResponse
 import org.tatrman.resolver.v1.ResolveRequest
 import org.tatrman.resolver.v1.ResolveResponse
 
@@ -56,22 +58,29 @@ object RecordedResolutionCore {
             ).build()
 
     /** A client that answers one recorded case and records the request it was asked with. */
-    fun client(case: String): RecordingClient = RecordingClient { response(case) }
+    fun client(case: String): RecordingClient = RecordingClient(answer = { response(case) })
 
     /** A client whose door is down. */
     fun failing(
         code: String = "UNAVAILABLE",
         message: String = "resolver unreachable",
-    ): RecordingClient = RecordingClient { throw ResolutionCoreException(code, message) }
+    ): RecordingClient = RecordingClient(answer = { throw ResolutionCoreException(code, message) })
 
     class RecordingClient(
         private val answer: () -> ResolveResponse,
+        private val gateAnswer: (GateRequest) -> GateResponse = { GateResponse.getDefaultInstance() },
     ) : ResolutionCoreClient {
         val requests = mutableListOf<ResolveRequest>()
+        val gateRequests = mutableListOf<GateRequest>()
 
         override suspend fun resolve(request: ResolveRequest): ResolveResponse {
             requests += request
             return answer()
+        }
+
+        override suspend fun gate(request: GateRequest): GateResponse {
+            gateRequests += request
+            return gateAnswer(request)
         }
     }
 }

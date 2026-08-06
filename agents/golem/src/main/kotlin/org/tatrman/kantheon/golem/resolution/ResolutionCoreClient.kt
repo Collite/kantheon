@@ -4,17 +4,19 @@ import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusException
 import io.grpc.StatusRuntimeException
+import org.tatrman.resolver.v1.GateRequest
+import org.tatrman.resolver.v1.GateResponse
 import org.tatrman.resolver.v1.ResolveRequest
 import org.tatrman.resolver.v1.ResolveResponse
 import org.tatrman.resolver.v1.ResolverServiceGrpcKt
 import java.util.concurrent.TimeUnit
 
 /**
- * RV-P5.1 — the seam to `org.tatrman.resolver.v1.ResolverService`, the deterministic
- * resolution core. One rpc at this phase: `Resolve` (= `resolve.bind:v1`), which returns
- * the whole annotation lattice. `Gate` (`resolve.gate:v1`) joins in RV-P5.2, when there is
- * a ladder to propose hypotheses for it to gate — adding it here would be a method nothing
- * calls.
+ * RV-P5.1/5.2 — the seam to `org.tatrman.resolver.v1.ResolverService`, the deterministic
+ * resolution core. `Resolve` (= `resolve.bind:v1`) returns the whole annotation lattice;
+ * `Gate` (= `resolve.gate:v1`) joined at RV-P5.2, when a ladder existed to propose
+ * hypotheses for it to gate — it was deliberately absent at P5.1, where it would have been
+ * a method nothing calls.
  *
  * **The Golem never binds** (RV-7). This client reads a lattice and hands it on; nothing
  * downstream of it constructs a `Binding`, and P5.2 adds a grep-fence test that says so.
@@ -28,6 +30,17 @@ import java.util.concurrent.TimeUnit
 interface ResolutionCoreClient : AutoCloseable {
     /** `resolve.bind:v1` — text in, annotation lattice out. Spends no LLM budget. */
     suspend fun resolve(request: ResolveRequest): ResolveResponse
+
+    /**
+     * `resolve.gate:v1` (RV-P5.2) — a rung's hypotheses come back through the core here, and
+     * only what survives the same evidence-class gate as any other candidate becomes a
+     * binding (RV-7, structurally enforced on the server side).
+     *
+     * STATELESS and idempotent by contract: the caller carries the lattice, so a retry is a
+     * fresh call with the same inputs. That is what makes the loop's `LOOKUP_FAILED` retry
+     * safe.
+     */
+    suspend fun gate(request: GateRequest): GateResponse
 
     override fun close() {}
 }
@@ -52,12 +65,21 @@ class GrpcResolutionCoreClient(
     private val stub = ResolverServiceGrpcKt.ResolverServiceCoroutineStub(channel)
 
     override suspend fun resolve(request: ResolveRequest): ResolveResponse =
+        call("resolve") { stub.withDeadlineAfter(deadlineSeconds, TimeUnit.SECONDS).resolve(request) }
+
+    override suspend fun gate(request: GateRequest): GateResponse =
+        call("gate") { stub.withDeadlineAfter(deadlineSeconds, TimeUnit.SECONDS).gate(request) }
+
+    private inline fun <T> call(
+        what: String,
+        block: () -> T,
+    ): T =
         try {
-            stub.withDeadlineAfter(deadlineSeconds, TimeUnit.SECONDS).resolve(request)
+            block()
         } catch (e: StatusException) {
-            throw ResolutionCoreException(e.status.code.name, e.status.description ?: "resolve failed", e)
+            throw ResolutionCoreException(e.status.code.name, e.status.description ?: "$what failed", e)
         } catch (e: StatusRuntimeException) {
-            throw ResolutionCoreException(e.status.code.name, e.status.description ?: "resolve failed", e)
+            throw ResolutionCoreException(e.status.code.name, e.status.description ?: "$what failed", e)
         }
 
     override fun close() {
