@@ -37,7 +37,17 @@ class CoreGateCall(
                 rungLogEntry = if (response.hasRungLogEntry()) response.rungLogEntry else null,
                 outcomes =
                     response.outcomesList.map {
-                        HypothesisVerdict(hypothesis = it.hypothesis, accepted = it.accepted, reason = it.reason)
+                        HypothesisVerdict(
+                            hypothesis = it.hypothesis,
+                            accepted = it.accepted,
+                            reason = it.reason,
+                            // ⛑ Was dropped until RV-P5.4 T2, and dropping it broke the fold:
+                            // a `Binding` carries no span, so the ONLY honest route from a
+                            // gated binding back to the mention it belongs on is the
+                            // hypothesis it came from. `gated_bindings` is a flat list and
+                            // cannot say which mention is which.
+                            binding = if (it.hasBinding()) it.binding else null,
+                        )
                     },
             )
         }

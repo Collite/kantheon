@@ -1,16 +1,23 @@
 package org.tatrman.kantheon.golem.resolution.skills
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import org.tatrman.ttr.lexicon.EntryProvenance
 import org.tatrman.ttr.lexicon.OperatorEntry
 import org.tatrman.ttr.lexicon.OperatorLibrary
 import org.tatrman.ttr.lexicon.sha256
+import java.nio.file.Files
+import java.nio.file.Path
 import java.security.MessageDigest
 
 /**
@@ -43,6 +50,27 @@ internal fun body(
 internal fun layer(vararg entries: Pair<String, OperatorEntry>): SkillLayer =
     SkillLayer.fromJson(OperatorLibrary(operators = entries.toMap()).toJson())
 
+private const val UPSTREAM_LIBRARY = "services/golem-py/tests/fixtures/lexicon/operator-library.json"
+
+/**
+ * The document with `source.layer` stripped wherever it appears — the one edit this copy
+ * carries, and the only difference the drift check may tolerate.
+ */
+private fun withoutSourceLayer(text: String): JsonElement {
+    fun strip(element: JsonElement): JsonElement =
+        when (element) {
+            is JsonObject ->
+                JsonObject(
+                    element
+                        .filterKeys { it != "layer" || "file" !in element }
+                        .mapValues { (_, v) -> strip(v) },
+                )
+            is JsonArray -> JsonArray(element.map(::strip))
+            else -> element
+        }
+    return strip(Json.parseToJsonElement(text))
+}
+
 class SkillLibrarySpec :
     StringSpec({
 
@@ -53,6 +81,41 @@ class SkillLibrarySpec :
                     .digest(fixtureJson().toByteArray(Charsets.UTF_8))
                     .joinToString("") { "%02x".format(it) }
             actual shouldBe "2b6b87a9fa12bbf510a1b81d9c1079c77b01dfe47d38fbb13dfb361edcbaf107"
+        }
+
+        "the vendored fixture matches its original MODULO the one documented edit" {
+            // RV-P5.4 T5 — the nightly's half of the drift check, and it cannot be a byte
+            // comparison: this copy is deliberately NOT byte-identical, because the source
+            // carries an invented `source.layer` key the published `EntryProvenance` rejects.
+            //
+            // So the comparison is "identical after removing exactly the key we removed". That
+            // tolerates the documented edit and nothing else — and it tells us the day upstream
+            // drops the key too, which is P5.4's carry (3) closing.
+            val siblingRoot = System.getenv("TATRMAN_SERVER_DIR")
+            if (siblingRoot == null) {
+                println(
+                    "SKIPPED cross-repo drift check: set TATRMAN_SERVER_DIR to a tatrman-server " +
+                        "checkout to diff skills/operator-library.json against " +
+                        "$UPSTREAM_LIBRARY. The sha256 test above still ran — it proves this file " +
+                        "has not changed HERE, not that it still matches THERE.",
+                )
+            } else {
+                val upstream = Path.of(siblingRoot, UPSTREAM_LIBRARY)
+                if (!Files.exists(upstream)) {
+                    println("SKIPPED: no such file at $upstream (upstream moved it?)")
+                } else {
+                    val theirs = withoutSourceLayer(Files.readString(upstream))
+                    withClue("$upstream drifted beyond the documented `source.layer` removal") {
+                        theirs shouldBe withoutSourceLayer(fixtureJson())
+                    }
+                    if (theirs == Json.parseToJsonElement(Files.readString(upstream))) {
+                        println(
+                            "NOTE: upstream no longer carries `source.layer` — RV-P5.4 carry (3) is " +
+                                "closed; re-copy byte-for-byte and delete this normalisation.",
+                        )
+                    }
+                }
+            }
         }
 
         "⚑ the fixture parses against the PUBLISHED artifact type, which the source copy did not" {

@@ -113,6 +113,7 @@ class SelectionStub {
         detail: String,
         gaps: List<GapRecord>,
         library: LayeredSkillLibrary,
+        lattice: ResolutionState? = null,
     ): RefusalWithGaps {
         entries++
         log.info("selection stub entered ({}): {}", reason, detail)
@@ -125,9 +126,17 @@ class SelectionStub {
             fallThrough = reason,
             explanation = detail,
             gaps = gaps,
-            // What it CAN do, when it can do anything. Structured, not apology prose —
-            // "I cannot investigate causes" is a capability statement; an apology is not one.
-            composableResidue = library.known(),
+            // What it CAN still do OF THIS QUESTION. Structured, not apology prose — "I cannot
+            // investigate causes, but I can show you the numbers" is a capability statement.
+            //
+            // ⛑ Corrected at RV-P5.4 T2 against the shared corpus. This used to be
+            // `library.known()`, i.e. the whole catalogue — so a refusal answered a question
+            // nobody asked ("here is everything I can ever do") and H4's `composable_residue:
+            // []` failed. The residue is the intersection: operators THIS question named that
+            // we hold a body for. H4 is the case that makes the difference visible — it is H1's
+            // lattice with `op:show` dropped, so the residue is empty precisely because the
+            // question named nothing we can honour.
+            composableResidue = lattice?.let { l -> operatorRefs(l).filter { it in library } }.orEmpty(),
         )
     }
 }

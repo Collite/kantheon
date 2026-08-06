@@ -3,6 +3,7 @@ package org.tatrman.kantheon.golem.resolution.ladder
 import io.opentelemetry.api.OpenTelemetry
 import org.slf4j.LoggerFactory
 import org.tatrman.kantheon.golem.resolution.ResolutionCoreException
+import org.tatrman.resolver.v1.Attribution
 import org.tatrman.resolver.v1.Binding
 import org.tatrman.resolver.v1.GapRecord
 import org.tatrman.resolver.v1.Hypothesis
@@ -76,7 +77,85 @@ data class HypothesisVerdict(
     val hypothesis: Hypothesis,
     val accepted: Boolean,
     val reason: String,
+    /** The binding it produced, when accepted. Paired with its hypothesis — see [foldGateResult]. */
+    val binding: Binding? = null,
 )
+
+/**
+ * **Fold a gate response into the lattice.** The step that was missing until RV-P5.4 T2, and
+ * without it the whole ladder was decorative.
+ *
+ * ⛑ `regate` kept what the gate returned in `LadderState.gatedBindings`, *beside* the lattice,
+ * and `composeStructuredQuestion` reads the lattice. So every binding a rung won — and every
+ * binding a user's pin won — was invisible to the answer. Both halves were correct and both
+ * were tested; nothing had ever run them end to end with a binding that actually arrived. The
+ * shared conformance corpus is what caught it, on its first run, exactly as RV-28 predicts.
+ *
+ * A gated binding is attached **through its outcome, not by guessing**: `Binding` carries no
+ * span, so the only honest route from a binding back to the thing it belongs on is the
+ * hypothesis it came from. A binding whose span matches neither a mention nor a value is
+ * DROPPED — inventing a mention to hang it on would put a span in the lattice the core never
+ * saw.
+ *
+ * ⚑ **Two layers, not one — and this is a divergence from golem-py, carried upstream.**
+ * `apply_gate_result` attaches to MENTIONS only. But a re-gated *value* is the H1′ case: the
+ * typo'd `5010O1` is a `ValueFinding` with `valueId: v1` and no mention, so a mention-only fold
+ * drops the very correction the hero is about. It goes back as an [Attribution] — which is
+ * where a member binding lives (RV-33: `(attribute_ref, member_ref)`, `ref` being
+ * `<attribute-ref>#<id>`) — and the mention layer is tried first because a span can only be one
+ * or the other. golem-py's suite never caught it: its H1′ asserts the gate's own `outcomes`,
+ * never the lattice.
+ *
+ * `updatedGaps` **replaces** the gap list: the response is "the gaps recomputed after gating",
+ * the caller's next input, not a delta to apply.
+ */
+fun foldGateResult(
+    lattice: ResolutionState,
+    outcomes: List<HypothesisVerdict>,
+    gaps: List<GapRecord>,
+    rungLogEntry: RungLogEntry?,
+): ResolutionState {
+    val builder = lattice.toBuilder()
+    outcomes
+        .filter { it.accepted && it.binding != null && it.hypothesis.hasSpan() }
+        .forEach { outcome ->
+            val span = outcome.hypothesis.span
+            val binding = outcome.binding ?: return@forEach
+            val mention =
+                lattice.mentionsList.indexOfFirst { it.span.start == span.start && it.span.end == span.end }
+            if (mention >= 0) {
+                builder.setMentions(mention, builder.getMentions(mention).toBuilder().addBindings(binding))
+                return@forEach
+            }
+            val value = lattice.valuesList.indexOfFirst { it.span.start == span.start && it.span.end == span.end }
+            if (value >= 0) {
+                builder.setValues(
+                    value,
+                    builder
+                        .getValues(value)
+                        .toBuilder()
+                        .addAttributions(
+                            Attribution
+                                .newBuilder()
+                                // `md.dimension.Account.code#501001` → the attribute it restricts.
+                                .setAttributeRef(binding.ref.substringBefore('#'))
+                                .setBinding(binding),
+                        ),
+                )
+                return@forEach
+            }
+            log.info(
+                "gated binding {} names span '{}', which no mention or value has — dropped",
+                binding.ref,
+                span.text,
+            )
+        }
+    // Copy, do not alias: protobuf messages are immutable but the LISTS around them are what
+    // aliased in golem-py's replay bug, and `clearGaps().addAll` is the copying form.
+    builder.clearGaps().addAllGaps(gaps)
+    rungLogEntry?.let { builder.addRungLog(it) }
+    return builder.build()
+}
 
 /**
  * `LOOKUP_FAILED` is the matcher being unaskable, **not** a verdict about a hypothesis
@@ -312,6 +391,8 @@ private suspend fun regate(
         )
 
     return state.copy(
+        // The fold is what makes a gated binding reach the answer (see `foldGateResult`).
+        lattice = foldGateResult(state.lattice, result.outcomes, withTried, logEntry),
         gaps = withTried,
         gatedBindings = state.gatedBindings + result.gatedBindings,
         rungLog = state.rungLog + logEntry,

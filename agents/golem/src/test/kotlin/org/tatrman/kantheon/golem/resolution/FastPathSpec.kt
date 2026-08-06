@@ -128,9 +128,14 @@ class FastPathSpec :
                 val refused = end.shouldBeInstanceOf<TurnEnd.Refused>()
                 refused.refusal.code shouldBe RefusalCode.NO_CAPABLE_PLUGIN
                 refused.refusal.fallThrough shouldBe FallThroughReason.NOT_DATA_QUERY
-                // What it CAN do — a capability statement, not an apology.
-                refused.refusal.composableResidue shouldContainExactly
-                    listOf("op:compare", "op:share-of", "op:show", "op:top-n", "op:trend")
+                // What it CAN still do OF THIS QUESTION — a capability statement, not an apology.
+                //
+                // ⛑ Corrected at RV-P5.4 T2. This used to expect the whole five-operator
+                // catalogue, because the stub answered with `library.known()`: a refusal that
+                // replied to a question nobody asked. H4 is what settled it — its
+                // `composable_residue: []` is empty precisely because the question named no
+                // operator we hold, and a catalogue can never be empty.
+                refused.refusal.composableResidue shouldContainExactly listOf("op:show")
                 deps.selection.entries shouldBe 1
             }
         }

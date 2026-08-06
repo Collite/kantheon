@@ -41,11 +41,13 @@ import org.tatrman.kantheon.golem.resolution.assessGapsStep
 import org.tatrman.kantheon.golem.resolution.callResolutionCoreStep
 import org.tatrman.kantheon.golem.resolution.compose.FallThroughReason
 import org.tatrman.kantheon.golem.resolution.fastPathStep
+import org.tatrman.kantheon.golem.resolution.hitl.SignedOption
 import org.tatrman.kantheon.golem.resolution.ladder.Verdict
 import org.tatrman.kantheon.golem.resolution.selectionStep
 import org.tatrman.kantheon.golem.resolution.tracedResolutionCore
 import org.tatrman.kantheon.golem.v1.GolemRequest
 import org.tatrman.kantheon.golem.v1.MiniPlan
+import org.tatrman.resolver.v1.AwaitingClarification
 import org.tatrman.resolver.v1.Capabilities
 import org.tatrman.resolver.v1.ResolutionState
 import java.time.Instant
@@ -91,6 +93,10 @@ data class GolemTurnState(
     val resolutionCapabilities: Capabilities? = null,
     /** Set when the core door failed. A degraded turn has no [lattice] and says so. */
     val coreDegrade: CoreDegrade? = null,
+    /** RV-P5.4 — the core's signed options + its HMAC resume token, when it clarified.
+     *  Lifted off `ResolveResponse.awaiting`; read by [turnFactsFor], which is the only way
+     *  an ask can offer the core's own answers rather than none. */
+    val awaitingClarification: AwaitingClarification? = null,
     /** RV-P5.3 — the per-turn facts the resolution path reads (locale, profile, prior intent,
      *  the core's signed options). Assembled at `callResolutionCore`, read by `assessGaps`. */
     val turnFacts: TurnFacts? = null,
@@ -152,6 +158,7 @@ suspend fun callResolutionCoreNodeStep(
         resolutionProvenance = result.provenance,
         resolutionCapabilities = result.capabilities,
         coreDegrade = result.degrade,
+        awaitingClarification = result.awaiting,
     )
 }
 
@@ -205,6 +212,11 @@ fun turnFactsFor(
         // Themis's verdict, verbatim, as the intent prior (RV-P5.3 T1). Absent on a
         // KEEP_TOGETHER dispatch, which is exactly the vacuum the operator evidence fills.
         priorIntent = if (state.request.hasResolvedIntent()) state.request.resolvedIntent else null,
+        // ⛑ RV-P5.4 T2 — the CORE's options and the CORE's token, never invented here. Both
+        // empty when it did not clarify, which is the honest "I don't recognise this word,
+        // what does it mean?" ask rather than a fabricated option list.
+        signedOptions = state.awaitingClarification?.let { SignedOption.from(it) } ?: emptyList(),
+        resumeToken = state.awaitingClarification?.resumeToken.orEmpty(),
     )
 }
 

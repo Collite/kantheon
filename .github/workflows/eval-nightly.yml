@@ -1,0 +1,149 @@
+# Hermetic eval nightly (resolving RV-P5.4 T5) — the cross-repo fixture-drift check.
+#
+# ⚑ This workflow exists for ONE reason, and it is worth stating plainly so nobody moves the
+# rest of the eval tier into it: every other RV eval is deterministic and lives on the PR gate
+# in ci.yml, where it runs on every push and merge — strictly more coverage than a schedule.
+# The one thing a PR gate cannot catch is a check that fails with **no kantheon commit behind
+# it**, and this corpus has exactly one:
+#
+#   `agents/golem/src/test/resources/{conversations,lattice,skills}/` are VENDORED copies of
+#   files in Collite/tatrman-server (Bora's 2026-08-06 ruling: copies are OK, RV-28 upheld by
+#   provenance + a drift check rather than by physical single-sourcing). When the originals
+#   move upstream, nothing changes here: the sha256 tests keep passing, because the local bytes
+#   really have not changed, and the Kotlin shell quietly stops being held to the shared
+#   contract. `TATRMAN_SERVER_DIR` is what turns that half of the check on.
+#
+# Distinct from `integration-nightly.yml`, which is cluster-bound, needs a self-hosted runner,
+# and has its schedule disabled pending Collite/kantheon#29. This one is ubuntu-latest and
+# needs nothing but two checkouts.
+name: eval-nightly
+
+on:
+  schedule:
+    - cron: "0 4 * * *"          # 04:00 UTC, an hour after the (currently disabled) integration slot
+  workflow_dispatch: {}          # on-demand, and how the first green is produced
+
+concurrency:
+  group: eval-nightly
+  cancel-in-progress: true       # a superseded drift check has nothing to clean up
+
+jobs:
+  fixture-drift:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Same standing dep as ci.yml: the org.tatrman TTR toolchain. See CLAUDE.md §7.3.
+      packages: read
+      # The failure step opens/updates a tracked issue — a nightly whose only output is a red
+      # dot on a page nobody opens is not a check (integration-nightly.yml's own reasoning).
+      issues: write
+    steps:
+      - name: Checkout kantheon
+        uses: actions/checkout@v5
+        with:
+          path: kantheon
+
+      # PUBLIC (Apache-2.0), so no secret — unlike the olymp harness checkout in
+      # integration-nightly.yml, which needs OLYMP_GITHUB_TOKEN.
+      - name: Checkout tatrman-server (the corpus's home)
+        uses: actions/checkout@v5
+        with:
+          repository: Collite/tatrman-server
+          path: tatrman-server
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: install just
+        uses: extractions/setup-just@v4
+
+      - name: init
+        working-directory: kantheon
+        run: just init
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # With TATRMAN_SERVER_DIR set, the drift half of every PROVENANCE-backed spec runs
+      # instead of printing its SKIP: the vendored conversations, the recorded-core lattices,
+      # and the operator-library fixture are all diffed against the originals.
+      #
+      # ⛑ `--rerun-tasks`, and it is the difference between a nightly and a decoration.
+      # The upstream repo is NOT a declared Gradle input, so on an unchanged kantheon tree the
+      # test task is UP-TO-DATE (or FROM-CACHE, since `cache: gradle` restores it) and the
+      # drift check never executes — the one job this workflow exists for, silently skipped
+      # while the run goes green. Every step here forces execution for that reason.
+      - name: RV conformance + cross-repo fixture drift
+        working-directory: kantheon
+        run: >
+          ./gradlew :agents:golem:test --no-daemon --rerun-tasks
+          --tests "org.tatrman.kantheon.golem.conformance.*"
+        env:
+          TATRMAN_SERVER_DIR: ${{ github.workspace }}/tatrman-server
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The recorded-core lattices (RV-P5.1 T2) and the operator library (RV-P5.3 T3) carry
+      # their own drift specs outside the conformance package, so they are named explicitly.
+      #
+      # ⛑ ONE `--tests` filter per invocation, and two invocations. Kotest 6's engine does not
+      # OR multiple filters — passing both yields `No tests found for given includes`, i.e. a
+      # RED build that looks like a missing class rather than a misused flag. Same lesson the
+      # tatrman-server justfile records for `conformance-service-level`; hit again here.
+      - name: recorded-core lattice drift
+        working-directory: kantheon
+        run: >
+          ./gradlew :agents:golem:test --no-daemon --rerun-tasks
+          --tests "org.tatrman.kantheon.golem.resolution.RecordedCoreProvenanceSpec"
+        env:
+          TATRMAN_SERVER_DIR: ${{ github.workspace }}/tatrman-server
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: operator-library fixture drift
+        working-directory: kantheon
+        run: >
+          ./gradlew :agents:golem:test --no-daemon --rerun-tasks
+          --tests "org.tatrman.kantheon.golem.resolution.skills.SkillLibrarySpec"
+        env:
+          TATRMAN_SERVER_DIR: ${{ github.workspace }}/tatrman-server
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Open or update the drift issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'eval-nightly: vendored RV fixtures have drifted from tatrman-server';
+            const body = [
+              'The nightly cross-repo drift check failed.',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              'The vendored corpora under `agents/golem/src/test/resources/` are byte-for-byte',
+              'copies of files in `Collite/tatrman-server` (RV-28 upheld by provenance, per',
+              "Bora's 2026-08-06 ruling). A failure here means the ORIGINALS moved.",
+              '',
+              'Fix: re-copy the changed files, update the sha256 table in the neighbouring',
+              '`PROVENANCE.md`, and re-run the suite — the point is that the two Golem shells',
+              'answer the same corpus, so a stale copy is a shell that has stopped conforming.',
+            ].join('\n');
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'eval-nightly',
+            });
+            if (existing.data.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing.data[0].number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['eval-nightly'],
+              });
+            }

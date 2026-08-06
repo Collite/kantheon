@@ -79,6 +79,23 @@ jobs:
             shared/testdata/fingerprints/canonical.txt \
           || { echo "::error::fingerprint drift — regenerate shared/testdata/fingerprints and commit, or fix the encoder"; exit 1; }
 
+      # RV conformance-conversation tier (resolving RV-P5.4 T5) — the SHARED hero
+      # corpus RV-28 requires both Golem shells to pass unchanged, plus the two
+      # phase fences (Themis-untouched, per-rung OTEL). `just test-kt` already
+      # runs these specs; naming the job separately is what lets a failure read
+      # as "conformance broke" rather than as one red line in 380.
+      #
+      # ⚑ Deliberately NOT on the nightly. It is hermetic (recorded core, no
+      # images, no LLM), so PR+merge is strictly more coverage than a schedule —
+      # and kantheon's only nightly is cluster-bound with its schedule disabled
+      # (#29). The half that DOES need a schedule is the cross-repo fixture-drift
+      # check, which needs a tatrman-server checkout: eval-nightly.yml.
+      - name: rv-conformance
+        run: just eval-golem-rv
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Themis routing-eval harness self-test (Phase 3 Stage 3.5). Pure-Python,
       # dependency-free: drives the full load→call→score→gate pipeline over HTTP
       # against a local fake Themis and asserts the scoring/aggregation/threshold

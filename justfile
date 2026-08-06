@@ -241,6 +241,21 @@ eval-golem:
     @echo "Running Golem envelope parity diff-harness... (report → agents/golem/build/diff-harness/report.md)"
     ./gradlew :agents:golem:test --tests "org.tatrman.kantheon.golem.eval.DiffHarnessSpec" --no-daemon
 
+# RV conformance-conversation eval (resolving RV-P5.4). Drives the SHARED hero corpus
+# (agents/golem/src/test/resources/conversations/ — byte-for-byte copies of
+# tatrman-server:conformance/conversations/) through the Kotlin Golem's own graph nodes, plus
+# the two kantheon-local ladder conversations and the two phase fences (Themis-untouched,
+# per-rung OTEL). Hermetic: recorded core, no images, no LLM, no cluster.
+#
+# ⚑ Set TATRMAN_SERVER_DIR to a sibling tatrman-server checkout to ALSO diff the vendored
+# fixtures against their originals. Without it that half SKIPS LOUDLY — the sha256 check
+# proves the files have not changed here, not that they still match there. The nightly
+# (.github/workflows/eval-nightly.yml) is what runs the cross-repo half, because it is the one
+# check that can start failing with no kantheon commit behind it. Usage: `just eval-golem-rv`
+eval-golem-rv:
+    @echo "Running RV conformance conversations + phase fences (hermetic)..."
+    ./gradlew :agents:golem:test --tests "org.tatrman.kantheon.golem.conformance.*" --no-daemon
+
 # Pythia investigation eval gate (Phase 5 Stage 5.3). Runs the scripted-LLM corpus
 # (agents/pythia/eval/corpus/) through the orchestrator in-process and gates on the
 # four architecture §9 metrics: plan-validity rate, verdict accuracy, budget

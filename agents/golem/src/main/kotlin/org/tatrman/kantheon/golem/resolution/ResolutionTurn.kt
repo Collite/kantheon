@@ -28,6 +28,7 @@ import org.tatrman.kantheon.golem.resolution.ladder.LadderState
 import org.tatrman.kantheon.golem.resolution.ladder.Rung
 import org.tatrman.kantheon.golem.resolution.ladder.Verdict
 import org.tatrman.kantheon.golem.resolution.ladder.carryableGaps
+import org.tatrman.kantheon.golem.resolution.ladder.foldGateResult
 import org.tatrman.kantheon.golem.resolution.ladder.runLadderLoop
 import org.tatrman.kantheon.golem.resolution.skills.LayeredSkillLibrary
 import org.tatrman.kantheon.themis.v1.Themis
@@ -269,7 +270,7 @@ fun selectionStep(
     deps: ResolutionDeps,
 ): TurnEnd.Refused =
     TurnEnd.Refused(
-        deps.selection.refuse(fell.reason, fell.detail, fell.ladder.gaps, deps.library),
+        deps.selection.refuse(fell.reason, fell.detail, fell.ladder.gaps, deps.library, fell.ladder.lattice),
         fell.ladder,
     )
 
@@ -471,8 +472,14 @@ private suspend fun gateUserPick(
             .setProposingRung("user")
             .build()
     val result = deps.gate.gate(ladder.lattice, listOf(hypothesis))
+    val gaps = result.updatedGaps.ifEmpty { ladder.gaps }
     return ladder.copy(
-        gaps = result.updatedGaps.ifEmpty { ladder.gaps },
+        // ⛑ The pin has to reach the LATTICE, not just the accounting. Without the fold the
+        // user answered the question, the gate accepted it, the gap closed — and the composed
+        // question still knew nothing about the entity they had just named. Same fold the
+        // ladder's own re-gate uses, because a user-pick is a hypothesis like any other (RV-7).
+        lattice = foldGateResult(ladder.lattice, result.outcomes, gaps, result.rungLogEntry),
+        gaps = gaps,
         gatedBindings = ladder.gatedBindings + result.gatedBindings,
         rungLog = ladder.rungLog + listOfNotNull(result.rungLogEntry),
     )

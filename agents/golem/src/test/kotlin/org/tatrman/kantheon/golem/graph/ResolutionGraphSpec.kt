@@ -83,21 +83,14 @@ private fun deps(resolution: org.tatrman.kantheon.golem.resolution.ResolutionDep
         resolution = resolution,
     )
 
-/** Walk the RV nodes in the order the strategy's edges put them. */
+/**
+ * The walk lives in [walkResolutionNodes] — shared with the RV-P5.4 conformance runner, so a
+ * change to the strategy's edges breaks both tiers rather than only this one.
+ */
 private suspend fun walk(
     state: GolemTurnState,
     d: GolemGraphDeps,
-): GolemTurnState {
-    val assessed = assessGapsNode(state, d)
-    if (assessed.assessed == null) return assessed // → the legacy chain
-    val after =
-        when (assessed.assessed!!.verdict) {
-            org.tatrman.kantheon.golem.resolution.ladder.Verdict.EMIT -> fastPathNode(assessed, d)
-            org.tatrman.kantheon.golem.resolution.ladder.Verdict.ASK -> askGapNode(assessed, d)
-            else -> assessed
-        }
-    return if (after.turnEnd is TurnEnd.FellThrough || after.turnEnd == null) selectionNode(after, d) else after
-}
+): GolemTurnState = walkResolutionNodes(state, d)
 
 class ResolutionGraphSpec :
     StringSpec({

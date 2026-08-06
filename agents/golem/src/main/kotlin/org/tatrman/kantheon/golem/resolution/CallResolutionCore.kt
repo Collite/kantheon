@@ -2,6 +2,7 @@ package org.tatrman.kantheon.golem.resolution
 
 import org.slf4j.LoggerFactory
 import org.tatrman.nlp.v1.EngineVersion
+import org.tatrman.resolver.v1.AwaitingClarification
 import org.tatrman.resolver.v1.Capabilities
 import org.tatrman.resolver.v1.FreshQuestion
 import org.tatrman.resolver.v1.ResolutionState
@@ -80,6 +81,20 @@ data class CoreCallResult(
     val provenance: ResolutionProvenance? = null,
     val capabilities: Capabilities? = null,
     val degrade: CoreDegrade? = null,
+    /**
+     * The core's own clarification: its signed options and its HMAC resume token (RS-26).
+     *
+     * ⛑ **Found by the shared corpus at RV-P5.4 T2, and it had been dropped on the floor since
+     * P5.1.** `AwaitingClarification` rides on `ResolveResponse.awaiting` — a member of the
+     * `oneof outcome`, NOT a field of `ResolutionState` — so reading only `resolution_state`
+     * loses it. Everything downstream was already right and already tested (`optionsFor`
+     * scopes options to the asked span, `buildAsk` withholds the token when nothing is scoped,
+     * `gateUserPick` redeems a pin by id); none of it had ever been fed. The Golem asked
+     * *"what does this mean?"* while holding the core's list of answers and not offering it.
+     *
+     * Null is a real state and not a degradation: the core clarifies only when it has options.
+     */
+    val awaiting: AwaitingClarification? = null,
 )
 
 /**
@@ -137,5 +152,9 @@ suspend fun callResolutionCoreStep(
         lattice = lattice,
         provenance = ResolutionProvenance.from(lattice),
         capabilities = response.capabilities,
+        // The lattice and the clarification are BOTH answers to one call: `resolution_state`
+        // is additive (field 7) and the `oneof outcome` still decides the pre-RV outcome, so a
+        // core can legitimately return an awaiting-clarification alongside a full lattice.
+        awaiting = if (response.hasAwaiting()) response.awaiting else null,
     )
 }
