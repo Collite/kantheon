@@ -1,5 +1,6 @@
 package org.tatrman.kantheon.golem.resolution.compose
 
+import org.tatrman.kantheon.golem.resolution.operatorRefs
 import org.tatrman.kantheon.golem.resolution.skills.LayeredSkillLibrary
 import org.tatrman.kantheon.golem.resolution.skills.SkillBody
 import org.tatrman.kantheon.golem.resolution.skills.SkillException
@@ -82,15 +83,6 @@ private fun refs(
         .filter { role in it.frameRolesList }
         .flatMap { it.bindingsList }
         .filter { it.targetClass == TargetClass.TARGET_CLASS_MODEL_OBJECT }
-        .map { it.ref }
-        .distinct()
-
-/** `op:` bindings in span order — the order the user said them in. */
-fun operatorRefs(state: ResolutionState): List<String> =
-    state.mentionsList
-        .sortedBy { it.span.start }
-        .flatMap { it.bindingsList }
-        .filter { it.targetClass == TargetClass.TARGET_CLASS_OPERATOR }
         .map { it.ref }
         .distinct()
 

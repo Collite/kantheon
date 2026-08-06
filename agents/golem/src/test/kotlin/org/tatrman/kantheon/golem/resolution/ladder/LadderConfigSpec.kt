@@ -120,16 +120,18 @@ class LadderConfigSpec :
                 val upstream =
                     java.nio.file.Path
                         .of(root, "services/golem-py/config/golem-ladder.yaml")
-                if (java.nio.file.Files
-                        .exists(upstream)
-                ) {
-                    sha256(
-                        java.nio.file.Files
-                            .readString(upstream),
-                    ) shouldBe OPEN_SHA256
-                } else {
-                    println("SKIPPED: no such file at $upstream (upstream moved it?)")
+                // ⛑ A MISSING original is a drift, not a skip — same correction as
+                // `RecordedCoreProvenanceSpec`. The vendored ladder is the shared corpus's own
+                // premise, so an upstream rename that goes unnoticed means the two shells stop
+                // answering the same question while both suites stay green.
+                withClue("no such file at $upstream — the original moved or was deleted upstream") {
+                    java.nio.file.Files
+                        .exists(upstream) shouldBe true
                 }
+                sha256(
+                    java.nio.file.Files
+                        .readString(upstream),
+                ) shouldBe OPEN_SHA256
             }
         }
 
@@ -158,6 +160,24 @@ class LadderConfigSpec :
             shouldThrow<LadderConfigException> {
                 LadderConfig.parse(edited("lookup: 250" to "lookup: 0"))
             }.message shouldContain "must be > 0"
+        }
+
+        "a rung with NO timeout anywhere is refused — 0 is not `no wall clock`" {
+            // ⛑ It resolved to 0 and loaded cleanly, and `withTimeout(0)` throws before running
+            // its block — so the rung failed EVERY invocation at runtime with "timed out after
+            // 0ms". A config error wearing a runtime costume, in a loader whose whole doctrine
+            // is that a config fails at LOAD or not at all.
+            val e =
+                shouldThrow<LadderConfigException> {
+                    LadderConfig.parse(
+                        edited(
+                            "rung_timeouts_ms: { lookup: 250, local: 3000, capable: 10000, emulated: 15000 }" to
+                                "rung_timeouts_ms: { local: 3000, capable: 10000, emulated: 15000 }",
+                        ),
+                    )
+                }
+            e.message shouldContain "lookup"
+            e.message shouldContain "no timeout"
         }
 
         "an unknown gap kind is refused — dead config reads as coverage" {

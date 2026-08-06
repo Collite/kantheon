@@ -132,16 +132,21 @@ data class ResolutionDeps(
     val newId: () -> String = { UUID.randomUUID().toString() },
 ) {
     /**
-     * ⛑ **Call this at wiring time.** A config that admits a rung the deps do not implement is
-     * a misconfiguration, and dispatch already refuses it — but it refuses *mid-turn*, on
-     * whichever user's question first produced a gap of the right kind. That is a startup
-     * error arriving as a runtime one: it takes a specific gap kind, a specific profile and a
-     * specific budget state to reach, so it survives every smoke test and then fails in
-     * production on an ordinary question.
+     * ⛑ **Call this at wiring time** — RV-P6 owns the wiring, and this is the one line it must
+     * not forget. A config that admits a rung the deps do not implement is a misconfiguration,
+     * and the loop only meets it *mid-turn*, on whichever user's question first produced a gap
+     * of the right kind. That is a startup error arriving as a runtime one: it takes a specific
+     * gap kind, a specific profile and a specific budget state to reach, so it survives every
+     * smoke test and then shows up in production on an ordinary question.
      *
      * Found the honest way, at T6: H5's recorded lattice carries a `G1_UNBOUND`, the shipped
      * config admits `lookup` and `local` for G1, and a deps object with no rungs blew up
      * inside the loop rather than at construction.
+     *
+     * ⚑ The mid-turn behaviour is now a **degrade, not an abort** (`climbLadder` records
+     * `rung-missing` and sets `LadderState.degraded`, so the turn ends as an ask or an honest
+     * refusal instead of throwing out of a Koog node and killing the strategy). That makes a
+     * missed boot check survivable; it does not make it acceptable, which is why this stays.
      *
      * Returns the missing rung names — empty is the healthy answer — so a caller can decide
      * between refusing to boot and logging loudly. `emulated` is exempt: it is deliberately
@@ -241,9 +246,19 @@ suspend fun runResolutionTurn(
                     "the ladder exhausted and the profile is strict",
                     assessed.ladder,
                 )
-            // `assess` never returns CLIMB to a caller — the loop exits on anything else —
-            // but an exhaustive `when` beats a branch that silently drops a state.
-            Verdict.CLIMB -> error("runLadderLoop returned CLIMB, which it cannot: ${assessed.rounds} rounds")
+            // `runLadderLoop` guarantees it never hands CLIMB back (it settles a barren pass on
+            // the terminal posture). This branch is the belt to that guarantee's braces, and it
+            // DEGRADES rather than throwing: an `error()` here used to turn a loop that could
+            // not settle into an exception out of a Koog node, which aborts the whole strategy.
+            // A turn that cannot finish climbing has open gaps, and that is a fall-through.
+            Verdict.CLIMB -> {
+                log.warn("the ladder returned CLIMB after ${assessed.rounds} rounds — treating it as gaps left open")
+                TurnEnd.FellThrough(
+                    FallThroughReason.GAPS_OPEN,
+                    "the ladder did not settle",
+                    assessed.ladder,
+                )
+            }
         }
     // The composite runs `selection` itself; the graph has a node for it. Either way the stub
     // is entered exactly once per fall-through.
@@ -355,8 +370,14 @@ private fun ask(
             ladder = spent,
             lattice = spent.lattice,
             signedOptions = facts.signedOptions,
+            // What the ask OFFERED, which is what a pin may redeem — not everything the core
+            // signed. See `TurnSnapshot.offeredOptions`.
+            offeredOptions = ask.options,
             resumeToken = facts.resumeToken,
-            askedGapSpanText = gap.span.text,
+            askedGap = gap,
+            // Captured here because it is unrecoverable at resume: contracts §5's `ask_rendered`
+            // is what the user was SHOWN, and rebuilding it later would be a guess.
+            askRendered = ask.question,
             snapshotHashes = snapshotHashes(spent.lattice),
         ),
     )
@@ -395,17 +416,25 @@ suspend fun resumeResolutionTurn(
     deps: ResolutionDeps,
 ): TurnEnd {
     val snapshot = loadSnapshot(deps.snapshots, snapshotId, callerSubject)
+    // ⛑ Identity, not text. The gap is re-found in the stored ladder by span OFFSETS and kind
+    // (a question repeating a word has two gaps with one span text), and falls back to the
+    // stored record itself rather than to an arbitrary gap the user was never asked about.
     val gap =
-        snapshot.ladder.gaps.firstOrNull { it.span.text == snapshot.askedGapSpanText }
-            ?: snapshot.ladder.gaps.first()
+        snapshot.ladder.gaps.firstOrNull {
+            it.span.start == snapshot.askedGap.span.start &&
+                it.span.end == snapshot.askedGap.span.end &&
+                it.kind == snapshot.askedGap.kind
+        } ?: snapshot.askedGap
 
     deps.feedback.emit(
         feedbackFor(
             ask =
                 Ask(
-                    question = "",
+                    // What the user was shown, and what they were shown it about — both stored
+                    // at the moment of the ask, because neither survives the round trip.
+                    question = snapshot.askRendered,
                     gap = gap,
-                    options = snapshot.signedOptions,
+                    options = snapshot.offeredOptions,
                     resumeToken = snapshot.resumeToken,
                     snapshotId = snapshot.id,
                 ),
@@ -425,7 +454,9 @@ suspend fun resumeResolutionTurn(
             // A pinned choice re-enters ONLY via `resolve.gate`, as a user-pick hypothesis.
             // The Golem does not bind it — the same fence every rung is behind (RV-7), and
             // the reason a pin is worth signing at all.
-            is Pin.Choice -> gateUserPick(snapshot.ladder, gap, pin, snapshot.signedOptions, deps)
+            // Redeemed against what the ask OFFERED, never against everything the core signed:
+            // an option scoped to another span is not an answer to this question.
+            is Pin.Choice -> gateUserPick(snapshot.ladder, gap, pin, snapshot.offeredOptions, deps)
             // Unsigned: free text re-resolves through `callResolutionCore`. That call belongs
             // to the graph's own node, so this hands the turn back with the gap still open and
             // the text recorded; the node re-enters `resolve.bind` with it.
@@ -453,12 +484,12 @@ private suspend fun gateUserPick(
     ladder: LadderState,
     gap: GapRecord,
     pin: Pin.Choice,
-    options: List<SignedOption>,
+    offered: List<SignedOption>,
     deps: ResolutionDeps,
 ): LadderState {
-    val option = options.firstOrNull { it.id == pin.optionId }
+    val option = offered.firstOrNull { it.id == pin.optionId }
     if (option == null || option.ref.isBlank()) {
-        log.warn("pin '{}' names no signed option — the gap stays open", pin.optionId)
+        log.warn("pin '{}' names no option this ask offered — the gap stays open", pin.optionId)
         return ladder
     }
     val hypothesis =

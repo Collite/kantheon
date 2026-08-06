@@ -172,13 +172,15 @@ class ConformanceConversationsSpec :
             } else {
                 EXPECTED_SHA256.forEach { (id, expected) ->
                     val upstream = Path.of(siblingRoot, UPSTREAM_DIR, "$id.json")
-                    if (Files.exists(upstream)) {
-                        withClue("$id.json drifted from $upstream") {
-                            sha256(Files.readAllBytes(upstream)) shouldBe
-                                expected
-                        }
-                    } else {
-                        println("SKIPPED $id: no such file at $upstream (upstream moved it?)")
+                    // ⛑ A MISSING original is a drift, not a skip — see the same correction in
+                    // `RecordedCoreProvenanceSpec`. An upstream rename left this green while the
+                    // Kotlin shell quietly stopped being held to the shared corpus, which is the
+                    // one failure `eval-nightly.yml` exists to catch.
+                    withClue("no such file at $upstream — the original moved or was deleted upstream") {
+                        Files.exists(upstream) shouldBe true
+                    }
+                    withClue("$id.json drifted from $upstream") {
+                        sha256(Files.readAllBytes(upstream)) shouldBe expected
                     }
                 }
             }

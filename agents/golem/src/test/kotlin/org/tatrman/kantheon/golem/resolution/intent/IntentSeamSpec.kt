@@ -7,6 +7,7 @@ import io.kotest.matchers.string.shouldContain
 import org.tatrman.kantheon.golem.resolution.ladder.lattice
 import org.tatrman.kantheon.golem.resolution.ladder.mention
 import org.tatrman.kantheon.golem.resolution.ladder.span
+import org.tatrman.kantheon.golem.resolution.operatorRefs
 import org.tatrman.kantheon.themis.v1.Themis
 import org.tatrman.resolver.v1.Binding
 import org.tatrman.resolver.v1.EvidenceClass

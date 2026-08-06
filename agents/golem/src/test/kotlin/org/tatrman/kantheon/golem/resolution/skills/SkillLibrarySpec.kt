@@ -101,19 +101,21 @@ class SkillLibrarySpec :
                 )
             } else {
                 val upstream = Path.of(siblingRoot, UPSTREAM_LIBRARY)
-                if (!Files.exists(upstream)) {
-                    println("SKIPPED: no such file at $upstream (upstream moved it?)")
-                } else {
-                    val theirs = withoutSourceLayer(Files.readString(upstream))
-                    withClue("$upstream drifted beyond the documented `source.layer` removal") {
-                        theirs shouldBe withoutSourceLayer(fixtureJson())
-                    }
-                    if (theirs == Json.parseToJsonElement(Files.readString(upstream))) {
-                        println(
-                            "NOTE: upstream no longer carries `source.layer` — RV-P5.4 carry (3) is " +
-                                "closed; re-copy byte-for-byte and delete this normalisation.",
-                        )
-                    }
+                // ⛑ A MISSING original is a drift, not a skip — same correction as
+                // `RecordedCoreProvenanceSpec`. Absence used to print and pass, so an upstream
+                // rename produced a green nightly.
+                withClue("no such file at $upstream — the original moved or was deleted upstream") {
+                    Files.exists(upstream) shouldBe true
+                }
+                val theirs = withoutSourceLayer(Files.readString(upstream))
+                withClue("$upstream drifted beyond the documented `source.layer` removal") {
+                    theirs shouldBe withoutSourceLayer(fixtureJson())
+                }
+                if (theirs == Json.parseToJsonElement(Files.readString(upstream))) {
+                    println(
+                        "NOTE: upstream no longer carries `source.layer` — RV-P5.4 carry (3) is " +
+                            "closed; re-copy byte-for-byte and delete this normalisation.",
+                    )
                 }
             }
         }

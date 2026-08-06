@@ -7,6 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import org.tatrman.kantheon.golem.resolution.ladder.span
+import org.tatrman.kantheon.golem.resolution.operatorRefs
 import org.tatrman.kantheon.golem.resolution.skills.LayeredSkillLibrary
 import org.tatrman.kantheon.golem.resolution.skills.SkillLayer
 import org.tatrman.kantheon.golem.resolution.skills.body

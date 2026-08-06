@@ -1,8 +1,5 @@
 package org.tatrman.kantheon.golem.graph
 
-import org.tatrman.kantheon.golem.resolution.TurnEnd
-import org.tatrman.kantheon.golem.resolution.ladder.Verdict
-
 /**
  * Walk the RV nodes in the order the shipped strategy's edges put them.
  *
@@ -12,26 +9,41 @@ import org.tatrman.kantheon.golem.resolution.ladder.Verdict
  * and only checkable if the edges are the ones that ship. Two copies of this walk would be
  * two topologies, and the conformance tier would stop testing the one in production.
  *
- * Mirrors `buildGolemGraph`'s edges exactly:
+ * ⛑ **The conditions are not re-stated here — they are [routeAfterAssess] and [routeAfterExit],
+ * the same functions `buildGolemGraph`'s edges call.** They used to be re-stated, and the two
+ * had already drifted: this walk sent a CLIMB verdict and a null `turnEnd` to `selection` where
+ * the shipped graph had no edge for the first and finished on the second. A mirror maintained
+ * by hand is a second topology wearing the first one's name.
+ *
  * ```
- * assessGaps --(assessed == null)--> the LEGACY chain (returned unchanged)
- * assessGaps --EMIT--> fastPath --FellThrough--> selection
- * assessGaps --ASK---> askGap   --FellThrough--> selection
- * assessGaps --REFUSE-----------------------> selection
+ * assessGaps --LEGACY----> the legacy chain (see below)
+ * assessGaps --FAST_PATH-> fastPath  --SELECTION--> selection
+ * assessGaps --ASK-------> askGap    --SELECTION--> selection
+ * assessGaps --SELECTION-> selection
  * ```
+ *
+ * The one deliberate difference: on [RvRoute.LEGACY] the shipped graph forwards to
+ * `resolveSelection` and runs `composePlan → gatePlan → …`; this walk returns the state
+ * unchanged, because the harness wires the legacy deps as relaxed mocks and running them would
+ * assert nothing. `ConversationRunner` treats any legacy-node invocation as its own finding.
  */
 internal suspend fun walkResolutionNodes(
     state: GolemTurnState,
     deps: GolemGraphDeps,
 ): GolemTurnState {
     val assessed = assessGapsNode(state, deps)
-    // No lattice, or no resolution deps: the RV nodes are inert and the legacy chain runs.
-    val verdict = assessed.assessed?.verdict ?: return assessed
     val after =
-        when (verdict) {
-            Verdict.EMIT -> fastPathNode(assessed, deps)
-            Verdict.ASK -> askGapNode(assessed, deps)
-            else -> assessed
+        when (routeAfterAssess(assessed)) {
+            // No lattice, or no resolution deps: the RV nodes are inert and the legacy chain
+            // runs. Nothing further to walk — see the KDoc.
+            RvRoute.LEGACY -> return assessed
+            RvRoute.FAST_PATH -> fastPathNode(assessed, deps)
+            RvRoute.ASK -> askGapNode(assessed, deps)
+            RvRoute.SELECTION -> assessed
+            RvRoute.FINISH -> assessed
         }
-    return if (after.turnEnd is TurnEnd.FellThrough || after.turnEnd == null) selectionNode(after, deps) else after
+    return when (routeAfterExit(after)) {
+        RvRoute.SELECTION -> selectionNode(after, deps)
+        else -> after
+    }
 }

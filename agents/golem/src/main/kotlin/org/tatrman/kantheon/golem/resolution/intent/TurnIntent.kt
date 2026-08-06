@@ -1,8 +1,8 @@
 package org.tatrman.kantheon.golem.resolution.intent
 
+import org.tatrman.kantheon.golem.resolution.operatorRefs
 import org.tatrman.kantheon.themis.v1.Themis
 import org.tatrman.resolver.v1.ResolutionState
-import org.tatrman.resolver.v1.TargetClass
 
 // RV-P5.3 T1 — the intent seam. Operator annotations are EVIDENCE (RV-35 / Q-23):
 // they augment a classification, they never replace one.
@@ -170,18 +170,4 @@ fun classifyTurnIntent(
                 )
             }
     }
-}
-
-/**
- * `op:` bindings in span order. Reads mentions only — an operator is a word the user said,
- * so it is a mention-layer fact; a value cannot be an operator.
- */
-fun operatorRefs(lattice: ResolutionState?): List<String> {
-    if (lattice == null) return emptyList()
-    return lattice.mentionsList
-        .sortedBy { it.span.start }
-        .flatMap { mention -> mention.bindingsList }
-        .filter { it.targetClass == TargetClass.TARGET_CLASS_OPERATOR }
-        .map { it.ref }
-        .distinct()
 }

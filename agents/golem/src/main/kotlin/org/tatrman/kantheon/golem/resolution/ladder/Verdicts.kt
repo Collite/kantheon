@@ -147,6 +147,24 @@ fun eligibleRungs(
     return budgets.runnable(policyEligible, llmInvocations)
 }
 
+/**
+ * The verdict a profile implies once the ladder is done and gaps remain — `strict` refuses,
+ * `best-effort-with-gap-notes` answers over the notes.
+ *
+ * Extracted from [assess]'s tail because [runLadderLoop] needs the same answer when it has to
+ * settle a barren pass, and two copies of "what does this profile do at the end" is exactly
+ * the kind of divergence that shows up as one shell refusing where the other answers.
+ */
+fun terminalVerdict(
+    ladder: LadderConfig,
+    profileName: String,
+): Verdict =
+    if (ladder.terminalPosture(profileName) == TerminalPosture.BEST_EFFORT_WITH_GAP_NOTES) {
+        Verdict.EMIT
+    } else {
+        Verdict.REFUSE
+    }
+
 /** The verdict. See the file header for the four rules. */
 fun assess(
     gaps: List<GapRecord>,
@@ -167,8 +185,5 @@ fun assess(
 
     if (blockingGaps(gaps, ladder).isEmpty()) return Verdict.EMIT
 
-    if (ladder.terminalPosture(profileName) == TerminalPosture.BEST_EFFORT_WITH_GAP_NOTES) {
-        return Verdict.EMIT
-    }
-    return Verdict.REFUSE
+    return terminalVerdict(ladder, profileName)
 }

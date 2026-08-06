@@ -5,6 +5,7 @@ import org.tatrman.kantheon.golem.resolution.ResolutionProvenance
 import org.tatrman.kantheon.golem.resolution.intent.TurnIntent
 import org.tatrman.kantheon.golem.resolution.ladder.LadderConfig
 import org.tatrman.kantheon.golem.resolution.ladder.blockingGaps
+import org.tatrman.kantheon.golem.resolution.operatorRefs
 import org.tatrman.kantheon.golem.resolution.skills.LayeredSkillLibrary
 import org.tatrman.resolver.v1.GapRecord
 import org.tatrman.resolver.v1.ResolutionState

@@ -205,6 +205,17 @@ data class LadderConfig(
 
             val rungs = readRungs(root.path("rungs"))
             val rungTimeouts = readRungTimeouts(root.path("rung_timeouts_ms"))
+            // ⛑ A rung with no timeout in EITHER place resolves to 0, and 0 is not "no wall
+            // clock" — `withTimeout(0)` throws before running the block, so such a rung would
+            // fail every invocation with "timed out after 0ms". That is a config error, and
+            // this file's whole doctrine is that config errors happen at LOAD or not at all.
+            val untimed = rungs.keys.filter { (rungs[it]?.timeoutMs ?: rungTimeouts[it] ?: 0) <= 0 }
+            if (untimed.isNotEmpty()) {
+                throw LadderConfigException(
+                    "rung(s) $untimed have no timeout — set `rungs[<name>].timeout_ms` or a " +
+                        "`rung_timeouts_ms[<name>]` entry; a rung with no wall clock cannot run",
+                )
+            }
             val policy = readPolicy(root.path("policy"), rungs.keys)
             val terminal = readTerminal(root.path("terminal"))
             val profiles = readProfiles(root.path("profiles"), rungs.keys, terminal.keys)

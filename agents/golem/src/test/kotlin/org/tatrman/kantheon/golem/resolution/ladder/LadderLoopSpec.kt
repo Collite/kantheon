@@ -1,12 +1,15 @@
 package org.tatrman.kantheon.golem.resolution.ladder
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
 import org.tatrman.kantheon.golem.resolution.ResolutionCoreException
 import org.tatrman.resolver.v1.Disposition
@@ -359,9 +362,14 @@ class LadderLoopSpec :
             }
         }
 
-        "a config that admits a rung dispatch cannot run fails loudly rather than skipping it" {
+        "a config that admits a rung dispatch cannot run DEGRADES the turn rather than killing it" {
             runTest {
-                shouldThrow<LadderConfigException> {
+                // ⛑ This used to assert a thrown `LadderConfigException`, and that was the bug:
+                // the loop runs inside a Koog node, and an exception out of a node aborts the
+                // whole strategy — so one bad config row took the user's turn down instead of
+                // degrading it. The boot-time check (`ResolutionDeps.unimplementedRungs`) is
+                // still the real answer; this is what happens when someone skipped it.
+                val after =
                     climbLadder(
                         state(listOf(gap(GapKind.GAP_KIND_G1_UNBOUND, "x", mentionId = "m1"))),
                         CONFIG,
@@ -370,8 +378,155 @@ class LadderLoopSpec :
                         rungs = emptyMap(), // the config admits lookup + local
                         gate = ScriptedGate(gateResult()),
                     )
+                after.degraded shouldBe "RUNG_MISSING_lookup"
+                after.rungLog.map { it.action } shouldContainExactly listOf("rung-missing")
+                withClue("a rung that could not run has not run — it must not count as tried") {
+                    after.rungsRun shouldBe emptyList()
                 }
             }
+        }
+
+        "a degraded pass reaches the caller as ASK, not as a barren-pass CLIMB" {
+            runTest {
+                // The degrade check has to come BEFORE the barren-pass check in `runLadderLoop`:
+                // a pass that died on its first rung also ran no rung, and reporting that as
+                // "nothing left to climb" would lose the reason.
+                val outcome =
+                    runLadderLoop(
+                        initial = state(listOf(gap(GapKind.GAP_KIND_G1_UNBOUND, "x", mentionId = "m1"))),
+                        config = CONFIG,
+                        profileName = "CHAT_QUICK",
+                        budgets = budgetsFor(CONFIG, "CHAT_QUICK"),
+                        rungs = emptyMap(),
+                        gate = ScriptedGate(gateResult()),
+                    )
+                outcome.verdict shouldBe Verdict.ASK
+                outcome.state.degraded shouldBe "RUNG_MISSING_lookup"
+            }
+        }
+
+        "the loop NEVER hands CLIMB back — a wall clock expiring mid-pass settles the verdict" {
+            runTest {
+                // ⛑ The regression this exists for. `assess` and `climbLadder` read the same
+                // `eligibleRungs` off the same state, so they can only disagree through the
+                // WALL CLOCK — and a turn that takes longer than `ladder_budget_ms: 5000` makes
+                // them disagree by construction. The pass then runs no rung while the verdict
+                // still says CLIMB, and CLIMB used to escape to `error()` in
+                // `runResolutionTurn` and to a graph with no CLIMB edge.
+                //
+                // The clock advances on every observation, which is what a slow turn does. It
+                // is in budget while `assess` looks and out of budget by the time the climb
+                // does — no ordering trickery, just time passing.
+                var reads = 0L
+                val steppingClock = { (reads++ * 2_500L) * 1_000_000 }
+                val outcome =
+                    runLadderLoop(
+                        initial = state(listOf(gap(GapKind.GAP_KIND_G1_UNBOUND, "x", mentionId = "m1"))),
+                        config = CONFIG,
+                        profileName = "CHAT_QUICK",
+                        budgets =
+                            Budgets(
+                                CONFIG.profile("CHAT_QUICK"),
+                                turnStartedAtNanos = 0,
+                                clockNanos = steppingClock,
+                            ),
+                        rungs = mapOf("lookup" to LookupRung(), "local" to ScriptedRung()),
+                        gate = ScriptedGate(gateResult()),
+                    )
+                withClue("a verdict the caller has no branch for is the bug, whatever else is true") {
+                    outcome.verdict shouldNotBe Verdict.CLIMB
+                }
+                withClue("the re-assess settles it: the gap is load-bearing and the ask budget is unspent") {
+                    outcome.verdict shouldBe Verdict.ASK
+                }
+                withClue("the barren pass is recorded, not silent") {
+                    outcome.state.rungLog.map { it.action } shouldContainExactly listOf("noop")
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------- the rungs
+
+        "cancelling the turn cancels the rung — it is not recorded as a rung failure" {
+            runTest {
+                // ⛑ `CancellationException` IS an `Exception`, so the catch-all used to swallow
+                // the turn being cancelled and hand back "rung 'local' failed" — after which
+                // the ladder kept climbing inside a dead scope. Cancellation is the caller's
+                // decision, not a proposal about a gap.
+                val rung =
+                    LlmRung("local", RungLlm { _, _, _ -> throw kotlinx.coroutines.CancellationException("turn gone") })
+                shouldThrow<kotlinx.coroutines.CancellationException> {
+                    rung.propose(
+                        state(listOf(gap(GapKind.GAP_KIND_G1_UNBOUND, "x", mentionId = "m1"))),
+                        listOf(gap(GapKind.GAP_KIND_G1_UNBOUND, "x", mentionId = "m1")),
+                        CONFIG,
+                    )
+                }
+            }
+        }
+
+        "an ordinary rung failure is still a proposal-less rung, not a thrown turn" {
+            runTest {
+                val rung = LlmRung("local", RungLlm { _, _, _ -> error("gateway said no") })
+                val proposal =
+                    rung.propose(
+                        state(listOf(gap(GapKind.GAP_KIND_G1_UNBOUND, "x", mentionId = "m1"))),
+                        listOf(gap(GapKind.GAP_KIND_G1_UNBOUND, "x", mentionId = "m1")),
+                        CONFIG,
+                    )
+                proposal.hypotheses.shouldHaveSize(0)
+                proposal.failure!! shouldContain "gateway said no"
+            }
+        }
+
+        "`lookup` finds an anchor even when two mentions carry the same ref" {
+            runTest {
+                // ⛑ The anchor set was built with `firstOrNull { it.ref == binding.ref }`, so an
+                // entity the question named TWICE reported the first mention as newly anchored
+                // whether or not that was the one the gate bound — and a value gap hanging off
+                // the second was never re-offered. Matched on the whole binding, across every
+                // mention, both are anchors.
+                val ref = "md.dimension.Station"
+                val latticeWithTwins =
+                    lattice(
+                        mentions =
+                            listOf(
+                                mention("m1", "stanic", 5, refs = listOf(ref)),
+                                mention("m2", "stanic", 40, refs = listOf(ref)),
+                            ),
+                        values = listOf(value("v1", "501001", 50, anchorMentionId = "m2")),
+                    )
+                val gaps = listOf(gap(GapKind.GAP_KIND_G3_UNATTRIBUTED, "501001", 50, valueId = "v1"))
+                val withGate =
+                    LadderState(
+                        lattice = latticeWithTwins,
+                        gaps = gaps,
+                        gatedBindings = listOf(binding(ref)),
+                    )
+
+                val proposal = LookupRung().propose(withGate, gaps, CONFIG)
+
+                withClue("the value's anchor is the SECOND mention — the one a first-match misses") {
+                    proposal.hypotheses.shouldHaveSize(1)
+                }
+                proposal.hypotheses
+                    .single()
+                    .span.text shouldBe "501001"
+            }
+        }
+
+        "the terminal fallback is the profile's own posture, not a hardcoded refusal" {
+            // The last resort inside `runLadderLoop` when even a re-assess says CLIMB. Reached
+            // only by a clock that flaps, so it is asserted directly rather than staged.
+            terminalVerdict(CONFIG, "CHAT_QUICK") shouldBe Verdict.REFUSE
+            val bestEffort =
+                LadderConfig.parse(
+                    openLadderYaml().replace(
+                        "    terminal: strict\n  INVESTIGATION_DEEP:",
+                        "    terminal: human_profiles\n  INVESTIGATION_DEEP:",
+                    ),
+                )
+            terminalVerdict(bestEffort, "CHAT_QUICK") shouldBe Verdict.EMIT
         }
 
         // ---- the ask/emit/refuse boundary --------------------------------------------

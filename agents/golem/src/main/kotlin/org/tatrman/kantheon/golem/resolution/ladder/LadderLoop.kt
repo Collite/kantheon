@@ -227,10 +227,32 @@ suspend fun climbLadder(
             break
         }
 
-        val impl =
-            rungs[rung] ?: throw LadderConfigException(
-                "no implementation for rung '$rung' — the config admits it and dispatch does not",
+        // ⛑ A rung the config admits and dispatch cannot run used to THROW here, which made a
+        // misconfiguration arrive as an exception out of a Koog node — and an exception out of
+        // a node aborts the whole strategy, so one bad config row took the turn down rather
+        // than degrading it. The boot-time check is still the real answer
+        // (`ResolutionDeps.unimplementedRungs`); this is what happens when someone skipped it.
+        val impl = rungs[rung]
+        if (impl == null) {
+            log.error(
+                "no implementation for rung '{}' — the config admits it and dispatch does not; " +
+                    "call ResolutionDeps.unimplementedRungs() at wiring time to catch this at boot",
+                rung,
             )
+            current =
+                current.copy(
+                    degraded = "RUNG_MISSING_$rung",
+                    rungLog =
+                        current.rungLog +
+                            entry(
+                                current.nextRound(),
+                                rung = rung,
+                                action = "rung-missing",
+                                gapsOpen = openGaps(current.gaps).size,
+                            ),
+                )
+            break
+        }
         val open = openGaps(current.gaps)
         val startedAt = budgets.elapsedMs()
 
@@ -287,6 +309,15 @@ data class LoopOutcome(
  * **Termination** rests on two things, both tested: a rung runs at most once per turn, and
  * every LLM rung spends from a finite budget. [maxRounds] is a backstop against neither
  * holding — if it ever fires, that is a bug, so it says so rather than returning quietly.
+ *
+ * ⛑ **This never returns [Verdict.CLIMB]**, and the guarantee is load-bearing rather than
+ * incidental: `runResolutionTurn` routes on the verdict and `buildGolemGraph` has one edge per
+ * verdict, so a CLIMB escaping here is a turn with nowhere to go. It used to be able to escape.
+ * `assess` and [climbLadder] read the same [eligibleRungs], so they differ only through the
+ * wall clock — and `ladder_budget_ms` expiring *between* the two (or between the pass's own
+ * eligibility check and its first `canRun`) yields a pass that ran no rung while the verdict
+ * still said CLIMB. A barren pass therefore re-assesses, and falls back to the profile's
+ * terminal posture if even that still says climb.
  */
 suspend fun runLadderLoop(
     initial: LadderState,
@@ -321,9 +352,38 @@ suspend fun runLadderLoop(
         rounds++
         val before = state.rungsRun.size
         state = climbLadder(state, config, profileName, budgets, rungs, gate, otel)
-        // A pass that ran no rung cannot make progress, and assess() would return CLIMB again.
-        if (state.rungsRun.size == before) return LoopOutcome(Verdict.CLIMB, state, rounds)
+        // Checked BEFORE the barren-pass test: a pass that degraded on its first rung (a gate
+        // that failed, a rung the deps do not implement) also ran no rung, and reporting that
+        // as "nothing left to climb" would lose the reason.
         if (state.degraded != null) return LoopOutcome(Verdict.ASK, state, rounds)
+        // A pass that ran no rung cannot make progress, so the loop must not go round again.
+        // Re-assess rather than returning CLIMB: the pass was barren because eligibility
+        // changed under it (the wall clock), and the verdict that eligibility implies is
+        // exactly what `assess` computes.
+        if (state.rungsRun.size == before) {
+            val settled =
+                assess(
+                    gaps = state.gaps,
+                    rungsRun = state.rungsRun,
+                    llmInvocations = state.llmInvocations,
+                    hitlRounds = state.hitlRounds,
+                    ladder = config,
+                    profileName = profileName,
+                    budgets = budgets,
+                )
+            if (settled != Verdict.CLIMB) return LoopOutcome(settled, state, rounds)
+            // Still CLIMB with a barren pass behind it: eligibility is flapping (only a clock
+            // can do that). Take the profile's own answer for "the ladder is done and gaps
+            // remain" rather than handing the caller a verdict it has no branch for.
+            log.warn(
+                "the ladder made no progress but still reports CLIMB — falling back to the " +
+                    "terminal posture (rungsRun={}, llm={}, elapsed_ms={})",
+                state.rungsRun,
+                state.llmInvocations,
+                budgets.elapsedMs(),
+            )
+            return LoopOutcome(terminalVerdict(config, profileName), state, rounds)
+        }
     }
 }
 

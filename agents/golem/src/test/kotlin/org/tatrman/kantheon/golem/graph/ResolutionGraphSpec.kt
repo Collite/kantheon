@@ -1,5 +1,6 @@
 package org.tatrman.kantheon.golem.graph
 
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -7,11 +8,15 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.tatrman.kantheon.golem.resolution.AssessedGaps
 import org.tatrman.kantheon.golem.resolution.RecordedResolutionCore
 import org.tatrman.kantheon.golem.resolution.TurnEnd
 import org.tatrman.kantheon.golem.resolution.compose.FallThroughReason
 import org.tatrman.kantheon.golem.resolution.inertGate
+import org.tatrman.kantheon.golem.resolution.intent.classifyTurnIntent
 import org.tatrman.kantheon.golem.resolution.ladder.LadderConfig
+import org.tatrman.kantheon.golem.resolution.ladder.LadderState
+import org.tatrman.kantheon.golem.resolution.ladder.Verdict
 import org.tatrman.kantheon.golem.resolution.ladder.openLadderYaml
 import org.tatrman.kantheon.golem.resolution.testDeps
 import org.tatrman.kantheon.golem.v1.Caller
@@ -228,5 +233,65 @@ class ResolutionGraphSpec :
             // Cheap, and it is the only thing that checks the EDGES compile into a graph.
             val strategy = buildGolemGraph(deps(testDeps()))
             strategy.name shouldBe "golem"
+        }
+
+        // ------------------------------------------------------- the topology, in one place
+
+        "every verdict has an exit — including the one the loop is not supposed to produce" {
+            // ⛑ `buildGolemGraph` had FOUR edges out of `assessGaps` and the verdict enum has
+            // four members plus the no-lattice case — but CLIMB was not among them, so a CLIMB
+            // reaching the node was a turn with nowhere to go. `GraphWalk.kt`, which claims to
+            // mirror these edges, routed it to `selection`, so the conformance tier was testing
+            // a topology the graph did not have. Both now read this table.
+            fun at(verdict: Verdict?) =
+                routeAfterAssess(
+                    GolemTurnState(
+                        request = request("q"),
+                        assessed =
+                            verdict?.let {
+                                AssessedGaps(
+                                    verdict = it,
+                                    ladder =
+                                        LadderState(
+                                            lattice = ResolutionState.getDefaultInstance(),
+                                            gaps = emptyList(),
+                                        ),
+                                    intent = classifyTurnIntent(null, null),
+                                    rounds = 0,
+                                )
+                            },
+                    ),
+                )
+
+            at(null) shouldBe RvRoute.LEGACY
+            at(Verdict.EMIT) shouldBe RvRoute.FAST_PATH
+            at(Verdict.ASK) shouldBe RvRoute.ASK
+            at(Verdict.REFUSE) shouldBe RvRoute.SELECTION
+            withClue("no verdict may fall off the end of the graph") {
+                at(Verdict.CLIMB) shouldBe RvRoute.SELECTION
+            }
+            withClue("every member is covered — a fifth verdict must break this test, not a turn") {
+                Verdict.entries.map { at(it) }.size shouldBe Verdict.entries.size
+            }
+        }
+
+        "an exit node that reached no end goes to selection, never to finish" {
+            // A turn that finished with `turnEnd == null` would be reported as neither answered
+            // nor refused. The walk and the graph disagreed about this one too.
+            val ended =
+                GolemTurnState(request = request("q"), turnEnd = TurnEnd.NoResolution(null))
+            routeAfterExit(ended) shouldBe RvRoute.FINISH
+            routeAfterExit(GolemTurnState(request = request("q"))) shouldBe RvRoute.SELECTION
+            routeAfterExit(
+                GolemTurnState(
+                    request = request("q"),
+                    turnEnd =
+                        TurnEnd.FellThrough(
+                            FallThroughReason.GAPS_OPEN,
+                            "",
+                            LadderState(lattice = ResolutionState.getDefaultInstance(), gaps = emptyList()),
+                        ),
+                ),
+            ) shouldBe RvRoute.SELECTION
         }
     })

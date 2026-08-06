@@ -62,12 +62,16 @@ class RecordedCoreProvenanceSpec :
             } else {
                 EXPECTED_SHA256.keys.forEach { name ->
                     val upstream = Path.of(siblingRoot, UPSTREAM_DIR, name)
-                    if (Files.exists(upstream)) {
-                        withClue("$name drifted from $upstream") {
-                            sha256(Files.readAllBytes(upstream)) shouldBe EXPECTED_SHA256.getValue(name)
-                        }
-                    } else {
-                        println("SKIPPED $name: no such file at $upstream (upstream moved it?)")
+                    // ⛑ A MISSING original is a drift, not a skip. This used to print and pass,
+                    // which made the nightly green for the exact case it exists to catch: the
+                    // upstream file being renamed or deleted leaves the local copy hashing
+                    // perfectly to a PROVENANCE.md entry that now points at nothing. With
+                    // TATRMAN_SERVER_DIR set, absence is a failure.
+                    withClue("no such file at $upstream — the original moved or was deleted upstream") {
+                        Files.exists(upstream) shouldBe true
+                    }
+                    withClue("$name drifted from $upstream") {
+                        sha256(Files.readAllBytes(upstream)) shouldBe EXPECTED_SHA256.getValue(name)
                     }
                 }
             }

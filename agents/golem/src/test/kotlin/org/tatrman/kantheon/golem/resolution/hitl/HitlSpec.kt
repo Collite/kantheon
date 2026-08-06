@@ -1,11 +1,13 @@
 package org.tatrman.kantheon.golem.resolution.hitl
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import org.tatrman.kantheon.golem.resolution.TurnEnd
@@ -66,6 +68,30 @@ private fun options(): List<SignedOption> =
             span = span("čerpacích stanic", 21),
         ),
     )
+
+/** A minimal stored pause — enough to be held, fetched and evicted. */
+private fun snapshot(id: String): TurnSnapshot {
+    val gaps = h2Gaps().gapsList.toList()
+    return TurnSnapshot(
+        id = id,
+        conversationId = "c-1",
+        callerSubject = "user-1",
+        tenantId = "t1",
+        question = "…",
+        locale = "cs",
+        ladder =
+            org.tatrman.kantheon.golem.resolution.ladder
+                .LadderState(lattice = h2Gaps(), gaps = gaps),
+        lattice = h2Gaps(),
+        signedOptions = options(),
+        offeredOptions = options(),
+        resumeToken = "tok",
+        askedGap = gaps.first(),
+        askRendered = "Co znamená „čerpacích stanic“?",
+    )
+}
+
+private fun storeWith(id: String): SnapshotStore = InMemorySnapshotStore().also { it.put(snapshot(id)) }
 
 class HitlSpec :
     StringSpec({
@@ -362,5 +388,170 @@ class HitlSpec :
                 // An event claiming a ref nobody offered would poison the overlay at P7.
                 sink.events.single().outcome shouldBe Outcome.Pick("o-forged", "")
             }
+        }
+
+        // ------------------------------------------------- redemption is scoped to the ask
+
+        "a pin naming an option for ANOTHER span is not redeemable — scoping survives the resume" {
+            runTest {
+                // ⛑ The half of the P4.2 scoping fix that was missing. `buildAsk` already
+                // refused to SHOW an option scoped to a different span; redemption then read
+                // the unscoped set, so the option could still be pinned — and was gated against
+                // the asked gap, with the wrong span's ref. The user was asked about A, was
+                // shown A's answers, and could still answer with B's.
+                var gateCalls = 0
+                val gate =
+                    org.tatrman.kantheon.golem.resolution.ladder.GateCall { _, _ ->
+                        gateCalls++
+                        GateResult(emptyList(), emptyList(), null, emptyList())
+                    }
+                val elsewhere =
+                    SignedOption(
+                        id = "o-praze",
+                        label = "Praha",
+                        ref = "md.dimension.City#praha",
+                        // The OTHER gap's span — the carryable G3 on `Praze`, never asked about.
+                        span = span("Praze", 41),
+                    )
+                val deps = testDeps(ladder = open(), gate = gate)
+                val paused =
+                    runResolutionTurn(
+                        h2Gaps(),
+                        facts(signedOptions = options() + elsewhere, resumeToken = "tok"),
+                        deps,
+                    ).shouldBeInstanceOf<TurnEnd.Paused>()
+
+                withClue("the ask itself never offered it — that half was already right") {
+                    paused.ask.options.map { it.id } shouldContainExactly listOf("o1", "o2")
+                }
+
+                resumeResolutionTurn(paused.ask.snapshotId, Pin.Choice("o-praze"), "user-1", facts(), deps)
+
+                withClue("an unoffered option must not reach the gate as a user-pick hypothesis") {
+                    gateCalls shouldBe 0
+                }
+            }
+        }
+
+        "the feedback event lists the options the user SAW, not everything the core signed" {
+            runTest {
+                val sink = RecordingFeedbackSink()
+                val elsewhere =
+                    SignedOption(id = "o-praze", label = "Praha", ref = "md.x#p", span = span("Praze", 41))
+                val deps = testDeps(ladder = open(), gate = inertGate(), feedback = sink)
+                val paused =
+                    runResolutionTurn(h2Gaps(), facts(signedOptions = options() + elsewhere), deps)
+                        .shouldBeInstanceOf<TurnEnd.Paused>()
+
+                resumeResolutionTurn(paused.ask.snapshotId, Pin.NoneOfThese, "user-1", facts(), deps)
+
+                // contracts §5's `options[]` is what was offered. An event listing an option the
+                // user never saw teaches the overlay about a choice nobody declined.
+                sink.events
+                    .single()
+                    .options
+                    .map { it.id } shouldContainExactly listOf("o1", "o2")
+            }
+        }
+
+        "the event carries what the user was SHOWN — `ask_rendered` is captured, not rebuilt" {
+            runTest {
+                // ⛑ It used to be reconstructed at resume as `Ask(question = "")`, so every
+                // event contracts §5 defines carried an empty `ask_rendered`. The rendering is
+                // unrecoverable once the ask has gone out, so it rides the snapshot.
+                val sink = RecordingFeedbackSink()
+                val deps = testDeps(ladder = open(), gate = inertGate(), feedback = sink)
+                val paused =
+                    runResolutionTurn(h2Gaps(), facts(signedOptions = options()), deps)
+                        .shouldBeInstanceOf<TurnEnd.Paused>()
+
+                resumeResolutionTurn(paused.ask.snapshotId, Pin.NoneOfThese, "user-1", facts(), deps)
+
+                val event = sink.events.single()
+                event.askRendered shouldBe paused.ask.question
+                event.askRendered shouldContain "čerpacích stanic"
+                event.toJson() shouldContain "\"ask_rendered\""
+            }
+        }
+
+        "the asked gap is recovered by SPAN, not by span text" {
+            runTest {
+                // A question that says the same word twice has two gaps with one span text.
+                // Matching on the text attributes the answer — and the event — to whichever the
+                // loop happened to list first.
+                val twice =
+                    lattice(
+                        gaps =
+                            listOf(
+                                gap(
+                                    GapKind.GAP_KIND_G3_UNATTRIBUTED,
+                                    "plán",
+                                    5,
+                                    valueId = "v1",
+                                ),
+                                gap(
+                                    GapKind.GAP_KIND_G1_UNBOUND,
+                                    "plán",
+                                    40,
+                                    roles = listOf(FrameRole.FRAME_ROLE_SUBJECT),
+                                    mentionId = "m9",
+                                ),
+                            ),
+                    )
+                val sink = RecordingFeedbackSink()
+                val deps = testDeps(ladder = open(), gate = inertGate(), feedback = sink)
+                val paused =
+                    runResolutionTurn(twice, facts(), deps).shouldBeInstanceOf<TurnEnd.Paused>()
+
+                withClue("the load-bearing one is the second occurrence") {
+                    paused.ask.gap.span.start shouldBe 40
+                }
+
+                resumeResolutionTurn(paused.ask.snapshotId, Pin.NoneOfThese, "user-1", facts(), deps)
+
+                val event = sink.events.single()
+                event.gapKind shouldBe "G1_UNBOUND"
+                withClue("the event must be about the gap that was actually asked about") {
+                    event.gapSpanText shouldBe "plán"
+                }
+            }
+        }
+
+        // ------------------------------------------------------------- the store is bounded
+
+        "a snapshot older than the TTL reads as an expired ask, not as a leak" {
+            var now = java.time.Instant.parse("2026-08-06T12:00:00Z")
+            val store =
+                InMemorySnapshotStore(ttl = java.time.Duration.ofMinutes(30), now = { now })
+            val id = store.put(snapshot("s-1"))
+
+            store.get(id).id shouldBe id
+            now = now.plusSeconds(31 * 60)
+            shouldThrow<SnapshotNotFound> { store.get(id) }
+            withClue("an expired entry is dropped, not merely hidden") { store.size() shouldBe 0 }
+        }
+
+        "the store evicts least-recently-used rather than growing without bound" {
+            // ⛑ An unanswered ask is the NORMAL case — a user who ignores a clarification never
+            // resumes it. Unbounded, that is one full lattice + ladder state retained per
+            // abandoned question for the life of the pod.
+            val store = InMemorySnapshotStore(maxEntries = 2)
+            store.put(snapshot("a"))
+            store.put(snapshot("b"))
+            store.get("a") // `a` is now the most recently used
+            store.put(snapshot("c"))
+
+            store.size() shouldBe 2
+            store.get("a").id shouldBe "a"
+            store.get("c").id shouldBe "c"
+            shouldThrow<SnapshotNotFound> { store.get("b") }
+        }
+
+        "a refused resume does not name the subject the turn belongs to" {
+            // The message reaches whoever tried. Naming the owner makes a guessed snapshot id
+            // a read of somebody else's identity.
+            val e = shouldThrow<IdentitySubjectMismatch> { loadSnapshot(storeWith("s-9"), "s-9", "mallory") }
+            e.message!! shouldContain "mallory"
+            e.message!! shouldNotContain "user-1"
         }
     })

@@ -292,6 +292,40 @@ fun selectionNode(
 }
 
 /**
+ * Where a turn goes next out of the RV nodes.
+ *
+ * ⛑ **The routing predicates live here, not inline in the edges**, and that is the fix for a
+ * real divergence: `GraphWalk.kt` (the test-side topology, shared by the component pass and the
+ * conformance runner) claimed to mirror the edges "exactly" and did not — it sent a CLIMB
+ * verdict and a null `turnEnd` to `selection` where the shipped graph had no edge at all for
+ * the first and went to `nodeFinish` for the second. The conformance tier was therefore
+ * asserting a topology that was not the one in production. Both now call these functions, so
+ * the conditions cannot drift; what remains different is only that the harness has no legacy
+ * chain to forward to, which is a property of the harness and is stated where it happens.
+ */
+internal enum class RvRoute { LEGACY, FAST_PATH, ASK, SELECTION, FINISH }
+
+/** The four exits out of `assessGaps`, one per verdict, plus "no lattice ⇒ the legacy chain". */
+internal fun routeAfterAssess(state: GolemTurnState): RvRoute =
+    when (state.assessed?.verdict) {
+        null -> RvRoute.LEGACY
+        Verdict.EMIT -> RvRoute.FAST_PATH
+        Verdict.ASK -> RvRoute.ASK
+        // REFUSE is the ladder exhausting under `strict`. CLIMB is not supposed to reach a
+        // caller at all (`runLadderLoop` settles it), but an edge is cheaper than a dead-ended
+        // strategy, and `selection` is where a turn with gaps left open belongs either way.
+        Verdict.REFUSE, Verdict.CLIMB -> RvRoute.SELECTION
+    }
+
+/**
+ * Out of `fastPath` / `askGap`: a fall-through goes to `selection`, an answer or a pause is
+ * done. A null `turnEnd` also goes to `selection` — it means an exit node found no deps to run
+ * with, and finishing a turn that reached no end would report it as neither answered nor refused.
+ */
+internal fun routeAfterExit(state: GolemTurnState): RvRoute =
+    if (state.turnEnd is TurnEnd.FellThrough || state.turnEnd == null) RvRoute.SELECTION else RvRoute.FINISH
+
+/**
  * resolveSelection node (S2.4 §10 Δ4) — runs before plan composition. Resolves a
  * row-detail `{bubble_id, row_indices}` reference against `golem_turns` history into
  * `selected_rows` + a flattened `selection_context`; a stale / out-of-range selection
@@ -495,19 +529,22 @@ fun buildGolemGraph(deps: GolemGraphDeps): AIAgentGraphStrategy<GolemTurnState, 
         edge(nodeStart forwardTo callCore onCondition { !(it.resumeParamFill && it.plan != null) })
         edge(callCore forwardTo assessGaps)
 
+        // ⚑ Every condition below is [routeAfterAssess] / [routeAfterExit] — the SAME functions
+        // `GraphWalk.kt` walks, so the tested topology and the shipped one cannot disagree.
+        //
         // No lattice — the core is unwired, or the turn degraded — so the LEGACY chain runs,
         // byte-for-byte as it did before RV. This is the one edge that keeps P5.1's "additive,
         // and inert unless wired" promise true now that the path downstream is no longer empty.
-        edge(assessGaps forwardTo resolveSelection onCondition { it.assessed == null })
-        edge(assessGaps forwardTo fastPath onCondition { it.assessed?.verdict == Verdict.EMIT })
-        edge(assessGaps forwardTo askGap onCondition { it.assessed?.verdict == Verdict.ASK })
-        edge(assessGaps forwardTo selection onCondition { it.assessed?.verdict == Verdict.REFUSE })
+        edge(assessGaps forwardTo resolveSelection onCondition { routeAfterAssess(it) == RvRoute.LEGACY })
+        edge(assessGaps forwardTo fastPath onCondition { routeAfterAssess(it) == RvRoute.FAST_PATH })
+        edge(assessGaps forwardTo askGap onCondition { routeAfterAssess(it) == RvRoute.ASK })
+        edge(assessGaps forwardTo selection onCondition { routeAfterAssess(it) == RvRoute.SELECTION })
 
         // γ did not fire (not DATA_QUERY, or compose refused) ⇒ the residue falls through.
-        edge(fastPath forwardTo selection onCondition { it.turnEnd is TurnEnd.FellThrough })
-        edge(fastPath forwardTo nodeFinish onCondition { it.turnEnd !is TurnEnd.FellThrough })
-        edge(askGap forwardTo selection onCondition { it.turnEnd is TurnEnd.FellThrough })
-        edge(askGap forwardTo nodeFinish onCondition { it.turnEnd !is TurnEnd.FellThrough })
+        edge(fastPath forwardTo selection onCondition { routeAfterExit(it) == RvRoute.SELECTION })
+        edge(fastPath forwardTo nodeFinish onCondition { routeAfterExit(it) == RvRoute.FINISH })
+        edge(askGap forwardTo selection onCondition { routeAfterExit(it) == RvRoute.SELECTION })
+        edge(askGap forwardTo nodeFinish onCondition { routeAfterExit(it) == RvRoute.FINISH })
         edge(selection forwardTo nodeFinish)
 
         edge(resolveSelection forwardTo compose)

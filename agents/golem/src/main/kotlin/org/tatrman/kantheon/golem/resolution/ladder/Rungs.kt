@@ -1,5 +1,6 @@
 package org.tatrman.kantheon.golem.resolution.ladder
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
@@ -68,13 +69,20 @@ class LookupRung(
     }
 }
 
-/** Mentions the gate has bound this turn — the only source of a "new" anchor. */
+/**
+ * Mentions the gate has bound this turn — the only source of a "new" anchor.
+ *
+ * ⛑ Matched on the WHOLE binding and across EVERY mention, not on `ref` alone and not
+ * first-match. The same ref can legitimately sit on two mentions (an entity the question named
+ * twice), and `firstOrNull { it.ref == … }` then reports an anchor the gate never touched while
+ * missing the one it did — which sends `lookup`'s re-offer at the wrong value gaps.
+ */
 private fun gatedMentionIds(state: LadderState): Set<String> =
     state.gatedBindings
-        .mapNotNull { binding ->
+        .flatMap { binding ->
             state.lattice.mentionsList
-                .firstOrNull { mention -> mention.bindingsList.any { it.ref == binding.ref } }
-                ?.id
+                .filter { mention -> mention.bindingsList.any { it == binding } }
+                .map { it.id }
         }.toSet()
 
 private fun anchorOf(
@@ -118,11 +126,23 @@ class LlmRung(
     ): RungProposal {
         val def = config.rungs[name] ?: throw RungRefused("rung '$name' is not defined in the config")
         val timeout = config.timeoutMs(name).toLong()
+        val call: suspend () -> String = { llm.complete(def.modelClass, promptFor(gaps, state), def.temperature) }
         val raw =
             try {
-                withTimeout(timeout) { llm.complete(def.modelClass, promptFor(gaps, state), def.temperature) }
+                // ⛑ `withTimeout(0)` throws BEFORE running the block, so a rung with no
+                // resolvable timeout would fail every single invocation with "timed out after
+                // 0ms" — a config-shaped bug wearing a runtime costume. `LadderConfig.parse`
+                // now refuses such a config at LOAD; this guard is for a hand-built config that
+                // never went through the loader, and it prefers "no wall clock of its own"
+                // (`ladder_budget_ms` still bounds the turn) over "always fails".
+                if (timeout > 0) withTimeout(timeout) { call() } else call()
             } catch (e: TimeoutCancellationException) {
                 return RungProposal(emptyList(), failure = "rung '$name' timed out after ${timeout}ms")
+            } catch (e: CancellationException) {
+                // ⛑ NOT a rung failure. `CancellationException` is an `Exception`, so the catch
+                // below used to swallow the turn being cancelled and let the ladder keep
+                // climbing inside a dead scope. Cancellation is the caller's decision.
+                throw e
             } catch (e: Exception) {
                 return RungProposal(emptyList(), failure = "rung '$name' failed: ${e.message}")
             }
