@@ -7,6 +7,7 @@ import ai.koog.agents.core.dsl.builder.node
 import ai.koog.agents.core.dsl.builder.strategy
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.model.PromptExecutor
+import io.opentelemetry.api.OpenTelemetry
 import org.slf4j.LoggerFactory
 import org.tatrman.kantheon.envelope.v1.FormatEnvelope
 import org.tatrman.kantheon.envelope.v1.FormatKind
@@ -28,8 +29,16 @@ import org.tatrman.kantheon.golem.plan.PlanValidator
 import org.tatrman.kantheon.golem.plan.PlanViolation
 import org.tatrman.kantheon.golem.plan.bindSelectionArgs
 import org.tatrman.kantheon.golem.plan.gatePlan
+import org.tatrman.kantheon.golem.resolution.CoreDegrade
+import org.tatrman.kantheon.golem.resolution.ResolutionCoreClient
+import org.tatrman.kantheon.golem.resolution.ResolutionProvenance
+import org.tatrman.kantheon.golem.resolution.callResolutionCoreStep
+import org.tatrman.kantheon.golem.resolution.tracedResolutionCore
 import org.tatrman.kantheon.golem.v1.GolemRequest
 import org.tatrman.kantheon.golem.v1.MiniPlan
+import org.tatrman.resolver.v1.Capabilities
+import org.tatrman.resolver.v1.ResolutionState
+import java.time.Instant
 import java.util.UUID
 
 private val log = LoggerFactory.getLogger("org.tatrman.kantheon.golem.graph.GolemGraph")
@@ -62,6 +71,16 @@ data class GolemTurnState(
     /** A param_fill resume re-enters with the bound plan and skips the cascade
      *  (`nodeStart → execute` shortcut, Δ2). */
     val resumeParamFill: Boolean = false,
+    /** RV-P5.1 — the annotation lattice from one `resolve.bind:v1` call. Null when the
+     *  resolution core is not wired (the default) or when the turn degraded. Nothing reads
+     *  it yet: P5.2 loops over its gaps, P5.3 composes from its bindings. */
+    val lattice: ResolutionState? = null,
+    /** RV-39 layer tuple + S-1 engine identity for [lattice]. */
+    val resolutionProvenance: ResolutionProvenance? = null,
+    /** RS-7 capability matrix the core echoed — what actually backed this resolve. */
+    val resolutionCapabilities: Capabilities? = null,
+    /** Set when the core door failed. A degraded turn has no [lattice] and says so. */
+    val coreDegrade: CoreDegrade? = null,
     val plan: MiniPlan? = null,
     val violations: List<PlanViolation> = emptyList(),
     val decision: GateDecision? = null,
@@ -69,6 +88,67 @@ data class GolemTurnState(
     val clarification: FormatEnvelope? = null,
     val outcome: TurnOutcome? = null,
 )
+
+/**
+ * RV-P5.1 — `callResolutionCore`. One gRPC to `resolve.bind:v1`; the whole annotation
+ * lattice lands on the turn.
+ *
+ * **Additive, and inert unless wired** (ruling (A), 2026-08-06). The six Themis nodes this
+ * replaces are not deleted — `agents/themis` runs untouched until RV-P6 retires it — and
+ * nothing downstream reads the lattice yet. With no client the node is a no-op: same
+ * "an estate that does not have it is unaffected" posture the RV-P3 lexicon mounts took,
+ * because otherwise every turn in every estate pays a gRPC hop (or a timeout where no
+ * resolver is deployed) to fill a field nobody reads. The node stays in the graph either
+ * way — see the strategy for why one topology beats one saved hop.
+ */
+suspend fun callResolutionCoreNodeStep(
+    state: GolemTurnState,
+    client: ResolutionCoreClient,
+    referenceDatetime: String,
+    otel: OpenTelemetry? = null,
+): GolemTurnState {
+    val result =
+        otel.tracedResolutionCore {
+            callResolutionCoreStep(
+                question = state.request.question,
+                // ⚑ FOUND at T3, and it lands on P5.3 T4: **golem has no conversation id.**
+                // `golem/v1` carries none, and `golem_turns` keys rows by request/user/tenant
+                // only — the closest thing is `Caller.correlation_id`. That is enough for the
+                // core (which uses it to scope a resume token) but NOT for RV-17's "one ask
+                // budget per conversation", which needs an identifier that outlives a turn.
+                // Recorded rather than papered over; the fallback keeps this call well-formed.
+                conversationId =
+                    state.request.caller.correlationId
+                        .ifBlank { state.request.id },
+                locale =
+                    state.request.context.locale
+                        .ifBlank { "cs" },
+                referenceDatetime = referenceDatetime,
+                tenant = state.tenantId,
+                callerSubject = state.userId,
+                client = client,
+            )
+        }
+    return state.copy(
+        lattice = result.lattice,
+        resolutionProvenance = result.provenance,
+        resolutionCapabilities = result.capabilities,
+        coreDegrade = result.degrade,
+    )
+}
+
+/**
+ * The `callResolutionCore` node body as the strategy runs it — a no-op when no core is
+ * wired. Separate from [callResolutionCoreNodeStep] so the wired and unwired paths are both
+ * reachable from a test without standing up an `AIAgent`.
+ */
+suspend fun callResolutionCoreNode(
+    state: GolemTurnState,
+    deps: GolemGraphDeps,
+): GolemTurnState =
+    deps.resolutionCore
+        ?.let { client -> callResolutionCoreNodeStep(state, client, deps.referenceDatetime(), deps.otel) }
+        ?: state
 
 /**
  * resolveSelection node (S2.4 §10 Δ4) — runs before plan composition. Resolves a
@@ -185,6 +265,15 @@ data class GolemGraphDeps(
     /** Resolves row-detail selections against history (S2.4 §10 Δ4). Defaults to a
      *  no-op (skeleton boot / tests without history). */
     val selectionResolver: SelectionResolver = SelectionResolver.NONE,
+    /** RV-P5.1 — the resolution core. **Null by default, and null means the node is not in
+     *  the graph at all**: nothing downstream reads the lattice until P5.2/P5.3, so an
+     *  estate with no resolver deployed must not pay a gRPC hop (or a timeout) per turn. */
+    val resolutionCore: ResolutionCoreClient? = null,
+    /** Grounding anchor handed to the core. A supplier, not a value: a fixed clock would
+     *  make every turn resolve "last 12 months" against the same instant. */
+    val referenceDatetime: () -> String = { Instant.now().toString() },
+    /** The process SDK, so `golem.callResolutionCore` joins the turn's trace. Null = off. */
+    val otel: OpenTelemetry? = null,
 )
 
 /**
@@ -210,12 +299,30 @@ fun buildGolemGraph(deps: GolemGraphDeps): AIAgentGraphStrategy<GolemTurnState, 
             "emitClarification",
         ) { state -> emitClarificationStep(state) }
 
+        // RV-P5.1 — `callResolutionCore` runs FIRST on a fresh turn (detailed-design §4: the
+        // core call heads the merged-Golem chain) and is transparent to everything after it.
+        // Additive, per ruling (A): no existing node reads the lattice, so the chain below is
+        // unchanged whether or not a core answers.
+        //
+        // **A null client makes it a no-op rather than removing it from the graph.** One graph
+        // shape is worth more than one saved hop: an estate with no resolver deployed must not
+        // pay a gRPC call — or a timeout — per turn to fill a field nobody reads yet, and a
+        // conditional TOPOLOGY would mean the shape under test is not the shape that ships.
+        //
+        // The param_fill resume shortcut deliberately skips it: a resume carries a bound plan,
+        // and re-resolving its text is work with no consumer. ⚑ RV-11 says resume rejoins at
+        // `assessGaps` — that node is P5.2's, and this is the edge P5.2 re-points.
+        val callCore by node<GolemTurnState, GolemTurnState>("callResolutionCore") { state ->
+            callResolutionCoreNode(state, deps)
+        }
+
         // param_fill resume re-enters at `gate` with the already-bound plan — it skips compose
         // (the plan is fixed) but is **re-validated and re-gated** before execute (B2): a resume
         // token is a server-trusted blob whose authorization decays, so HMAC integrity does not
         // substitute for re-running PlanValidator + the confidence gate on the bound plan.
         edge(nodeStart forwardTo gate onCondition { it.resumeParamFill && it.plan != null })
-        edge(nodeStart forwardTo resolveSelection onCondition { !(it.resumeParamFill && it.plan != null) })
+        edge(nodeStart forwardTo callCore onCondition { !(it.resumeParamFill && it.plan != null) })
+        edge(callCore forwardTo resolveSelection)
         edge(resolveSelection forwardTo compose)
         edge(compose forwardTo gate)
         edge(gate forwardTo execute onCondition { it.decision is GateDecision.Execute })
