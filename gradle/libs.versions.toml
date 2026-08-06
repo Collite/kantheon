@@ -42,7 +42,16 @@ tatrman-translator        = "0.10.1"  # translate.v1 public (was 0.8.5 / proteus
 # earlier). So name and version move together or the build does not resolve. The other eight
 # coordinates never carried the prefix and simply ride the same `server-libs/v0.11.2-RELEASE` cut.
 #
-# NO transitive split: server-proto:0.11.2's POM still declares org.tatrman:ttr-plan-proto:0.10.1
+# 0.11.2 -> 0.11.3 (RV-P5.1 pre-flight, 2026-08-06). Version-only this time — no coordinate moved.
+# 0.11.2 was cut 2026-08-01 and is NOT a descendant of the RV-P2 merge (`7f77f86`), so its protos
+# carry no `ResolveResponse.resolution_state`, no `rpc Gate` (resolve.gate:v1) and no `rpc Lookup`
+# — the entire surface the Kotlin merged Golem calls. `server-libs/v0.11.3-RELEASE` dereferences to
+# tatrman-server master `84ada4e` and was verified from the PUBLISHED JAR, not the tag name
+# (`ResolutionState` / `GateRequest` / `GapRecord` / `LookupRequest` / `ResolverServiceGrpc` all
+# present) — the void-`grammar/v0.12.1` lesson, where a correctly-named tag pointed at the wrong
+# tree and only a locally-published artifact made the build pass.
+#
+# NO transitive split, still true at 0.11.3: server-proto's POM declares org.tatrman:ttr-plan-proto:0.10.1
 # — exactly what `tatrman-translator` pins below, so the CH-P3 alignment survives the rename.
 # (`ttr-plan-proto` / `ttr-translator` / `ttr-parser` / `ttr-metadata` / `ttr-validator-spi` are
 # the TATRMAN TOOLCHAIN line, a different repo and a different release train. They keep the
@@ -62,7 +71,7 @@ tatrman-translator        = "0.10.1"  # translate.v1 public (was 0.8.5 / proteus
 # own fix — the `: ready` preamble — is what carries the estate; the library floor is the guard
 # so a fourth Netty service cannot rediscover the cliff. Write-up:
 # project/server/features/stream-timeouts/.
-tatrman-server            = "0.11.2"
+tatrman-server            = "0.11.3"
 # The ⑤ validator SPI (org.tatrman:ttr-validator-spi) from Maven Central — the open C-5-i plugin contract
 # the llm-guard plugin implements (published via tatrman `just publish bundle validator`).
 #
