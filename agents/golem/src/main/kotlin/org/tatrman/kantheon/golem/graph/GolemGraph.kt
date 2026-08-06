@@ -29,10 +29,20 @@ import org.tatrman.kantheon.golem.plan.PlanValidator
 import org.tatrman.kantheon.golem.plan.PlanViolation
 import org.tatrman.kantheon.golem.plan.bindSelectionArgs
 import org.tatrman.kantheon.golem.plan.gatePlan
+import org.tatrman.kantheon.golem.resolution.AssessedGaps
 import org.tatrman.kantheon.golem.resolution.CoreDegrade
 import org.tatrman.kantheon.golem.resolution.ResolutionCoreClient
+import org.tatrman.kantheon.golem.resolution.ResolutionDeps
 import org.tatrman.kantheon.golem.resolution.ResolutionProvenance
+import org.tatrman.kantheon.golem.resolution.TurnEnd
+import org.tatrman.kantheon.golem.resolution.TurnFacts
+import org.tatrman.kantheon.golem.resolution.askStep
+import org.tatrman.kantheon.golem.resolution.assessGapsStep
 import org.tatrman.kantheon.golem.resolution.callResolutionCoreStep
+import org.tatrman.kantheon.golem.resolution.compose.FallThroughReason
+import org.tatrman.kantheon.golem.resolution.fastPathStep
+import org.tatrman.kantheon.golem.resolution.ladder.Verdict
+import org.tatrman.kantheon.golem.resolution.selectionStep
 import org.tatrman.kantheon.golem.resolution.tracedResolutionCore
 import org.tatrman.kantheon.golem.v1.GolemRequest
 import org.tatrman.kantheon.golem.v1.MiniPlan
@@ -81,6 +91,14 @@ data class GolemTurnState(
     val resolutionCapabilities: Capabilities? = null,
     /** Set when the core door failed. A degraded turn has no [lattice] and says so. */
     val coreDegrade: CoreDegrade? = null,
+    /** RV-P5.3 — the per-turn facts the resolution path reads (locale, profile, prior intent,
+     *  the core's signed options). Assembled at `callResolutionCore`, read by `assessGaps`. */
+    val turnFacts: TurnFacts? = null,
+    /** RV-P5.3 — where the ladder stopped, and the intent the three exits route on. */
+    val assessed: AssessedGaps? = null,
+    /** RV-P5.3 — how the resolution path ended: answered, paused on an ask, or refused.
+     *  Null on a turn with no lattice, which is the signal the LEGACY chain runs instead. */
+    val turnEnd: TurnEnd? = null,
     val plan: MiniPlan? = null,
     val violations: List<PlanViolation> = emptyList(),
     val decision: GateDecision? = null,
@@ -149,6 +167,117 @@ suspend fun callResolutionCoreNode(
     deps.resolutionCore
         ?.let { client -> callResolutionCoreNodeStep(state, client, deps.referenceDatetime(), deps.otel) }
         ?: state
+
+/**
+ * RV-P5.3 — the per-turn facts, assembled once where the request is still in hand.
+ *
+ * ⚑ **`conversationId` is the P5.1 carry, now closed** — `golem/v1.GolemContext` gained
+ * `conversation_id` (field 7, additive) and `GolemRequestFactory` fills it from the BFF's
+ * thread. The fallback chain below is what a turn dispatched by an older BFF gets: a
+ * correlation id scopes the core's resume token correctly but does NOT outlive a turn, so
+ * RV-17's one-pool budget silently becomes one-pool-per-turn. That degradation is logged
+ * rather than hidden, because an ask budget that never runs out looks like a working system.
+ */
+fun turnFactsFor(
+    state: GolemTurnState,
+    profileName: String,
+): TurnFacts {
+    val conversationId =
+        state.request.context.conversationId
+            .ifBlank {
+                log.info(
+                    "no conversation_id on the request (pre-RV-P5.3 BFF?) — the ask budget will " +
+                        "scope to this turn rather than to the conversation (RV-17)",
+                )
+                state.request.caller.correlationId
+                    .ifBlank { state.request.id }
+            }
+    return TurnFacts(
+        question = state.request.question,
+        conversationId = conversationId,
+        callerSubject = state.userId,
+        tenantId = state.tenantId,
+        locale =
+            state.request.context.locale
+                .ifBlank { "cs" },
+        profileName = profileName,
+        bearer = state.bearer,
+        // Themis's verdict, verbatim, as the intent prior (RV-P5.3 T1). Absent on a
+        // KEEP_TOGETHER dispatch, which is exactly the vacuum the operator evidence fills.
+        priorIntent = if (state.request.hasResolvedIntent()) state.request.resolvedIntent else null,
+    )
+}
+
+/**
+ * `assessGaps` node — RV-11's loop. A no-op without a lattice, which is what routes the turn
+ * back onto the legacy chain.
+ */
+suspend fun assessGapsNode(
+    state: GolemTurnState,
+    deps: GolemGraphDeps,
+): GolemTurnState {
+    val lattice = state.lattice ?: return state
+    val resolution = deps.resolution ?: return state
+    val facts = turnFactsFor(state, deps.profileName(state))
+    return state.copy(turnFacts = facts, assessed = assessGapsStep(lattice, facts, resolution))
+}
+
+/** `fastPath` node — the γ predicate, compose, the query door, the answer envelope. */
+suspend fun fastPathNode(
+    state: GolemTurnState,
+    deps: GolemGraphDeps,
+): GolemTurnState {
+    val assessed = state.assessed ?: return state
+    val facts = state.turnFacts ?: return state
+    val resolution = deps.resolution ?: return state
+    val end = fastPathStep(assessed, facts, resolution)
+    // A fall-through is not an outcome yet — `selection` decides. Leaving `outcome` unset here
+    // is what stops a refused turn being reported as EXECUTED.
+    return state.copy(
+        turnEnd = end,
+        outcome = if (end is TurnEnd.Answered) TurnOutcome.EXECUTED else state.outcome,
+    )
+}
+
+/** `askGap` node — RV-17's one-pool ask; the turn pauses on a snapshot. */
+fun askGapNode(
+    state: GolemTurnState,
+    deps: GolemGraphDeps,
+): GolemTurnState {
+    val assessed = state.assessed ?: return state
+    val facts = state.turnFacts ?: return state
+    val resolution = deps.resolution ?: return state
+    val end = askStep(assessed, facts, resolution)
+    // `chooseAsk` can decline (askable by policy, but nothing load-bearing) — that falls
+    // through to selection rather than pausing the turn on a question worth nothing.
+    return state.copy(
+        turnEnd = end,
+        outcome = if (end is TurnEnd.Paused) TurnOutcome.CLARIFY else state.outcome,
+    )
+}
+
+/**
+ * `selection` node — the RV-P6 delegation seam, a **stub that refuses by name** in this
+ * phase. Everything the fast path does not take lands here.
+ */
+fun selectionNode(
+    state: GolemTurnState,
+    deps: GolemGraphDeps,
+): GolemTurnState {
+    val assessed = state.assessed ?: return state
+    val resolution = deps.resolution ?: return state
+    // Reached either from `fastPath` (γ did not fire) or straight from `assessGaps` (the
+    // ladder REFUSEd under `strict`). The second case has no FellThrough to carry, so it is
+    // built here — one refusal per turn either way.
+    val fell =
+        state.turnEnd as? TurnEnd.FellThrough
+            ?: TurnEnd.FellThrough(
+                FallThroughReason.GAPS_OPEN,
+                "the ladder exhausted and the profile is strict",
+                assessed.ladder,
+            )
+    return state.copy(turnEnd = selectionStep(fell, resolution), outcome = TurnOutcome.FAILED)
+}
 
 /**
  * resolveSelection node (S2.4 §10 Δ4) — runs before plan composition. Resolves a
@@ -269,6 +398,15 @@ data class GolemGraphDeps(
      *  the graph at all**: nothing downstream reads the lattice until P5.2/P5.3, so an
      *  estate with no resolver deployed must not pay a gRPC hop (or a timeout) per turn. */
     val resolutionCore: ResolutionCoreClient? = null,
+    /** RV-P5.3 — the ladder, the rungs, the gate, the skill library, the door, the snapshot
+     *  store and the feedback sink. **Null by default and null means the three RV nodes are
+     *  inert**, exactly as [resolutionCore] is: the two are wired together or not at all. */
+    val resolution: ResolutionDeps? = null,
+    /** Which ladder profile this turn runs under. CHAT_QUICK is the Golem's own posture —
+     *  a Golem turn is a chat turn by definition; INVESTIGATION_DEEP is Pythia's, and a Golem
+     *  that classified its own turns as DEEP would quietly grant itself a 6× LLM budget.
+     *  A supplier so an estate can override per-request without a second deps object. */
+    val profileName: (GolemTurnState) -> String = { "CHAT_QUICK" },
     /** Grounding anchor handed to the core. A supplier, not a value: a fixed clock would
      *  make every turn resolve "last 12 months" against the same instant. */
     val referenceDatetime: () -> String = { Instant.now().toString() },
@@ -316,13 +454,50 @@ fun buildGolemGraph(deps: GolemGraphDeps): AIAgentGraphStrategy<GolemTurnState, 
             callResolutionCoreNode(state, deps)
         }
 
+        // RV-P5.3 — the resolution path. `assessGaps` is RV-11's loop and the resume rejoin
+        // point (the edge P5.1 promised P5.2 would re-point, re-pointed here because P5.2
+        // shipped the loop as a library and left the graph alone).
+        //
+        // Three exits, one per verdict, as separate nodes rather than one branch inside a
+        // node: the topology IS the design's claim — a DATA_QUERY with no gaps reaches the
+        // door without passing through selection, and "without passing through" is only a
+        // testable statement if selection is somewhere to pass through.
+        val assessGaps by node<GolemTurnState, GolemTurnState>("assessGaps") { state ->
+            assessGapsNode(state, deps)
+        }
+        val fastPath by node<GolemTurnState, GolemTurnState>("fastPath") { state ->
+            fastPathNode(state, deps)
+        }
+        val askGap by node<GolemTurnState, GolemTurnState>("askGap") { state ->
+            askGapNode(state, deps)
+        }
+        val selection by node<GolemTurnState, GolemTurnState>("selection") { state ->
+            selectionNode(state, deps)
+        }
+
         // param_fill resume re-enters at `gate` with the already-bound plan — it skips compose
         // (the plan is fixed) but is **re-validated and re-gated** before execute (B2): a resume
         // token is a server-trusted blob whose authorization decays, so HMAC integrity does not
         // substitute for re-running PlanValidator + the confidence gate on the bound plan.
         edge(nodeStart forwardTo gate onCondition { it.resumeParamFill && it.plan != null })
         edge(nodeStart forwardTo callCore onCondition { !(it.resumeParamFill && it.plan != null) })
-        edge(callCore forwardTo resolveSelection)
+        edge(callCore forwardTo assessGaps)
+
+        // No lattice — the core is unwired, or the turn degraded — so the LEGACY chain runs,
+        // byte-for-byte as it did before RV. This is the one edge that keeps P5.1's "additive,
+        // and inert unless wired" promise true now that the path downstream is no longer empty.
+        edge(assessGaps forwardTo resolveSelection onCondition { it.assessed == null })
+        edge(assessGaps forwardTo fastPath onCondition { it.assessed?.verdict == Verdict.EMIT })
+        edge(assessGaps forwardTo askGap onCondition { it.assessed?.verdict == Verdict.ASK })
+        edge(assessGaps forwardTo selection onCondition { it.assessed?.verdict == Verdict.REFUSE })
+
+        // γ did not fire (not DATA_QUERY, or compose refused) ⇒ the residue falls through.
+        edge(fastPath forwardTo selection onCondition { it.turnEnd is TurnEnd.FellThrough })
+        edge(fastPath forwardTo nodeFinish onCondition { it.turnEnd !is TurnEnd.FellThrough })
+        edge(askGap forwardTo selection onCondition { it.turnEnd is TurnEnd.FellThrough })
+        edge(askGap forwardTo nodeFinish onCondition { it.turnEnd !is TurnEnd.FellThrough })
+        edge(selection forwardTo nodeFinish)
+
         edge(resolveSelection forwardTo compose)
         edge(compose forwardTo gate)
         edge(gate forwardTo execute onCondition { it.decision is GateDecision.Execute })

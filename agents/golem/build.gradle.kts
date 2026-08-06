@@ -91,6 +91,13 @@ dependencies {
     // JsonFormat — golem/v1 + envelope/v1 proto ↔ JSON (persistence + SSE wire).
     implementation(libs.protobuf.java.util)
 
+    // RV-P5.3 T3 — the operator library. `ttr-lexicon` is the artifact's own type
+    // (`OperatorLibrary`/`OperatorEntry`/`LexiconArchive`) and `ttr-snapshot` reads the
+    // `kind: "lexicon"` archive, so the Golem consumes the compiler's shapes rather than
+    // re-declaring them — the drift golem-py could not avoid, since Python has no such lib.
+    implementation(libs.tatrman.ttr.lexicon)
+    implementation(libs.tatrman.ttr.snapshot)
+
     // Shem YAML → AgentCapability (Stage 2.2). Jackson YAML, mirrors veles-mcp's manifest parser.
     implementation(libs.jackson.databind)
     implementation(libs.jackson.module.kotlin)

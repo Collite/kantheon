@@ -16,8 +16,22 @@
 # non-existent org.tatrman:ttr-parser:0.10.x. That exact pin had `:services:veles:compileKotlin`
 # failing on tatrman-platform's master for three days (2026-07-27 -> 2026-07-30). When bumping,
 # confirm `ttr-parser` has the version on Central first.
-tatrman-modeler           = "0.11.0"
-tatrman-ttr-metadata      = "0.11.0"
+#
+# 0.11.0 -> 0.11.1 (RV-P5.3 pre-flight, 2026-08-06). RV-P5.3 T3 needs `ttr-lexicon`
+# (`OperatorLibrary` / `OperatorEntry` / `LexiconArchive`) + `ttr-snapshot` (`SnapshotReader`)
+# to read the operator-library artifact, instead of hand-rolling zstd+tar the way golem-py had
+# to. **`ttr-lexicon` does not exist at 0.11.0.** It joined the grammar bundle on 2026-08-03,
+# after the 0.11.0 cut, so Central carries it at 0.11.1 ONLY — which is the same failure mode
+# the warning above describes, from the other side: there the metadata half was ahead of the
+# grammar half, here the lexicon half is behind it. 0.11.1 is the one version where the whole
+# family coexists. Verified on Central per artifact before bumping, not inferred from the tag:
+#   ttr-parser 0.9.4 0.11.0 0.11.1 · ttr-writer / ttr-semantics same · ttr-metadata(-git) +
+#   ttr-md-resolver … 0.11.0 0.11.1 · ttr-snapshot … 0.11.0 0.11.1 · ttr-lexicon 0.11.1 ONLY
+# and the published ttr-lexicon-0.11.1.jar was opened to confirm it really carries
+# `org/tatrman/ttr/lexicon/OperatorLibrary.class` — the 0.12.1/0.13.0 copies in ~/.m2 are local
+# builds off this machine's `tatrman` checkout and are NOT on Central; do not pin them.
+tatrman-modeler           = "0.11.1"
+tatrman-ttr-metadata      = "0.11.1"
 # ttr-plan-proto + ttr-translator are published at 0.10.1 (Bora, 2026-07-29) — this ref drives
 # BOTH (see the library entries below). tatrman-server already pins 0.10.1 for the same two
 # artifacts, so this bump re-aligns kantheon with the server repo rather than leading it.
@@ -352,6 +366,13 @@ tatrman-ttr-writer                  = { module = "org.tatrman:ttr-writer",      
 tatrman-ttr-semantics               = { module = "org.tatrman:ttr-semantics",                            version.ref = "tatrman-modeler" }
 tatrman-ttr-metadata                = { module = "org.tatrman:ttr-metadata",                              version.ref = "tatrman-ttr-metadata" }
 tatrman-ttr-metadata-git            = { module = "org.tatrman:ttr-metadata-git",                          version.ref = "tatrman-ttr-metadata" }
+# RV-P5.3 — the compiled-lexicon artifact types + the archive reader. `ttr-lexicon` gives the
+# Golem's skill-body loader `OperatorLibrary`/`OperatorEntry`/`LexiconArchive` and `ttr-snapshot`
+# gives `SnapshotReader`, so reading `lexicon.tar.zst` is two calls rather than a hand-rolled
+# zstd+tar the way golem-py had to (Python has no equivalent). Both ride the `grammar` bundle,
+# so they take `tatrman-modeler` and move in lockstep with the parser by construction.
+tatrman-ttr-lexicon                 = { module = "org.tatrman:ttr-lexicon",                              version.ref = "tatrman-modeler" }
+tatrman-ttr-snapshot                = { module = "org.tatrman:ttr-snapshot",                             version.ref = "tatrman-modeler" }
 tatrman-ttr-plan-proto              = { module = "org.tatrman:ttr-plan-proto",                            version.ref = "tatrman-translator" }
 tatrman-ttr-translator              = { module = "org.tatrman:ttr-translator",                            version.ref = "tatrman-translator" }
 # SV-P0 — spine libs + proto stubs moved to tatrman-server (consumed as artifacts).
