@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: Apache-2.0
+# golem-ladder/v1 — the SHIPPED DEFAULT of the KOTLIN internal-full Golem (RV-P5.2 T2).
+# Normative shape: contracts.md §3; budgets: ⚑RV-3 (Q-14 RULED).
+#
+# ⚑ THIS IS NOT THE ZERO-RUNG FILE, and the difference is deliberate. contracts §3 says
+# "the open Golem ships this file with `policy.*.rungs: []` (zero-rung default, RV-27)" —
+# *the open Golem*. This is the Kotlin internal-full one (plugins, learning, full ladder,
+# GI-20), so it ships the §3 table as written. Recorded on the task list for Bora rather
+# than chosen quietly.
+#
+# It is inert at P5.2 regardless: the ladder only runs behind `callResolutionCore`, which
+# is off unless an estate wires a resolver (P5.1 T3). Turning the core on is what turns
+# this on, which is the one act an estate should have to perform deliberately.
+#
+# The open Golem's zero-rung file is vendored at
+# `src/test/resources/ladder/golem-ladder-open.yaml` and both are loaded by the same
+# loader in the conformance test — one schema, two loaders, proven rather than intended.
+
+schema: golem-ladder/v1
+
+# The rung vocabulary is CLOSED at four (RV-33). Definitions, not instances.
+rungs:
+  # Deterministic, anchored, category-scoped (`org.tatrman.fuzzy.v1.Lookup`). NOT an LLM
+  # rung: bounded by `ladder_budget_ms` only, never counted against `max_llm_invocations`.
+  lookup: {}
+  local: { model_class: local, timeout_ms: 3000, temperature: 0 }
+  capable: { model_class: capable, timeout_ms: 10000, temperature: 0 }
+  emulated: { last_resort: true }
+
+# ONE gap-policy table (RV-10). Row ORDER is the climb order — see `eligibleRungs`.
+policy:
+  G1_UNBOUND:      { rungs: [lookup, local, capable], ask: escalate-then-ask }
+  G2_AMBIGUOUS:    { rungs: [lookup, local],          ask: escalate-then-ask }
+  G3_UNATTRIBUTED: { rungs: [lookup, local],          ask: emit-unless-load-bearing }
+  G4_METHOD_MISS:  { rungs: [lookup, local],          ask: ask-if-load-bearing }
+  # `emulated` is config-legal and dispatch REFUSES it by name (G5 territory is P8).
+  G5_NLP_DARK:     { rungs: [emulated],               ask: degrade-banner }
+  G6_INCOHERENT:   { rungs: [capable],                ask: ask-immediately }
+
+# Q-14 RULED (⚑RV-3). Per-rung wall clocks; a rung's own `timeout_ms` wins when set.
+rung_timeouts_ms: { lookup: 250, local: 3000, capable: 10000, emulated: 15000 }
+
+profiles:
+  CHAT_QUICK:
+    rungs_allowed: [lookup, local]
+    max_llm_invocations: 2
+    ladder_budget_ms: 5000
+    hitl_rounds: 1
+    terminal: strict
+  INVESTIGATION_DEEP:
+    rungs_allowed: "*"
+    max_llm_invocations: 6
+    ladder_budget_ms: 30000
+    hitl_rounds: 3
+    terminal: strict
+
+# ⚑ P4.1·T4's ruling, adopted unchanged: contracts §3 names two postures and never says
+# which profile takes which. A profile NAMES its posture and the default is `strict`,
+# because refuse-over-guess is this design's whole posture; best-effort is an estate
+# opting IN to answering over gap notes (RV-19 carries them either way).
+terminal:
+  strict: refusal-with-gaps
+  human_profiles: best-effort-with-gap-notes

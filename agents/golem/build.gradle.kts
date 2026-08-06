@@ -91,6 +91,13 @@ dependencies {
     // JsonFormat — golem/v1 + envelope/v1 proto ↔ JSON (persistence + SSE wire).
     implementation(libs.protobuf.java.util)
 
+    // RV-P5.3 T3 — the operator library. `ttr-lexicon` is the artifact's own type
+    // (`OperatorLibrary`/`OperatorEntry`/`LexiconArchive`) and `ttr-snapshot` reads the
+    // `kind: "lexicon"` archive, so the Golem consumes the compiler's shapes rather than
+    // re-declaring them — the drift golem-py could not avoid, since Python has no such lib.
+    implementation(libs.tatrman.ttr.lexicon)
+    implementation(libs.tatrman.ttr.snapshot)
+
     // Shem YAML → AgentCapability (Stage 2.2). Jackson YAML, mirrors veles-mcp's manifest parser.
     implementation(libs.jackson.databind)
     implementation(libs.jackson.module.kotlin)
@@ -126,7 +133,15 @@ dependencies {
     implementation(libs.flyway.core)
     implementation(libs.flyway.pgsql)
 
+    // RV-P5.1 — the resolution-core seam. The `org.tatrman.resolver.v1` stubs arrive
+    // transitively (`:shared:proto` declares `api(libs.tatrman.server.proto)`); what golem
+    // needs of its own is a channel implementation to talk over. Mirrors pythia's dataplane.
+    implementation(libs.grpc.netty.shaded)
+
     testImplementation(libs.bundles.kotest)
+    // RV-P5.1 T2 — an in-process gRPC server stands in for the resolver door, so the
+    // client's status→degrade mapping is proven against real gRPC rather than a mocked stub.
+    testImplementation(libs.grpc.inprocess)
     testImplementation(libs.opentelemetry.sdk.testing)
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.mockk)

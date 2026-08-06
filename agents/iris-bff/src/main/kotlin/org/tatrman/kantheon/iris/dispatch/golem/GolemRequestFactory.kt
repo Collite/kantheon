@@ -54,6 +54,10 @@ object GolemRequestFactory {
         // of the SPA's own strings. Left unset when the BFF has no locale, so golem falls
         // back to its Shem's default rather than being told a language nobody chose.
         turn.locale.takeIf { it.isNotBlank() }?.let { context.locale = it }
+        // RV-P5.3 — the conversation the turn belongs to. The BFF's `sessionId` IS golem's
+        // conversation: it is what survives across turns, which is exactly the property RV-17's
+        // one-ask-pool needs and the one `correlationId` (per turn) does not have.
+        context.conversationId = turn.sessionId.toString()
         turn.handoff?.let { handoff ->
             context.handoff = handoff
             priorView(handoff)?.let { context.priorView = it }

@@ -49,6 +49,21 @@ message GolemContext {
   // bubble + the selected row indices — never the row data; Golem resolves the
   // rows server-side from golem_turns history and binds them as drill context.
   optional RowSelection selection = 6;
+  // RV-P5.3 (additive) — the CONVERSATION this turn belongs to, as the BFF knows it.
+  //
+  // RV-17 budgets human-in-the-loop asks per conversation ("one pool"), and golem had no
+  // identifier that outlives a turn: `Caller.correlation_id` is per-turn, `golem_turns` keys
+  // rows by request/user/tenant, and `ResumePayload.threadId` exists in the codec but has
+  // always been written empty (`AnswerService`: "thread is BFF-carried"). Without this field
+  // an ask budget of 1 is really 1-per-turn, i.e. unbounded per conversation — which looks
+  // exactly like a working system.
+  //
+  // Optional on purpose — and `optional` in the proto too, like every other presence-carrying
+  // field on this message: an older BFF sends nothing and golem degrades to the correlation id
+  // with a log line, rather than refusing a turn over a budget-accounting field. Golem still
+  // treats absent and empty alike (`.ifBlank`), because a BFF that sets it to "" has told us
+  // exactly as much as one that omitted it.
+  optional string conversation_id = 7;
 }
 
 // A row-detail reference into a prior turn's displayed table.
